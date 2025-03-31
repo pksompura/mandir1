@@ -109,7 +109,7 @@ const LoginModel = ({
       const errors = {};
       const phoneNumber = removeCountryCode(values.mobile_number);
       if (!phoneNumber) {
-        errors.mobile_number = "Enter phone number";
+        errors.mobile_number = "Enter 10 digit phone number to login";
       } else if (phoneNumber.length !== 10) {
         errors.mobile_number = "Enter 10 digit phone number to login";
       }
@@ -233,7 +233,7 @@ const LoginModel = ({
                   "Verify"
                 )}
               </Button>
-              <div className="text-center text-sm mt-2 mb-2">
+              <div className="text-center text-sm mt-1 mb-2">
                 {sendOtpInSeconds > 0 ? (
                   <span className="text-gray-500">
                     Resend OTP in {sendOtpInSeconds}s
@@ -256,7 +256,7 @@ const LoginModel = ({
               className="w-[50%] md:w-[40%] !mx-auto font-bold"
               sx={{
                 height: "40px",
-                minWidth: "120px",
+                minWidth: "160px",
                 maxWidth: "200px",
                 display: "flex",
                 alignItems: "center",
@@ -265,7 +265,7 @@ const LoginModel = ({
                 color: "#fff",
                 fontWeight: "bold", // Makes text bold
                 "&:hover": { backgroundColor: "#b84c32" },
-                marginTop: "-8px",
+                // marginTop: "-2px",
               }}
             >
               {sendOtpLoading ? (
@@ -305,22 +305,38 @@ const LoginModel = ({
 
 export default LoginModel;
 
-const CapturePhoneNumber = ({ form }) => (
-  <div className="w-full relative rounded-full">
-    <PhoneInput
-      defaultCountry="IN"
-      value={form.values?.mobile_number}
-      onChange={(value) => form.setFieldValue("mobile_number", value)}
-      className="w-[70vw] md:w-[400px]"
-      placeholder="Phone Number"
-    />
-    {form.errors.mobile_number && (
-      <div className="absolute text-red-500 text-xs mt-1 ml-12">
-        {form.errors.mobile_number}
+const CapturePhoneNumber = ({ form }) => {
+  return (
+    <div className="w-full md:w-[250px] lg:w-[300px] relative px-2">
+      <div className="flex items-center border border-gray-300 rounded-md px-4 py-2">
+        {/* +91 Country Code */}
+        <span className="text-gray-500 font-medium pr-1">+91</span>
+        <div className="h-5 w-[1px] bg-gray-300"></div> {/* Vertical Border */}
+        {/* Phone Number Input */}
+        <input
+          type="tel"
+          value={form.values?.mobile_number}
+          onChange={(e) => {
+            const inputValue = e.target.value.replace(/\D/g, ""); // Remove non-numeric characters
+            if (inputValue.length <= 10) {
+              form.setFieldValue("mobile_number", inputValue);
+            }
+          }}
+          className="w-full pl-2 outline-none bg-transparent"
+          placeholder="Enter 10-digit mobile number"
+          maxLength={10}
+        />
       </div>
-    )}
-  </div>
-);
+
+      {/* Error Message Below */}
+      {form.errors.mobile_number && (
+        <div className="absolute text-red-500 text-xs mt-1">
+          {form.errors.mobile_number}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const CaptureOtp = ({ form, backendError }) => (
   <div className="w-full relative flex flex-col items-center">
