@@ -46,13 +46,12 @@ const DonorModal = ({
   const handleViewMore = () => {
     setVisibleDonations((prev) => prev + 5);
   };
-
   return isModalOpen ? (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75 z-50">
+    <div className="absolute top-1 right-40 left-30 flex items-center justify-start bg-gray-800 bg-opacity-50 z-50 w-full h-full">
       {/* Modal Box */}
       <div
         ref={modalRef}
-        className="bg-white md:px-6 px-3 md:pt-5 pt-2 md:pb-6 pb-2 rounded-lg shadow-lg max-w-3xl w-full relative"
+        className="w-full sm:w-[400px] md:w-[450px] lg:w-[500px] xl:w-[550px] bg-white p-6 rounded-lg border border-gray-200 shadow-lg"
       >
         {/* Close Button */}
         <button

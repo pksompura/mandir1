@@ -116,6 +116,35 @@ const CampaignPage = () => {
 
   const [visibleDonations, setVisibleDonations] = useState(10);
 
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    // Listen for profile dropdown changes
+    const handleProfileDropdownChange = (event) => {
+      setIsProfileDropdownOpen(event.detail);
+    };
+
+    window.addEventListener(
+      "profileDropdownChange",
+      handleProfileDropdownChange
+    );
+
+    return () => {
+      window.removeEventListener(
+        "profileDropdownChange",
+        handleProfileDropdownChange
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isProfileDropdownOpen) {
+      setShowNav(false); // Hide nav menu when profile is open
+    } else {
+      setShowNav(true); // Show nav menu when profile is closed
+    }
+  }, [isProfileDropdownOpen]);
+
   const handleViewMore = () => {
     setVisibleDonations((prev) => prev + 10); // Load 10 more each time
   };
@@ -571,7 +600,7 @@ const CampaignPage = () => {
           </div>
 
           {/* Mobile Nav Tabs shown only after scrolling */}
-          {showNav && (
+          {showNav && !isProfileDropdownOpen && (
             <div className="md:hidden fixed top-16 left-4 right-4 mx-auto bg-white rounded-md	 shadow-md flex justify-around py-2 z-50 border border-gray-200 transition duration-300">
               <button
                 onClick={() => scrollToSection(storyRef)}

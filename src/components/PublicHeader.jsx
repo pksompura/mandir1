@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { HiUserCircle, HiOutlineLogout, HiMenu, HiX } from "react-icons/hi";
 import { IoIosArrowDown } from "react-icons/io";
@@ -12,6 +12,9 @@ import { useLazyGetUserProfileQuery } from "../redux/services/campaignApi";
 import { useDispatch, useSelector } from "react-redux";
 import { setUserData } from "../redux/slices/userSlice";
 import Swal from "sweetalert2";
+import { MdOutlineCampaign } from "react-icons/md";
+import { RiQuestionnaireLine } from "react-icons/ri"; // FAQ
+
 const PublicHeader = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isCampaignModalOpen, setIsCampaignModalOpen] = useState(false);
@@ -21,6 +24,38 @@ const PublicHeader = () => {
   const [fetchData, { data }] = useLazyGetUserProfileQuery();
   const user = useSelector((state) => state.user.userData);
   const dispatch = useDispatch();
+  const dropdownRef = useRef(null); // Reference for dropdown
+
+  const toggleDropdown = (event) => {
+    event.stopPropagation(); // Prevents immediate closing after opening
+    setIsProfileDropdownOpen((prev) => {
+      const newState = !prev;
+
+      // Dispatch event to notify CampaignPage
+      window.dispatchEvent(
+        new CustomEvent("profileDropdownChange", { detail: newState })
+      );
+
+      return newState;
+    });
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsProfileDropdownOpen(false);
+        window.dispatchEvent(
+          new CustomEvent("profileDropdownChange", { detail: false })
+        );
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     if (localStorage.getItem("authToken")) {
@@ -111,7 +146,7 @@ const PublicHeader = () => {
                   <a
                     // key={link.name}
                     href={link.path}
-                    className="text-gray-700 hover:text-blue-600 font-medium"
+                    className="text-[#545454] hover:text-[#7b7a7a] font-medium"
                   >
                     {link.name}
                   </a>
@@ -121,24 +156,40 @@ const PublicHeader = () => {
                 <div
                   className="relative  "
                   onMouseLeave={() => setIsProfileDropdownOpen(false)}
+                  ref={dropdownRef}
                 >
                   <button
-                    onClick={() =>
-                      setIsProfileDropdownOpen(!isProfileDropdownOpen)
-                    }
+                    onClick={toggleDropdown}
                     className="flex items-center space-x-1 focus:outline-none"
                   >
                     <HiUserCircle className="w-6 h-6 text-gray-700" />
                     <IoIosArrowDown className="w-4 h-4 text-gray-700" />
                   </button>
                   {isProfileDropdownOpen && (
-                    <div className="absolute right-0  w-40 bg-white border rounded-md shadow-lg py-2 ">
+                    <div className="absolute right-0 w-48 bg-white border rounded-md shadow-lg py-2">
+                      <div className="md:hidden">
+                        <Link
+                          to="/explore-campaign"
+                          className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        >
+                          <MdOutlineCampaign className="w-4 h-4 mr-2" />
+                          Explore Campaign
+                        </Link>
+                        <Link
+                          to="/faq"
+                          className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        >
+                          <RiQuestionnaireLine className="w-4 h-4 mr-2" />
+                          FAQ
+                        </Link>
+                        <hr className="my-1" />
+                      </div>
                       <Link
                         to="/profile"
                         className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition duration-150"
                       >
                         <FiUser className="w-4 h-4 mr-2" />
-                        Profile
+                        Account
                       </Link>
                       <button
                         onClick={() => {
@@ -174,7 +225,7 @@ const PublicHeader = () => {
               )}
 
               {/* Mobile Menu Button */}
-              <div className="md:hidden">
+              {/* <div className="md:hidden">
                 <button
                   onClick={() => setIsMobileMenuOpen(true)}
                   className="text-gray-700 focus:outline-none"
@@ -184,10 +235,10 @@ const PublicHeader = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
+              {/* Mobile Menu */}
+              {/* {isMobileMenuOpen && (
           <div className="fixed inset-0 z-40">
             <div
               className="fixed inset-0 bg-black opacity-50"
@@ -215,8 +266,8 @@ const PublicHeader = () => {
                   >
                     {link.name}
                   </Link>
-                ))}
-                {/* <button
+                ))} */}
+              {/* <button
                   onClick={() => {
                     setIsCampaignModalOpen(true);
                     setIsMobileMenuOpen(false);
@@ -227,15 +278,15 @@ const PublicHeader = () => {
                   Start a Campaign
                    </a>
                 </button> */}
-                {user?.mobile_number ? (
+              {/* {user?.mobile_number ? (
                   <>
                     <Link
                       to="/profile"
                       className="flex items-center text-gray-700 hover:text-blue-600 font-medium"
                       onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      {/* <FiUser className="w-5 h-5 mr-2" /> */}
-                      Profile
+                    > */}
+              {/* <FiUser className="w-5 h-5 mr-2" /> */}
+              {/* Profile
                     </Link>
                     <button
                       onClick={() => {
@@ -243,9 +294,9 @@ const PublicHeader = () => {
                         setIsMobileMenuOpen(false);
                       }}
                       className="flex items-center text-gray-700 hover:text-blue-600 font-medium"
-                    >
-                      {/* <HiOutlineLogout className="w-5 h-5 mr-2" /> */}
-                      Logout
+                    > */}
+              {/* <HiOutlineLogout className="w-5 h-5 mr-2" /> */}
+              {/* Logout
                     </button>
                   </>
                 ) : (
@@ -258,11 +309,12 @@ const PublicHeader = () => {
                   >
                     Login
                   </button>
-                )}
-              </nav>
+                )} 
+              {/* </nav> */}
             </div>
           </div>
-        )}
+        </div>
+        {/* )} */}
       </header>
 
       {/* Modals */}
