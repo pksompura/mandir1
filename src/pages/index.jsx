@@ -14,6 +14,7 @@ import Testimonials from "../components/Testimonial";
 import "swiper/css";
 import "swiper/css/pagination";
 import { FaRegArrowAltCircleRight } from "react-icons/fa";
+import { data } from "autoprefixer";
 
 const HeroSlider = () => {
   const [open, setOpen] = useState(false);
@@ -27,7 +28,6 @@ const HeroSlider = () => {
       paginationRef.current.classList.add("custom-swiper-pagination");
     }
   }, [paginationRef]);
-
   return (
     <section>
       <HeroSection />
@@ -133,7 +133,7 @@ const HeroSlider = () => {
                             <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
                               {/* ₹ {data?.raised_amount?.$numberDecimal || "0"} */}
 
-                              {/* <div
+                              <div
                                 className="bg-orange-500 h-2.5 rounded-full"
                                 style={{
                                   width: `${Math.round(
@@ -146,7 +146,7 @@ const HeroSlider = () => {
                                       100 || 0
                                   )}%`,
                                 }}
-                              ></div> */}
+                              ></div>
                             </div>
                             <div className="flex justify-between items-center text-sm text-gray-600 my-1">
                               <span>

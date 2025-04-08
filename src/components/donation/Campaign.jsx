@@ -10,11 +10,9 @@ import { useParams } from "react-router-dom";
 import "swiper/css";
 import DonationForm from "./DonationForm";
 import DonorModal from "./DonorModal"; // Import the modal
-
 import { useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 // import c from "dayjs";
-
 // import 'swiper/css/navigation';
 import "swiper/css/pagination";
 import FAQ from "../FAQAccordian";
@@ -88,7 +86,6 @@ const labelStyles = {
   "First Donation": "bg-green-200 text-grey-100",
   "Top Donation": "bg-blue-200 text-grey-100",
 };
-
 const CampaignPage = () => {
   // const [currentSlide, setCurrentSlide] = useState(1);
   const [donationuser, setDonationuser] = useState();
@@ -96,7 +93,7 @@ const CampaignPage = () => {
   const [get, { data, error, isLoading }] = useLazyGetCampaignQuery();
 
   // const [donationCampaign, setDonationCampaign] =
-  // useGetCampaignDonationsQuery();
+  //   useGetCampaignDonationsQuery();
   const [images, setImages] = useState([]);
   const [campaign, setCampaign] = useState();
   const [isShareModalVisible, setIsShareModalVisible] = useState(false);
@@ -110,6 +107,7 @@ const CampaignPage = () => {
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
   const [shouldTriggerDonation, setShouldTriggerDonation] = useState(false);
   const [isDonation, setIsDonation] = useState(true);
+  console.log(campaign?._id);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("top");
@@ -118,6 +116,16 @@ const CampaignPage = () => {
 
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
+  const {
+    data: donationData,
+    error: donationError,
+    isLoading: donationLoading,
+  } = useGetCampaignDonationsQuery({
+    campaignId: campaign?._id,
+    filter: "all", // optional, defaults to "all" if not passed
+  });
+
+  console.log(donationData, donationError, campaign?._id);
   useEffect(() => {
     // Listen for profile dropdown changes
     const handleProfileDropdownChange = (event) => {
@@ -445,8 +453,8 @@ const CampaignPage = () => {
                   <span>Goal ₹{target}</span>
                   <span>
                     {Math.round(
-                      (Math.round(data?.raised_amount?.$numberDecimal) /
-                        Math.round(data?.target?.$numberDecimal)) *
+                      (Math.round(campaign?.raised_amount?.$numberDecimal) /
+                        Math.round(campaign?.target_amount?.$numberDecimal)) *
                         100
                     ) || 0}
                     %
@@ -457,8 +465,8 @@ const CampaignPage = () => {
                     className="bg-orange-500 h-2.5 rounded-full"
                     style={{
                       width: `${Math.round(
-                        (Math.round(data?.raised_amount?.$numberDecimal) /
-                          Math.round(data?.target_amount?.$numberDecimal)) *
+                        (Math.round(campaign?.raised_amount?.$numberDecimal) /
+                          Math.round(campaign?.target_amount?.$numberDecimal)) *
                           100 || 0
                       )}%`,
                     }}
@@ -701,8 +709,8 @@ const CampaignPage = () => {
                     <span>Goal ₹{target}</span>
                     <span>
                       {Math.round(
-                        (Math.round(data?.raised_amount?.$numberDecimal) /
-                          Math.round(data?.target?.$numberDecimal)) *
+                        (Math.round(campaign?.raised_amount?.$numberDecimal) /
+                          Math.round(campaign?.target_amount?.$numberDecimal)) *
                           100
                       ) || 0}
                       %
@@ -713,8 +721,10 @@ const CampaignPage = () => {
                       className="bg-orange-500 h-2.5 rounded-full"
                       style={{
                         width: `${Math.round(
-                          (Math.round(data?.raised_amount?.$numberDecimal) /
-                            Math.round(data?.target_amount?.$numberDecimal)) *
+                          (Math.round(campaign?.raised_amount?.$numberDecimal) /
+                            Math.round(
+                              campaign?.target_amount?.$numberDecimal
+                            )) *
                             100 || 0
                         )}%`,
                       }}

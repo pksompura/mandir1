@@ -30,13 +30,19 @@ const DonationCard = ({ campaign }) => {
             </h3>
             <div className="mt-4">
               <div className="flex items-center justify-between text-sm text-gray-600">
+                <div className="flex items-center gap-1">
+                  <h2 className="text-lg font-extrabold text-[#d8573e] animate-pulse">
+                    ₹{campaign?.raised_amount?.$numberDecimal || "0"}{" "}
+                  </h2>
+                  <h4 className="text-gray-600 text-sm">Raised</h4>
+                </div>
                 <span>
                   {Math.round(
-                    (Math.round(campaign?.minimum_amount?.$numberDecimal) /
+                    (Math.round(campaign?.raised_amount?.$numberDecimal) /
                       Math.round(campaign?.target_amount?.$numberDecimal)) *
                       100
-                  )}
-                  % raised of {campaign?.target_amount?.$numberDecimal || 0}
+                  ) || 0}
+                  %
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
@@ -44,14 +50,19 @@ const DonationCard = ({ campaign }) => {
                   className="bg-orange-500 h-2.5 rounded-full"
                   style={{
                     width: `${Math.round(
-                      (Math.round(campaign?.minimum_amount?.$numberDecimal) /
+                      (Math.round(campaign?.raised_amount?.$numberDecimal) /
                         Math.round(campaign?.target_amount?.$numberDecimal)) *
-                        100
+                        100 || 0
                     )}%`,
                   }}
                 ></div>
               </div>
-              <p className="text-sm text-gray-600 my-1">200 Donations</p>
+              <div className="flex justify-between items-center text-sm text-gray-600 my-1">
+                <span>
+                  Goal ₹{campaign?.target_amount.$numberDecimal || "0"}
+                </span>
+                <span>0 Donors</span>
+              </div>
               <hr className="h-2 my-2" />
               <Link to={`/campaign/${campaign?._id}`}>
                 <button className="w-full flex gap-2 items-center justify-center bg-[#d6573d] text-white font-bold py-2 px-4 rounded-full">

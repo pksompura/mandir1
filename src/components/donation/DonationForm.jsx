@@ -63,6 +63,7 @@ const DonationForm = ({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isOtherSelected, setIsOtherSelected] = useState(false);
   const dropdownRef = useRef(null);
+  const [isAnonymous, setIsAnonymous] = useState(false);
 
   // Calculate tip amount
   const tipAmount =
@@ -454,7 +455,7 @@ const DonationForm = ({
         open={open}
         onClose={handleClose}
         aria-labelledby="donation-modal"
-        className="flex justify-center items-center p-4"
+        className="flex justify-center items-center"
       >
         <div className="relative bg-white w-full sm:w-[400px] md:w-[450px] lg:w-[500px] xl:w-[550px] p-6 rounded-lg shadow-lg flex flex-col justify-between min-h-[250px]">
           {/* Close Button */}
@@ -740,6 +741,20 @@ const DonationForm = ({
               </p>
             )}
           </div>
+          {/* ✅ Anonymous Option (Responsive) */}
+          <div className="flex flex-wrap items-center mt-4">
+            <input
+              type="checkbox"
+              id="donateAnonymous"
+              className="w-3 h-3 text-[#8d7f24] border-gray-300 rounded focus:ring-[#8d7f24]"
+              checked={isAnonymous}
+              onChange={() => setIsAnonymous(!isAnonymous)}
+            />
+            <label htmlFor="donateAnonymous" className="text-sm ml-2">
+              Donate Anonymously
+            </label>
+          </div>
+
           <div className="flex items-start mt-4">
             <input
               type="checkbox"

@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import { Modal } from "antd";
+import React, { useState, useEffect } from "react";
 import { CiUser } from "react-icons/ci";
+import { motion, AnimatePresence } from "framer-motion";
 
 const DonorModal = ({
   isModalOpen,
@@ -9,25 +11,6 @@ const DonorModal = ({
   topDonations,
   allDonations,
 }) => {
-  const modalRef = useRef(null);
-
-  // Close modal when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (modalRef.current && !modalRef.current.contains(event.target)) {
-        setIsModalOpen(false);
-      }
-    };
-
-    if (isModalOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isModalOpen]);
-
   const initialVisible = 5;
   const [visibleDonations, setVisibleDonations] = useState(initialVisible);
 
@@ -46,84 +29,109 @@ const DonorModal = ({
   const handleViewMore = () => {
     setVisibleDonations((prev) => prev + 5);
   };
-  return isModalOpen ? (
-    <div className="absolute top-1 right-40 left-30 flex items-center justify-start bg-gray-800 bg-opacity-50 z-50 w-full h-full">
-      {/* Modal Box */}
-      <div
-        ref={modalRef}
-        className="w-full sm:w-[400px] md:w-[450px] lg:w-[500px] xl:w-[550px] bg-white p-6 rounded-lg border border-gray-200 shadow-lg"
-      >
-        {/* Close Button */}
-        <button
-          onClick={() => setIsModalOpen(false)}
-          className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
-        >
-          ✖
-        </button>
 
-        <div className="w-full">
-          {/* Tab Buttons */}
-          <div className="flex space-x-4 mb-4">
+  return (
+    <Modal
+      open={isModalOpen}
+      onCancel={() => setIsModalOpen(false)}
+      footer={null}
+      closable={false}
+      centered
+      maskClosable={true}
+      destroyOnClose
+      className="custom-donor-modal"
+      width="100%" // Full width control
+      style={{ maxWidth: "600px", margin: "0 auto" }} // Limit modal size on large screens
+    >
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+            className="p-4 sm:p-6"
+          >
+            {/* Close Button */}
             <button
-              className={`px-4 py-2 rounded-md ${
-                activeTab === "top" ? "bg-blue-600 text-white" : "bg-gray-200"
-              }`}
-              onClick={() => setActiveTab("top")}
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-2 right-2 text-gray-600 hover:text-black text-xl"
             >
-              Top Donations
+              ✖
             </button>
-            <button
-              className={`px-4 py-2 rounded-md ${
-                activeTab === "all" ? "bg-blue-600 text-white" : "bg-gray-200"
-              }`}
-              onClick={() => setActiveTab("all")}
-            >
-              All Donations
-            </button>
-          </div>
 
-          {/* Donation List */}
-          <ul className="space-y-2 max-h-64 overflow-y-auto">
-            {displayedDonations.map((donation) => (
-              <li
-                key={donation.id}
-                className="p-2 border-b flex items-center space-x-3"
+            {/* Tabs */}
+            <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0 mt-4 mb-4 justify-center">
+              <button
+                className={`px-4 py-2 rounded-full transition font-semibold text-sm sm:text-base ${
+                  activeTab === "top"
+                    ? "bg-[#545454] text-white"
+                    : "bg-gray-200 hover:bg-gray-300 text-black"
+                }`}
+                onClick={() => setActiveTab("top")}
               >
-                <div className="bg-gray-300 text-white w-10 h-10 flex justify-center items-center rounded-full shadow-md overflow-hidden">
-                  {donation.avatar ? (
-                    <img
-                      src={donation.avatar}
-                      className="w-full h-full object-cover rounded-full"
-                    />
-                  ) : (
-                    <CiUser className="text-gray-600 w-6 h-6" />
-                  )}
-                </div>
+                Top Donations
+              </button>
+              <button
+                className={`px-4 py-2 rounded-full transition font-semibold text-sm sm:text-base ${
+                  activeTab === "all"
+                    ? "bg-[#545454] text-white"
+                    : "bg-gray-200 hover:bg-gray-300 text-black"
+                }`}
+                onClick={() => setActiveTab("all")}
+              >
+                All Donations
+              </button>
+            </div>
 
-                <div>
-                  <span className="font-bold">{donation.name}</span> - ₹
-                  {donation.amount}
-                  <p className="text-xs text-gray-500">
-                    {new Date(donation.date).toLocaleDateString()}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
+            {/* Donation List */}
+            <ul className="space-y-3 max-h-64 overflow-y-auto px-1 sm:px-2">
+              {displayedDonations.map((donation) => (
+                <motion.li
+                  key={donation.id}
+                  className="flex items-center space-x-3 p-2 sm:p-3 bg-gray-50 rounded-md shadow-sm border"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="bg-gray-300 text-white w-10 h-10 flex justify-center items-center rounded-full shadow-md overflow-hidden">
+                    {donation.avatar ? (
+                      <img
+                        src={donation.avatar}
+                        className="w-full h-full object-cover"
+                        alt="avatar"
+                      />
+                    ) : (
+                      <CiUser className="text-gray-600 w-6 h-6" />
+                    )}
+                  </div>
+                  <div className="text-sm sm:text-base">
+                    <span className="font-semibold">{donation.name}</span>{" "}
+                    <span className="text-gray-700">- ₹{donation.amount}</span>
+                    <p className="text-xs text-gray-500">
+                      {new Date(donation.date).toLocaleDateString()}
+                    </p>
+                  </div>
+                </motion.li>
+              ))}
+            </ul>
 
-          {/* View More Button */}
-          {visibleDonations < totalDonations && (
-            <button
-              onClick={handleViewMore}
-              className="w-full bg-gray-200 text-gray-800 py-2 rounded-md mt-4 hover:bg-gray-300 transition"
-            >
-              View More
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  ) : null;
+            {/* View More */}
+            {visibleDonations < totalDonations && (
+              <div className="mt-4 text-center">
+                <button
+                  onClick={handleViewMore}
+                  className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 font-medium text-sm sm:text-base"
+                >
+                  View More
+                </button>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Modal>
+  );
 };
 
 export default DonorModal;
