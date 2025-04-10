@@ -22,7 +22,6 @@ const HeroSlider = () => {
   const handleClose = () => setOpen(false);
   const paginationRef = useRef(null);
   const { data: campaigns } = useGetAllCampaignQuery();
-
   useEffect(() => {
     if (paginationRef.current) {
       paginationRef.current.classList.add("custom-swiper-pagination");
@@ -153,7 +152,7 @@ const HeroSlider = () => {
                                 Goal ₹
                                 {data?.target_amount.$numberDecimal || "0"}
                               </span>
-                              <span>0 Donors</span>
+                              <span>{data?.donors}Donors</span>
                             </div>
 
                             <hr className="h-2 my-2" />

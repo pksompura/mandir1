@@ -96,6 +96,7 @@ const CampaignPage = () => {
   //   useGetCampaignDonationsQuery();
   const [images, setImages] = useState([]);
   const [campaign, setCampaign] = useState();
+
   const [isShareModalVisible, setIsShareModalVisible] = useState(false);
   const target = parseFloat(campaign?.target_amount?.$numberDecimal) || 10000;
   const initial = parseFloat(campaign?.raised_amount?.$numberDecimal) || 0;
@@ -107,7 +108,6 @@ const CampaignPage = () => {
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
   const [shouldTriggerDonation, setShouldTriggerDonation] = useState(false);
   const [isDonation, setIsDonation] = useState(true);
-  console.log(campaign?._id);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("top");
@@ -115,17 +115,14 @@ const CampaignPage = () => {
   const [visibleDonations, setVisibleDonations] = useState(10);
 
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  // const {
+  //   data: donationData,
+  //   error: donationError,
+  //   isLoading: donationLoading,
+  // } = useGetCampaignDonationsQuery(campaign?._id); // 👈 just pass campaign ID directly
 
-  const {
-    data: donationData,
-    error: donationError,
-    isLoading: donationLoading,
-  } = useGetCampaignDonationsQuery({
-    campaignId: campaign?._id,
-    filter: "all", // optional, defaults to "all" if not passed
-  });
+  // console.log("Filtered Donations:", donationData, campaign?._id);
 
-  console.log(donationData, donationError, campaign?._id);
   useEffect(() => {
     // Listen for profile dropdown changes
     const handleProfileDropdownChange = (event) => {
@@ -243,6 +240,7 @@ const CampaignPage = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
   const shareCampaign = () => {
     const campaignUrl = window.location.href; // Current page URL
     const campaignTitle = campaign?.campaign_title || "Campaign Title";
@@ -474,7 +472,7 @@ const CampaignPage = () => {
                 </div>
                 <div className="flex justify-between items-center text-sm text-gray-600 my-1">
                   {/* <span>200 Donations</span> */}
-                  <span>0 Donors</span>
+                  <span>{data?.data?.donors?.length} Donors</span>
                 </div>
               </div>
             </div>
@@ -732,7 +730,7 @@ const CampaignPage = () => {
                   </div>
                   <div className="flex justify-between items-center text-sm text-gray-600 my-1">
                     {/* <span>200 Donations</span> */}
-                    <span>0 Donors</span>
+                    <span>{data?.data?.donors?.length} Donors</span>
                   </div>
                 </div>
               </div>

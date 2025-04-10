@@ -64,6 +64,8 @@ const DonationForm = ({
   const [isOtherSelected, setIsOtherSelected] = useState(false);
   const dropdownRef = useRef(null);
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [showLoader, setShowLoader] = useState(false);
+  const [showThankYouModal, setShowThankYouModal] = useState(false);
 
   // Calculate tip amount
   const tipAmount =
@@ -245,6 +247,7 @@ const DonationForm = ({
       setInfoErrors(errors);
       return;
     }
+
     console.log("userdate:", userData, "Donation:", donationuser);
     try {
       // ✅ If user is new, update details before proceeding
@@ -335,18 +338,18 @@ const DonationForm = ({
     let value = e.target.value;
 
     // Allow empty input
-    if (value === "") {
-      setDonationAmount("");
+    if (value.trim() === "") {
+      setDonationAmount(0); // show ₹ 0 in input
       setPercent(0);
       setError("Please enter donation amount");
       return;
     }
 
-    // Remove non-numeric characters
-    const numericValue = parseInt(value.replace(/\D/g, ""));
+    // Remove non-numeric characters and parse to number
+    const numericValue = parseInt(value.replace(/\D/g, ""), 10);
 
     if (isNaN(numericValue)) {
-      setDonationAmount("");
+      setDonationAmount(0);
       setPercent(0);
       setError("Please enter donation amount");
       return;
@@ -357,7 +360,7 @@ const DonationForm = ({
       setPercent((numericValue / target) * 100);
       setError(`Minimum donation amount is INR ${minAmount}`);
     } else {
-      const clampedValue = numericValue > target ? target : numericValue;
+      const clampedValue = Math.min(numericValue, target);
       setDonationAmount(clampedValue);
       setPercent((clampedValue / target) * 100);
       setError("");
@@ -411,6 +414,14 @@ const DonationForm = ({
             }, 2000);
           } else {
             message.error("Payment verification failed.");
+            setShowLoader(true);
+            setIsDonationModalVisible(false);
+
+            // // ✅ 2. Wait for 2 seconds (simulate loading)
+            // setTimeout(() => {
+            //   setShowLoader(false);
+            //   setShowThankYouModal(true);
+            // }, 2000);
           }
         } catch (error) {
           message.error(error.data?.error || "Payment verification failed.");
@@ -581,7 +592,7 @@ const DonationForm = ({
                 error ? "border-red-500" : ""
               }`}
               placeholder="Other amount - ₹5 & more"
-              value={donationAmount ? `₹ ${donationAmount}` : ""}
+              value={`₹ ${donationAmount || 0}`}
               onChange={handleInputChange}
             />
 
@@ -794,6 +805,18 @@ const DonationForm = ({
           </button>
         </div>
       </Modal>
+      {showLoader && (
+        <div className="loader-overlay">
+          <div className="spinner"></div>
+        </div>
+      )}
+      {showThankYouModal && (
+        <ThanksModal
+          donorName={donationuser.full_name}
+          amount={calculateTotal()}
+          onClose={() => setShowThankYouModal(false)}
+        />
+      )}
 
       {/* OTP Modal */}
       <Modal

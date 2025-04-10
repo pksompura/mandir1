@@ -129,8 +129,9 @@ export const campaignApi = createApi({
       }),
     }),
     getCampaignDonations: builder.query({
-      query: ({ campaignId, filter = "all" }) => ({
-        url: `/donation_campaign/${campaignId}/donors/${filter}`, // Include campaignId in the URL
+      query: (campaignId) => ({
+        url: `/donation_campaign/donors/${campaignId}`,
+        method: "GET",
       }),
       providesTags: ["donations"],
     }),

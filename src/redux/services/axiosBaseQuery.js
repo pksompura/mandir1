@@ -4,18 +4,17 @@ import { setAccessToken } from "../slices/authSlice";
 const axiosInstance = axios.create({
   baseURL: `https://devaseva.onrender.com/api`,
   // http://localhost:5001
-  // baseURL: `http://localhost:5001/api`,    
+  // baseURL: `http://localhost:5001/api`,
   headers: {
     accept: `application/json`,
-  }
+  },
 });
-
 
 const setUpInterceptors = (getState, dispatch) => {
   axiosInstance.interceptors.request.use(
     (config) => {
-      const token = localStorage.getItem("authToken")
-      if (token ) {
+      const token = localStorage.getItem("authToken");
+      if (token) {
         config.headers["Authorization"] = `Bearer ${token}`;
       }
       return config;
