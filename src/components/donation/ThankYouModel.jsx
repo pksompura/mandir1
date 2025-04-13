@@ -1,7 +1,7 @@
 import React from "react";
 import { X } from "lucide-react";
 
-const ThankYouModal = ({ donorName, amount, onClose }) => {
+const ThankYouModal = ({ donorName, amount, onClose, campaign_title }) => {
   const shareText = `Hey! ${donorName} just donated ₹${amount} to support a good cause via Giveaze Foundation. You can too! ❤️ Visit: https://giveaze.com`;
 
   const handleWhatsAppShare = () => {
@@ -11,8 +11,8 @@ const ThankYouModal = ({ donorName, amount, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl p-6 w-[90%] max-w-md shadow-xl relative">
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999]">
+      <div className="bg-white rounded-2xl md:p-6 p-2 w-[90%] max-w-md shadow-xl relative">
         {/* Close Button */}
         <button
           className="absolute top-3 right-3 text-gray-600"
@@ -24,9 +24,9 @@ const ThankYouModal = ({ donorName, amount, onClose }) => {
         {/* Image */}
         <div className="flex justify-center mb-4">
           <img
-            src="https://i.imgur.com/PejYGLR.png"
+            src="/giveaze2.png"
             alt="Thank You"
-            className="w-24"
+            className="w-24 max-h-24 object-contain" // Adjust image size
           />
         </div>
 
@@ -35,11 +35,10 @@ const ThankYouModal = ({ donorName, amount, onClose }) => {
           Hey {donorName}, you're awesome! 🎉
         </h2>
         <p className="text-center text-gray-700">
+          <br />
           Thank you for donating <strong>₹{amount}</strong> towards <br />
-          <span className="font-semibold">
-            Sponsor Education & Food of Children in India
-          </span>
-          .
+          <br />
+          <span className="font-semibold">{campaign_title}</span>.
         </p>
 
         <p className="text-center text-sm mt-4 text-gray-500">

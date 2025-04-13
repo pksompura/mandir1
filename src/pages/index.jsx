@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { useGetAllCampaignQuery } from "../redux/services/campaignApi";
+import {
+  useGetAllCampaignQuery,
+  useLazyGetCampaignQuery,
+} from "../redux/services/campaignApi";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import { Button, Tooltip } from "@mui/material";
@@ -22,6 +25,38 @@ const HeroSlider = () => {
   const handleClose = () => setOpen(false);
   const paginationRef = useRef(null);
   const { data: campaigns } = useGetAllCampaignQuery();
+  const [triggerGetCampaign] = useLazyGetCampaignQuery();
+
+  const [donorsMap, setDonorsMap] = useState({});
+
+  useEffect(() => {
+    const fetchDonorCounts = async () => {
+      if (!campaigns?.campaigns?.length) return;
+
+      const promises = campaigns.campaigns.map(async (campaign) => {
+        try {
+          const res = await triggerGetCampaign(campaign._id).unwrap();
+          const donors = res?.data?.donors || [];
+          return { id: campaign._id, donorCount: donors.length };
+        } catch (err) {
+          console.error(`❌ Error fetching donors for ${campaign._id}:`, err);
+          return { id: campaign._id, donorCount: 0 };
+        }
+      });
+
+      const results = await Promise.all(promises);
+
+      const newMap = {};
+      results.forEach(({ id, donorCount }) => {
+        newMap[id] = donorCount;
+      });
+
+      setDonorsMap(newMap);
+    };
+
+    fetchDonorCounts();
+  }, [campaigns]);
+
   useEffect(() => {
     if (paginationRef.current) {
       paginationRef.current.classList.add("custom-swiper-pagination");
@@ -129,13 +164,14 @@ const HeroSlider = () => {
                                 %
                               </span>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                            <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2 overflow-hidden">
                               {/* ₹ {data?.raised_amount?.$numberDecimal || "0"} */}
 
                               <div
-                                className="bg-orange-500 h-2.5 rounded-full"
+                                className="bg-orange-500 h-2.5 rounded-full transition-all duration-300 ease-in-out"
                                 style={{
-                                  width: `${Math.round(
+                                  width: `${Math.min(
+                                    100,
                                     (Math.round(
                                       data?.raised_amount?.$numberDecimal
                                     ) /
@@ -152,7 +188,7 @@ const HeroSlider = () => {
                                 Goal ₹
                                 {data?.target_amount.$numberDecimal || "0"}
                               </span>
-                              <span>{data?.donors}Donors</span>
+                              <span>{donorsMap[data?._id] || 0} Donors</span>
                             </div>
 
                             <hr className="h-2 my-2" />

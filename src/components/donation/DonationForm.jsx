@@ -13,6 +13,9 @@ import {
   useCreateOrderMutation,
   useVerifyPaymentMutation,
 } from "../../redux/services/transactionApi";
+import { Spin } from "antd";
+import ThankYouModal from "./ThankYouModel";
+import { flushSync } from "react-dom";
 
 const DonationForm = ({
   open,
@@ -20,6 +23,7 @@ const DonationForm = ({
   setIsDonationModalVisible,
   donation_campaign_id,
   donationuser,
+  campaign_title,
 }) => {
   const [loginUser] = useLoginUserMutation(); // Login mutation
   const [verifyOtp] = useVerifyOtpMutation(); // OTP verification mutation
@@ -382,6 +386,9 @@ const DonationForm = ({
   //     setDonationAmount(value);
   //   }
   // };
+  const handleCloseThankYouModal = () => {
+    setShowThankYouModal(false);
+  };
 
   const triggerRazorpay = (orderData, donationId) => {
     const options = {
@@ -392,11 +399,11 @@ const DonationForm = ({
       description: "Donation Payment",
       order_id: orderData.id, // Razorpay Order ID
       handler: async function (response) {
-        console.log(response);
+        setShowLoader(true); // 🔄 Show loader while verifying
         try {
           // 3️⃣ Verify payment with backend
           const verifyResponse = await verifyPayment({
-            razorpay_order_id: response.razorpay_order_id,
+            transaction_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
             donation_campaign_id: donation_campaign_id,
@@ -406,24 +413,22 @@ const DonationForm = ({
             email: donationuser.email,
           }).unwrap();
           console.log(verifyResponse);
-          if (verifyResponse.success) {
-            message.success("Payment successful! Thank you for your donation.");
-            setIsDonationModalVisible(false);
+          if (verifyResponse.status) {
             setTimeout(() => {
-              window.location.reload();
-            }, 2000);
+              setShowLoader(false);
+              setIsDonationModalVisible(false);
+              message.success(
+                "Payment successful! Thank you for your donation."
+              );
+            }, 10000);
+            setShowThankYouModal(true);
           } else {
+            setShowLoader(false);
             message.error("Payment verification failed.");
-            setShowLoader(true);
             setIsDonationModalVisible(false);
-
-            // // ✅ 2. Wait for 2 seconds (simulate loading)
-            // setTimeout(() => {
-            //   setShowLoader(false);
-            //   setShowThankYouModal(true);
-            // }, 2000);
           }
         } catch (error) {
+          setShowLoader(false);
           message.error(error.data?.error || "Payment verification failed.");
         }
       },
@@ -440,6 +445,7 @@ const DonationForm = ({
 
     razorpayInstance.open();
   };
+
   const handleResendOtp = async () => {
     try {
       const response = await loginUser({
@@ -461,6 +467,39 @@ const DonationForm = ({
 
   return (
     <div>
+      {showLoader && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(255, 255, 255, 0.85)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
+          }}
+        >
+          <Spin
+            size="large"
+            tip="Finalizing your donation..."
+            style={{ fontSize: 18 }}
+          />
+        </div>
+      )}
+
+      {/* Thank You Modal */}
+      {showThankYouModal && (
+        <ThankYouModal
+          donorName={donationuser.full_name}
+          amount={calculateTotal()}
+          onClose={handleCloseThankYouModal}
+          campaign_title={campaign_title}
+        />
+      )}
+
       {/* Donation Modal */}
       <Modal
         open={open}
@@ -805,18 +844,6 @@ const DonationForm = ({
           </button>
         </div>
       </Modal>
-      {showLoader && (
-        <div className="loader-overlay">
-          <div className="spinner"></div>
-        </div>
-      )}
-      {showThankYouModal && (
-        <ThanksModal
-          donorName={donationuser.full_name}
-          amount={calculateTotal()}
-          onClose={() => setShowThankYouModal(false)}
-        />
-      )}
 
       {/* OTP Modal */}
       <Modal

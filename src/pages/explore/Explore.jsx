@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Pagination } from "antd";
-import { useGetCampaignsByCategoryQuery } from "../../redux/services/campaignApi";
+import {
+  useGetCampaignsByCategoryQuery,
+  useLazyGetCampaignQuery,
+} from "../../redux/services/campaignApi";
 import axios from "axios";
 import debounce from "lodash.debounce";
 import { Link } from "react-router-dom";
 import { CiHeart } from "react-icons/ci";
+import {} from "../../redux/services/campaignApi";
 
-const DonationCard = ({ campaign }) => {
+const DonationCard = ({ campaign, donorCount }) => {
   return (
     <div className="max-w-sm rounded-lg shadow-lg mx-auto border border-gray-200">
       <Link to={`/campaign/${campaign?._id}`}>
@@ -45,14 +49,21 @@ const DonationCard = ({ campaign }) => {
                   %
                 </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+              <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2 overflow-hidden">
                 <div
-                  className="bg-orange-500 h-2.5 rounded-full"
+                  className="bg-orange-500 h-2.5 rounded-full transition-all duration-300 ease-in-out"
                   style={{
-                    width: `${Math.round(
-                      (Math.round(campaign?.raised_amount?.$numberDecimal) /
-                        Math.round(campaign?.target_amount?.$numberDecimal)) *
-                        100 || 0
+                    width: `${Math.min(
+                      100,
+                      Math.round(
+                        (Math.round(
+                          campaign?.raised_amount?.$numberDecimal || 0
+                        ) /
+                          Math.round(
+                            campaign?.target_amount?.$numberDecimal || 1
+                          )) *
+                          100
+                      )
                     )}%`,
                   }}
                 ></div>
@@ -61,7 +72,7 @@ const DonationCard = ({ campaign }) => {
                 <span>
                   Goal ₹{campaign?.target_amount.$numberDecimal || "0"}
                 </span>
-                <span>0 Donors</span>
+                <span>{donorCount} Donors</span>
               </div>
               <hr className="h-2 my-2" />
               <Link to={`/campaign/${campaign?._id}`}>
@@ -101,6 +112,7 @@ const CampaignList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [perPage] = useState(10);
+  const [donorsMap, setDonorsMap] = useState({});
 
   // Fetch categories from the server
   const fetchCategories = async () => {
@@ -134,6 +146,44 @@ const CampaignList = () => {
     page,
     perPage,
   });
+
+  // For fetching a single campaign lazily (details on click or route)
+  const [
+    triggerGetCampaign,
+    {
+      data: campaignDetail,
+      isLoading: isCampaignLoading,
+      error: campaignError,
+    },
+  ] = useLazyGetCampaignQuery();
+  
+  useEffect(() => {
+    const fetchAllDonors = async () => {
+      const campaigns = campaignData?.data?.campaigns;
+      if (!campaigns?.length) return;
+
+      const promises = campaigns.map(async (campaign) => {
+        try {
+          const res = await triggerGetCampaign(campaign._id).unwrap();
+          return { id: campaign._id, donors: res?.data?.donors || [] };
+        } catch (err) {
+          console.error(`❌ Error fetching campaign ${campaign._id}:`, err);
+          return { id: campaign._id, donors: [] };
+        }
+      });
+
+      const results = await Promise.all(promises);
+
+      const newMap = {};
+      results.forEach(({ id, donors }) => {
+        newMap[id] = donors;
+      });
+
+      setDonorsMap(newMap);
+    };
+
+    fetchAllDonors();
+  }, [campaignData]);
 
   useEffect(() => {
     // Fetch categories on page load
@@ -215,7 +265,11 @@ const CampaignList = () => {
           Array.from({ length: 3 }).map((_, i) => <CampaignSkeleton key={i} />)
         ) : filteredCampaigns.length > 0 ? (
           filteredCampaigns.map((campaign, index) => (
-            <DonationCard key={index} campaign={campaign} />
+            <DonationCard
+              key={index}
+              campaign={campaign}
+              donorCount={donorsMap[campaign._id]?.length || 0}
+            />
           ))
         ) : (
           <div className="col-span-3 text-center">

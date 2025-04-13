@@ -458,18 +458,26 @@ const CampaignPage = () => {
                     %
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2 overflow-hidden">
                   <div
-                    className="bg-orange-500 h-2.5 rounded-full"
+                    className="bg-orange-500 h-2.5 rounded-full transition-all duration-300 ease-in-out"
                     style={{
-                      width: `${Math.round(
-                        (Math.round(campaign?.raised_amount?.$numberDecimal) /
-                          Math.round(campaign?.target_amount?.$numberDecimal)) *
-                          100 || 0
+                      width: `${Math.min(
+                        100,
+                        Math.round(
+                          (Math.round(
+                            campaign?.raised_amount?.$numberDecimal || 0
+                          ) /
+                            Math.round(
+                              campaign?.target_amount?.$numberDecimal || 1
+                            )) *
+                            100
+                        )
                       )}%`,
                     }}
                   ></div>
                 </div>
+
                 <div className="flex justify-between items-center text-sm text-gray-600 my-1">
                   {/* <span>200 Donations</span> */}
                   <span>{data?.data?.donors?.length} Donors</span>
@@ -714,16 +722,22 @@ const CampaignPage = () => {
                       %
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+
+                  <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2 overflow-hidden">
                     <div
-                      className="bg-orange-500 h-2.5 rounded-full"
+                      className="bg-orange-500 h-2.5 rounded-full transition-all duration-300 ease-in-out"
                       style={{
-                        width: `${Math.round(
-                          (Math.round(campaign?.raised_amount?.$numberDecimal) /
-                            Math.round(
-                              campaign?.target_amount?.$numberDecimal
-                            )) *
-                            100 || 0
+                        width: `${Math.min(
+                          100,
+                          Math.round(
+                            (Math.round(
+                              campaign?.raised_amount?.$numberDecimal || 0
+                            ) /
+                              Math.round(
+                                campaign?.target_amount?.$numberDecimal || 1
+                              )) *
+                              100
+                          )
                         )}%`,
                       }}
                     ></div>
@@ -937,6 +951,7 @@ const CampaignPage = () => {
           handleClose={closeDonationModal}
           setIsDonationModalVisible={setIsDonationModalVisible}
           donation_campaign_id={id}
+          campaign_title={campaign?.campaign_title}
         />
       )}
 
