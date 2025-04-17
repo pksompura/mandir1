@@ -4,6 +4,10 @@ import {
   useGetCampaignsByCategoryQuery,
   useLazyGetCampaignQuery,
 } from "../../redux/services/campaignApi";
+import { useDispatch } from "react-redux";
+
+import { transactionApi } from "../../redux/services/transactionApi";
+
 import axios from "axios";
 import debounce from "lodash.debounce";
 import { Link } from "react-router-dom";
@@ -112,6 +116,8 @@ const CampaignList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [perPage] = useState(10);
+  const dispatch = useDispatch();
+
   const [donorsMap, setDonorsMap] = useState({});
 
   // Fetch categories from the server
@@ -146,7 +152,6 @@ const CampaignList = () => {
     page,
     perPage,
   });
-
   // For fetching a single campaign lazily (details on click or route)
   const [
     triggerGetCampaign,
@@ -156,33 +161,47 @@ const CampaignList = () => {
       error: campaignError,
     },
   ] = useLazyGetCampaignQuery();
-  
+
   useEffect(() => {
-    const fetchAllDonors = async () => {
+    const fetchAllDonorCounts = async () => {
       const campaigns = campaignData?.data?.campaigns;
       if (!campaigns?.length) return;
+      // if (!campaigns?.campaigns?.length) return;
 
-      const promises = campaigns.map(async (campaign) => {
-        try {
-          const res = await triggerGetCampaign(campaign._id).unwrap();
-          return { id: campaign._id, donors: res?.data?.donors || [] };
-        } catch (err) {
-          console.error(`❌ Error fetching campaign ${campaign._id}:`, err);
-          return { id: campaign._id, donors: [] };
-        }
-      });
+      const results = await Promise.all(
+        campaigns.map(async (campaign) => {
+          try {
+            const res = await dispatch(
+              transactionApi.endpoints.getDonationsByCampaign.initiate(
+                campaign?._id
+              )
+            ).unwrap();
+            const donors =
+              res?.filter(
+                (donor) =>
+                  donor.payment_status?.toLowerCase().trim() === "successful"
+              ) || [];
 
-      const results = await Promise.all(promises);
+            return { id: campaign._id, count: donors.length };
+          } catch (error) {
+            console.error(
+              `Error fetching donations for ${campaign._id}:`,
+              error
+            );
+            return { id: campaign._id, count: 0 };
+          }
+        })
+      );
 
       const newMap = {};
-      results.forEach(({ id, donors }) => {
-        newMap[id] = donors;
+      results.forEach(({ id, count }) => {
+        newMap[id] = count;
       });
 
       setDonorsMap(newMap);
     };
 
-    fetchAllDonors();
+    fetchAllDonorCounts();
   }, [campaignData]);
 
   useEffect(() => {
@@ -268,7 +287,7 @@ const CampaignList = () => {
             <DonationCard
               key={index}
               campaign={campaign}
-              donorCount={donorsMap[campaign._id]?.length || 0}
+              donorCount={donorsMap[campaign?._id] || 0}
             />
           ))
         ) : (
