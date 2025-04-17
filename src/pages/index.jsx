@@ -4,6 +4,8 @@ import {
   useGetAllCampaignQuery,
   useLazyGetCampaignQuery,
 } from "../redux/services/campaignApi";
+// import { useGetDonationsByCampaignQuery } from "../../redux/services/transactionApi";
+
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import { Button, Tooltip } from "@mui/material";
@@ -36,6 +38,7 @@ const HeroSlider = () => {
       const promises = campaigns.campaigns.map(async (campaign) => {
         try {
           const res = await triggerGetCampaign(campaign._id).unwrap();
+          console.log(res);
           const donors = res?.data?.donors || [];
           return { id: campaign._id, donorCount: donors.length };
         } catch (err) {
@@ -56,6 +59,7 @@ const HeroSlider = () => {
 
     fetchDonorCounts();
   }, [campaigns]);
+  console.log(donorsMap);
 
   useEffect(() => {
     if (paginationRef.current) {

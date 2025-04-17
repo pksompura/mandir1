@@ -6,6 +6,7 @@ import {
   useLoginUserMutation,
   useGetCampaignDonationsQuery,
 } from "../../redux/services/campaignApi";
+import { useGetDonationsByCampaignQuery } from "../../redux/services/transactionApi";
 import { useParams } from "react-router-dom";
 import "swiper/css";
 import DonationForm from "./DonationForm";
@@ -91,7 +92,6 @@ const CampaignPage = () => {
   const [donationuser, setDonationuser] = useState();
   const { id } = useParams();
   const [get, { data, error, isLoading }] = useLazyGetCampaignQuery();
-  console.log(data);
 
   // const [donationCampaign, setDonationCampaign] =
   //   useGetCampaignDonationsQuery();
@@ -116,13 +116,12 @@ const CampaignPage = () => {
   const [visibleDonations, setVisibleDonations] = useState(10);
 
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  // const {
-  //   data: donationData,
-  //   error: donationError,
-  //   isLoading: donationLoading,
-  // } = useGetCampaignDonationsQuery(campaign?._id); // 👈 just pass campaign ID directly
+  const {
+    data: donationData,
+    error: donationError,
+    isLoading: donationLoading,
+  } = useGetDonationsByCampaignQuery(campaign?._id);
 
-  // console.log("Filtered Donations:", donationData, campaign?._id);
 
   useEffect(() => {
     // Listen for profile dropdown changes
@@ -166,12 +165,16 @@ const CampaignPage = () => {
   const [filter, setFilter] = useState("all");
   // Sorting logic
   const [donations, setDonations] = useState([]);
-
   useEffect(() => {
-    if (!data?.data?.donors) return;
+    if (!donationData || !Array.isArray(donationData)) return;
 
-    const transformed = data.data.donors.map((d) => {
-      const name = d.donor?.full_name || "";
+    // Filter for only successful donations
+    const successfulDonors = donationData.filter(
+      (donation) => donation.payment_status === "successful"
+    );
+
+    const transformed = successfulDonors.map((d) => {
+      const name = d.user_id?.full_name || "Anonymous";
       const avatar = name
         ? `https://ui-avatars.com/api/?name=${encodeURIComponent(
             name[0]
@@ -179,18 +182,17 @@ const CampaignPage = () => {
         : "";
 
       return {
-        ...d,
-        name, // Flattened name
-        avatar, // Flattened avatar
-        date: d.donated_date, // Normalize the date field
-        amount: parseFloat(d.amount), // Ensure amount is numeric for sorting
+        id: d._id,
+        name,
+        avatar,
+        date: d.donated_date,
+        amount: parseFloat(d.total_amount?.$numberDecimal || "0"),
       };
     });
 
     setDonations(transformed);
-  }, [data]);
+  }, [donationData]);
 
-  console.log(donations);
   const sortedByDate = [...donations].sort((a, b) =>
     dayjs(b.date).diff(dayjs(a.date))
   );
@@ -199,7 +201,6 @@ const CampaignPage = () => {
   const recentDonation = sortedByDate[0];
   const firstDonation = sortedByDate[sortedByDate.length - 1];
   const topDonation = sortedByAmount[0];
-  console.log(recentDonation, firstDonation, topDonation);
 
   // const sortedDonations = [...mockDonations].sort((a, b) =>
   //   dayjs(b.date).diff(dayjs(a.date))
@@ -517,7 +518,7 @@ const CampaignPage = () => {
 
                 <div className="flex justify-between items-center text-sm text-gray-600 my-1">
                   {/* <span>200 Donations</span> */}
-                  <span>{data?.data?.donors?.length} Donors</span>
+                  <span>{donations.length} Donors</span>
                 </div>
               </div>
             </div>
@@ -856,7 +857,7 @@ const CampaignPage = () => {
                   </div>
                   <div className="flex justify-between items-center text-sm text-gray-600 my-1">
                     {/* <span>200 Donations</span> */}
-                    <span>{data?.data?.donors?.length} Donors</span>
+                    <span>{donations.length} Donors</span>
                   </div>
                 </div>
               </div>

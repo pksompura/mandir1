@@ -261,7 +261,7 @@ const DonationForm = ({
         email: userData.email,
       });
 
-      message.success("User details updated successfully");
+      // message.success("User details updated successfully");
 
       // ✅ Proceed with payment
       await initiatePayment();
