@@ -91,6 +91,7 @@ const CampaignPage = () => {
   const [donationuser, setDonationuser] = useState();
   const { id } = useParams();
   const [get, { data, error, isLoading }] = useLazyGetCampaignQuery();
+  console.log(data);
 
   // const [donationCampaign, setDonationCampaign] =
   //   useGetCampaignDonationsQuery();
@@ -164,18 +165,54 @@ const CampaignPage = () => {
   const closeShareModal = () => setIsShareModalVisible(false);
   const [filter, setFilter] = useState("all");
   // Sorting logic
-  const sortedDonations = [...mockDonations].sort((a, b) =>
+  const [donations, setDonations] = useState([]);
+
+  useEffect(() => {
+    if (!data?.data?.donors) return;
+
+    const transformed = data.data.donors.map((d) => {
+      const name = d.donor?.full_name || "";
+      const avatar = name
+        ? `https://ui-avatars.com/api/?name=${encodeURIComponent(
+            name[0]
+          )}&color=ffffff&background=0D8ABC&bold=true`
+        : "";
+
+      return {
+        ...d,
+        name, // Flattened name
+        avatar, // Flattened avatar
+        date: d.donated_date, // Normalize the date field
+        amount: parseFloat(d.amount), // Ensure amount is numeric for sorting
+      };
+    });
+
+    setDonations(transformed);
+  }, [data]);
+
+  console.log(donations);
+  const sortedByDate = [...donations].sort((a, b) =>
     dayjs(b.date).diff(dayjs(a.date))
   );
+  const sortedByAmount = [...donations].sort((a, b) => b.amount - a.amount);
 
-  const sortedByAmount = [...mockDonations].sort((a, b) => b.amount - a.amount);
-  const sortedByDate = [...mockDonations].sort((a, b) =>
-    dayjs(b.date).diff(dayjs(a.date))
-  );
+  const recentDonation = sortedByDate[0];
+  const firstDonation = sortedByDate[sortedByDate.length - 1];
+  const topDonation = sortedByAmount[0];
+  console.log(recentDonation, firstDonation, topDonation);
 
-  const recentDonation = sortedDonations[0]; // Most recent donation
-  const firstDonation = sortedDonations[sortedDonations.length - 1]; // First donor
-  const topDonation = [...mockDonations].sort((a, b) => b.amount - a.amount)[0]; // Highest donation
+  // const sortedDonations = [...mockDonations].sort((a, b) =>
+  //   dayjs(b.date).diff(dayjs(a.date))
+  // );
+
+  // const sortedByAmount = [...mockDonations].sort((a, b) => b.amount - a.amount);
+  // const sortedByDate = [...mockDonations].sort((a, b) =>
+  //   dayjs(b.date).diff(dayjs(a.date))
+  // );
+
+  // const recentDonation = sortedDonations[0]; // Most recent donation
+  // const firstDonation = sortedDonations[sortedDonations.length - 1]; // First donor
+  // const topDonation = [...mockDonations].sort((a, b) => b.amount - a.amount)[0]; // Highest donation
   // const { data: donations, error, isLoading } = useGetCampaignDonationsQuery({ campaignId: campaign?._id, filter: "top" });
 
   // Function to toggle sidebar
@@ -217,7 +254,7 @@ const CampaignPage = () => {
 
   useEffect(() => {
     if (id) {
-      get(id);
+      get(id); // fetch when ID is available
     }
   }, [id]);
 
@@ -649,6 +686,81 @@ const CampaignPage = () => {
             />
           )}
           {/* Mobile: Show Donor List First | Desktop: Right Column */}
+          <div className="w-full bg-white backdrop-blur-md p-4 mt-10 rounded-lg border border-gray-200 md:hidden">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              {donations.length} Donations
+            </h3>
+            <hr className="my-3" />
+            <ul className="space-y-6">
+              {[
+                { donor: recentDonation, label: "Recent Donation" },
+                { donor: firstDonation, label: "First Donation" },
+                { donor: topDonation, label: "Top Donation" },
+              ].map(({ donor, label }) => (
+                <li
+                  key={donor?.id || label}
+                  className="flex items-center space-x-3"
+                >
+                  {/* Avatar & Name */}
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-gray-300 text-white w-12 h-12 flex justify-center items-center rounded-full shadow-md overflow-hidden">
+                      {donor?.avatar ? (
+                        <img
+                          src={donor.avatar}
+                          alt={donor.name}
+                          className="w-full h-full object-cover rounded-full"
+                        />
+                      ) : (
+                        <CiUser className="text-gray-600 w-8 h-8" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-gray-900 font-semibold capitalize">
+                        {donor?.name || "Anonymous"}
+                      </p>
+                      <div className="flex items-center gap-4">
+                        <p className="text-sm font-semibold text-[#d8573e] w-[100px] text-left">
+                          ₹{donor?.amount || 0}
+                        </p>
+                        <span
+                          className={`text-xs px-1 rounded ${labelStyles[label]}`}
+                        >
+                          {label}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            {/* Buttons */}
+            <div className="flex mt-8 w-full text-sm">
+              <button
+                onClick={() => {
+                  setIsModalOpen(true);
+                  setActiveTab("top");
+                }}
+                className={`w-1/2 px-4 py-2 rounded-md transition ${
+                  activeTab === "top" ? "bg-gray-200" : "bg-white"
+                }`}
+              >
+                View Top Donations
+              </button>
+              <button
+                onClick={() => {
+                  setIsModalOpen(true);
+                  setActiveTab("all");
+                }}
+                className={`w-1/2 px-4 py-2 rounded-md transition ${
+                  activeTab === "all" ? "bg-gray-200" : "bg-white"
+                }`}
+              >
+                View All Donations
+              </button>
+            </div>
+          </div>
+
           <div className="lg:w-2/3 order-2 lg:order-1"></div>
 
           {/* FAQ Section */}
@@ -842,39 +954,41 @@ const CampaignPage = () => {
               </li>
             </ul>
           </div>
-          <div className="w-full bg-white backdrop-blur-md p-4 mt-10 rounded-lg border border-gray-200">
+          <div className="w-full bg-white backdrop-blur-md p-4 mt-10 rounded-lg border border-gray-200 hidden sm:block">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              {mockDonations.length} Donations
+              {donations.length} Donations
             </h3>
             <hr className="my-3" />
-
             <ul className="space-y-6">
               {[
                 { donor: recentDonation, label: "Recent Donation" },
                 { donor: firstDonation, label: "First Donation" },
                 { donor: topDonation, label: "Top Donation" },
               ].map(({ donor, label }) => (
-                <li key={donor.id} className="flex items-center space-x-3">
+                <li
+                  key={donor?.id || label}
+                  className="flex items-center space-x-3"
+                >
                   {/* Avatar & Name */}
                   <div className="flex items-center space-x-3">
                     <div className="bg-gray-300 text-white w-12 h-12 flex justify-center items-center rounded-full shadow-md overflow-hidden">
-                      {donor.avatar ? (
+                      {donor?.avatar ? (
                         <img
                           src={donor.avatar}
                           alt={donor.name}
                           className="w-full h-full object-cover rounded-full"
                         />
                       ) : (
-                        <CiUser className="text-gray-600 w-8 h-8" /> // User icon fallback
+                        <CiUser className="text-gray-600 w-8 h-8" />
                       )}
                     </div>
                     <div>
                       <p className="text-gray-900 font-semibold capitalize">
-                        {donor.name}
+                        {donor?.name || "Anonymous"}
                       </p>
                       <div className="flex items-center gap-4">
-                        <p className="text-sm font-semibold text-[#d8573e]">
-                          ₹{donor.amount}
+                        <p className="text-sm font-semibold text-[#d8573e] w-[100px] text-left">
+                          ₹{donor?.amount || 0}
                         </p>
                         <span
                           className={`text-xs px-1 rounded ${labelStyles[label]}`}
@@ -887,6 +1001,7 @@ const CampaignPage = () => {
                 </li>
               ))}
             </ul>
+
             {/* Buttons */}
             <div className="flex mt-8 w-full text-sm">
               <button
@@ -919,10 +1034,10 @@ const CampaignPage = () => {
               activeTab={activeTab}
               setActiveTab={setActiveTab}
               topDonations={sortedByAmount.slice(0, visibleDonations)}
-              allDonations={sortedDonations.slice(0, visibleDonations)}
+              allDonations={sortedByDate.slice(0, visibleDonations)}
               handleViewMore={handleViewMore}
               visibleDonations={visibleDonations}
-              totalDonations={mockDonations.length}
+              totalDonations={donations.length}
             />
           </div>
         </div>

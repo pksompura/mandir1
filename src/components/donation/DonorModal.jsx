@@ -50,18 +50,18 @@ const DonorModal = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.3 }}
-            className="p-4 sm:p-6"
+            className="p-2 sm:p-4"
           >
             {/* Close Button */}
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-2 right-2 text-gray-600 hover:text-black text-xl"
+              className="absolute top-2 right-2 text-gray-600 hover:text-black text-lg"
             >
               ✖
             </button>
 
             {/* Tabs */}
-            <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0 mt-4 mb-4 justify-center">
+            <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0 mt-2 mb-2 justify-center">
               <button
                 className={`px-4 py-2 rounded-full transition font-semibold text-sm sm:text-base ${
                   activeTab === "top"
