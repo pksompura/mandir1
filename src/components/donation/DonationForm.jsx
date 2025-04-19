@@ -23,6 +23,7 @@ const DonationForm = ({
   setIsDonationModalVisible,
   donation_campaign_id,
   donationuser,
+  donation_amounts,
   campaign_title,
 }) => {
   const [loginUser] = useLoginUserMutation(); // Login mutation
@@ -54,8 +55,9 @@ const DonationForm = ({
   const trackRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [percent, setPercent] = useState((minAmount / target) * 100);
-  const [donationAmount, setDonationAmount] = useState(1500);
+  // const [donationAmount, setDonationAmount] = useState(1500);
   const [error, setError] = useState("");
+
   // const [infoErrors, setInfoErrors] = useState({
   //   full_name: "",
   //   email: "",
@@ -70,6 +72,28 @@ const DonationForm = ({
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
   const [showThankYouModal, setShowThankYouModal] = useState(false);
+
+  const processedAmounts = (donation_amounts || [])
+    .map((item) => parseFloat(item?.$numberDecimal || 0))
+    .filter((num) => !isNaN(num) && num > 0);
+
+  const uniqueSortedAmounts = [...new Set(processedAmounts)].sort(
+    (a, b) => a - b
+  );
+
+  const fallbackAmounts = [500, 1500, 3000];
+  const displayAmounts =
+    uniqueSortedAmounts.length > 0 ? uniqueSortedAmounts : fallbackAmounts;
+
+  const popularAmount =
+    displayAmounts.length >= 3
+      ? displayAmounts[Math.floor(displayAmounts.length / 2)]
+      : null;
+
+  const defaultAmount =
+    popularAmount || displayAmounts[displayAmounts.length - 1]; // Highest if less than 3
+
+  const [donationAmount, setDonationAmount] = useState(defaultAmount);
 
   // Calculate tip amount
   const tipAmount =
@@ -595,14 +619,39 @@ const DonationForm = ({
             </>
           ) : null}
 
-          <h3 className="text-lg text-center font-semibold mb-6">
+          {/* <h3 className="text-lg text-center font-semibold mb-6">
             Select Donation Amount in INR
           </h3>
           <div className="grid grid-cols-3 gap-2 mb-4 relative">
             {[500, 1500, 3000].map((amount) => (
               <div key={amount} className="relative">
                 {/* Show 'Popular' above the ₹1500 button */}
-                {amount === 1500 && (
+          {/*    {amount === 1500 && (
+                  <span className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-[#ffdd04] text-black text-[10px] px-2 py-1 rounded">
+                    Popular
+                  </span>
+                )}
+                <button
+                  className={`p-2 rounded-lg text-xs w-full ${
+                    donationAmount === amount
+                      ? "bg-[#ffdd04] text-black"
+                      : "border border-[#8d7f24] text-[#8d7f24]"
+                  }`}
+                  onClick={() => handlePresetClick(amount)}
+                >
+                  ₹ {amount}
+                </button>
+              </div>
+            ))}
+          </div> */}
+          <h3 className="text-lg text-center font-semibold mb-6">
+            Select Donation Amount in INR
+          </h3>
+
+          <div className="grid grid-cols-3 gap-2 mb-4 relative">
+            {displayAmounts.map((amount) => (
+              <div key={amount} className="relative">
+                {popularAmount === amount && (
                   <span className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-[#ffdd04] text-black text-[10px] px-2 py-1 rounded">
                     Popular
                   </span>

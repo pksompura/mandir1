@@ -36,6 +36,7 @@ const CampaignPage = () => {
   const [donationuser, setDonationuser] = useState();
   const { id } = useParams();
   const [get, { data, error, isLoading }] = useLazyGetCampaignQuery();
+  console.log(data);
 
   // const [donationCampaign, setDonationCampaign] =
   //   useGetCampaignDonationsQuery();
@@ -313,6 +314,7 @@ const CampaignPage = () => {
       document.body.style.overflow = "auto";
     }
   }, [isModalOpen]);
+  console.log(campaign?.donation_amounts);
 
   return (
     <div className="w-full lg:w-[1300px] mx-auto p-4 mt-14 ">
@@ -1056,6 +1058,7 @@ const CampaignPage = () => {
           handleClose={closeDonationModal}
           setIsDonationModalVisible={setIsDonationModalVisible}
           donation_campaign_id={id}
+          donation_amounts={campaign?.donation_amounts}
           campaign_title={campaign?.campaign_title}
         />
       )}

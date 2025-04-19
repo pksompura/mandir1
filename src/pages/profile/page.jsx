@@ -14,7 +14,7 @@ import {
   IconButton,
   CircularProgress,
 } from "@mui/material";
-import axios from "axios"
+import axios from "axios";
 import { Table, Modal, Image } from "antd";
 import {
   MdPerson,
@@ -24,7 +24,11 @@ import {
   MdEdit,
 } from "react-icons/md";
 import styled from "styled-components";
-import { useCreateCampaignByUserMutation, useGetDonationCampaignsByUserQuery, useUpdateUserMutation } from "../../redux/services/campaignApi";
+import {
+  useCreateCampaignByUserMutation,
+  useGetDonationCampaignsByUserQuery,
+  useUpdateUserMutation,
+} from "../../redux/services/campaignApi";
 import { toast } from "react-toastify"; // Import react-toastify
 import "react-toastify/dist/ReactToastify.css";
 import { useDispatch, useSelector } from "react-redux";
@@ -56,7 +60,6 @@ const HiddenInput = styled.input`
 
 const ProfilePage = () => {
   const user = useSelector((data) => data?.user?.userData); // Get user data from Redux
-  console.log(user)
   const [activeTab, setActiveTab] = useState("Profile");
   const [editMode, setEditMode] = useState(false); // Track if user is editing
   const [loading, setLoading] = useState(false); // Track if save is in progress
@@ -71,8 +74,12 @@ const ProfilePage = () => {
     pan_number: user?.pan_number || "",
   });
   const [selectedFile, setSelectedFile] = useState(null); // For image file upload
-  const { data: campaignsData, isLoading: campaignsLoading,refetch } =
-    useGetDonationCampaignsByUserQuery(); // Fetch user's donation campaigns
+  const {
+    data: campaignsData,
+    isLoading: campaignsLoading,
+    refetch,
+  } = useGetDonationCampaignsByUserQuery(); // Fetch user's donation campaigns
+  // console.log(useGetDonationCampaignsByUserQuery());
   const [createCampaign] = useCreateCampaignByUserMutation(); // API hook for creating a new donation campaign
 
   const [isModalVisible, setIsModalVisible] = useState(false); // Modal visibility state
@@ -104,7 +111,7 @@ const ProfilePage = () => {
   // Handle form submission
   const handleSubmit = async () => {
     setLoading(true); // Show loader
-    
+
     if (selectedFile) {
       formData.append("profile_pic", selectedFile); // Append the image file if selected
     }
@@ -154,120 +161,116 @@ const ProfilePage = () => {
     switch (activeTab) {
       case "Profile":
         return (
-      
-            <>
-              <div className="flex justify-between items-center mb-6">
-                <Typography variant="h6" component="h1">
-                  Personal Information
+          <>
+            <div className="flex justify-between items-center mb-6">
+              <Typography variant="h6" component="h1">
+                Personal Information
+              </Typography>
+              <IconButton
+                className="text-orange-500"
+                onClick={() => setEditMode(!editMode)}
+              >
+                <MdEdit />
+                <Typography className="ml-1">
+                  {editMode ? "Cancel" : "Edit"}
                 </Typography>
-                <IconButton
-                  className="text-orange-500"
-                  onClick={() => setEditMode(!editMode)}
+              </IconButton>
+            </div>
+            <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+              <div className="flex flex-col items-center space-y-4">
+                <Avatar
+                  sx={{ width: 100, height: 100, cursor: "pointer" }}
+                  src={userInfo.profile_pic}
+                  onClick={handleAvatarClick}
+                />
+                <HiddenInput
+                  id="fileInput"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                />
+              </div>
+              <div className="flex-1 space-y-4">
+                <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+                  <TextField
+                    label="Full Name"
+                    variant="outlined"
+                    fullWidth
+                    name="full_name"
+                    value={userInfo.full_name}
+                    onChange={handleInputChange}
+                    InputProps={{
+                      readOnly: !editMode, // Make read-only if not editing
+                    }}
+                    className={editMode ? "" : "bg-gray-100"}
+                  />
+                </div>
+                <TextField
+                  label="Mobile No"
+                  variant="outlined"
+                  fullWidth
+                  name="mobile_number"
+                  value={userInfo.mobile_number}
+                  InputProps={{
+                    readOnly: true, // Mobile number is now read-only
+                  }}
+                  className="bg-gray-100"
+                />
+                <TextField
+                  label="Email"
+                  variant="outlined"
+                  fullWidth
+                  name="email"
+                  value={userInfo.email}
+                  onChange={handleInputChange}
+                  InputProps={{
+                    readOnly: !editMode, // Make read-only if not editing
+                  }}
+                  className={editMode ? "" : "bg-gray-100"}
+                />
+                <TextField
+                  label="Full Address"
+                  variant="outlined"
+                  fullWidth
+                  name="address"
+                  value={userInfo.address}
+                  onChange={handleInputChange}
+                  InputProps={{
+                    readOnly: !editMode, // Make read-only if not editing
+                  }}
+                  className={editMode ? "" : "bg-gray-100"}
+                />
+                <TextField
+                  label="PAN Number"
+                  variant="outlined"
+                  fullWidth
+                  name="pan_number"
+                  value={userInfo.pan_number}
+                  onChange={handleInputChange}
+                  InputProps={{
+                    readOnly: !editMode, // Make read-only if not editing
+                  }}
+                  className={editMode ? "" : "bg-gray-100"}
+                />
+              </div>
+            </div>
+            {editMode && (
+              <div className="mt-6">
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  startIcon={loading && <CircularProgress size={20} />}
                 >
-                  <MdEdit />
-                  <Typography className="ml-1">
-                    {editMode ? "Cancel" : "Edit"}
-                  </Typography>
-                </IconButton>
+                  {loading ? "Saving..." : "Save Changes"}
+                </Button>
               </div>
-              <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
-                <div className="flex flex-col items-center space-y-4">
-                  <Avatar
-                    sx={{ width: 100, height: 100, cursor: "pointer" }}
-                    src={userInfo.profile_pic}
-                    onClick={handleAvatarClick}
-                  />
-                  <HiddenInput
-                    id="fileInput"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                  />
-                </div>
-                <div className="flex-1 space-y-4">
-                  <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
-                    <TextField
-                      label="Full Name"
-                      variant="outlined"
-                      fullWidth
-                      name="full_name"
-                      value={userInfo.full_name}
-                      onChange={handleInputChange}
-                      InputProps={{
-                        readOnly: !editMode, // Make read-only if not editing
-                      }}
-                      className={editMode ? "" : "bg-gray-100"}
-                    />
-                   
-                  </div>
-                  <TextField
-                    label="Mobile No"
-                    variant="outlined"
-                    fullWidth
-                    name="mobile_number"
-                    value={userInfo.mobile_number}
-                    InputProps={{
-                      readOnly: true, // Mobile number is now read-only
-                    }}
-                    className="bg-gray-100"
-                  />
-                  <TextField
-                    label="Email"
-                    variant="outlined"
-                    fullWidth
-                    name="email"
-                    value={userInfo.email}
-                    onChange={handleInputChange}
-                    InputProps={{
-                      readOnly: !editMode, // Make read-only if not editing
-                    }}
-                    className={editMode ? "" : "bg-gray-100"}
-                  />
-                  <TextField
-                    label="Full Address"
-                    variant="outlined"
-                    fullWidth
-                    name="address"
-                    value={userInfo.address}
-                    onChange={handleInputChange}
-                    InputProps={{
-                      readOnly: !editMode, // Make read-only if not editing
-                    }}
-                    className={editMode ? "" : "bg-gray-100"}
-                  />
-                  <TextField
-                    label="PAN Number"
-                    variant="outlined"
-                    fullWidth
-                    name="pan_number"
-                    value={userInfo.pan_number}
-                    onChange={handleInputChange}
-                    InputProps={{
-                      readOnly: !editMode, // Make read-only if not editing
-                    }}
-                    className={editMode ? "" : "bg-gray-100"}
-                  />
-                </div>
-              </div>
-              {editMode && (
-                <div className="mt-6">
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleSubmit}
-                    disabled={loading}
-                    startIcon={loading && <CircularProgress size={20} />}
-                  >
-                    {loading ? "Saving..." : "Save Changes"}
-                  </Button>
-                </div>
-              )}
-            </>
+            )}
+          </>
         );
       case "Donations":
-        return (
-        <DonationsList donations={user?.donations}/>
-        );
+        return <DonationsList userDonations={user} />;
       case "Campaigns":
         return (
           <>
@@ -329,38 +332,45 @@ const ProfilePage = () => {
               pagination={{ pageSize: 5 }}
             /> */}
             <div className="grid grid-cols-1 md:grid-cols-2 mr-auto">
-
-{ campaignsData?.data?.map((data, i) => (
-                  <div
-                    className="flex items-center w-full justify-center h-96 mb-6"
-                    key={i + "1"}
-                  >
-                    <div className="bg-white rounded-lg shadow-md overflow-hidden border-2 p-2">
-                      <img
-                        src={data?.main_picture}
-                        alt={data?.campaign_title}
-                        className="w-full h-48 object-cover rounded"
-                      />
-                      <div className="p-4">
-                      
-                        <h3 className="mt-1 text-xl font-bold">{data?.ngo_name}</h3>
-                        <h3 className="mt-1 text-[15px] text-red-500">{data?.campaign_title}</h3>
-                        <div className="mt-4">
-                       
-                          <hr className="h-2 my-2" />
-                            <button className="w-full flex gap-2 items-center justify-center bg-[#d6573d] text-white font-bold py-2 px-4 rounded-full" onClick={()=>{setIsModalVisible(data)
-setEditingCampaign(data)
-
-                            }}>
-                              <div className="relative">
-                               Edit <span><CiHeart className="animate-ping absolute -right-8 top-[5px]" /></span>
-                              </div>
-                            </button>
-                        </div>
+              {campaignsData?.data?.map((data, i) => (
+                <div
+                  className="flex items-center w-full justify-center h-96 mb-6"
+                  key={i + "1"}
+                >
+                  <div className="bg-white rounded-lg shadow-md overflow-hidden border-2 p-2">
+                    <img
+                      src={data?.main_picture}
+                      alt={data?.campaign_title}
+                      className="w-full h-48 object-cover rounded"
+                    />
+                    <div className="p-4">
+                      <h3 className="mt-1 text-xl font-bold">
+                        {data?.ngo_name}
+                      </h3>
+                      <h3 className="mt-1 text-[15px] text-red-500">
+                        {data?.campaign_title}
+                      </h3>
+                      <div className="mt-4">
+                        <hr className="h-2 my-2" />
+                        <button
+                          className="w-full flex gap-2 items-center justify-center bg-[#d6573d] text-white font-bold py-2 px-4 rounded-full"
+                          onClick={() => {
+                            setIsModalVisible(data);
+                            setEditingCampaign(data);
+                          }}
+                        >
+                          <div className="relative">
+                            Edit{" "}
+                            <span>
+                              <CiHeart className="animate-ping absolute -right-8 top-[5px]" />
+                            </span>
+                          </div>
+                        </button>
                       </div>
                     </div>
                   </div>
-                ))}
+                </div>
+              ))}
             </div>
             {/* Modal for creating/editing donation */}
             <Modal
@@ -369,7 +379,7 @@ setEditingCampaign(data)
               onCancel={handleModalClose}
               footer={null}
             >
-              <CampaignForm campaign={editingCampaign} refetch={refetch}/>
+              <CampaignForm campaign={editingCampaign} refetch={refetch} />
             </Modal>
           </>
         );
@@ -379,10 +389,10 @@ setEditingCampaign(data)
         return null;
     }
   };
-const dispatch=useDispatch()
+  const dispatch = useDispatch();
   const handleLogout = async () => {
     try {
-     const res= await axios.post(
+      const res = await axios.post(
         "https://devaseva.onrender.com/api/users/logout",
         {},
         {
@@ -393,10 +403,10 @@ const dispatch=useDispatch()
       );
       if (typeof window !== "undefined") {
         localStorage?.removeItem("authToken");
-        dispatch(setUserData())
-         window.location.href="/"
+        dispatch(setUserData());
+        window.location.href = "/";
       }
-       window.location.href="/"
+      window.location.href = "/";
       // setIsProfileDropdownOpen(false);
       // setToken(null);
     } catch (error) {
@@ -404,13 +414,13 @@ const dispatch=useDispatch()
     }
   };
 
-  useEffect(()=>{
-    if(!localStorage?.getItem('authToken')){
-      window.location.href="/"
+  useEffect(() => {
+    if (!localStorage?.getItem("authToken")) {
+      window.location.href = "/";
     }
-  })
-  if(!localStorage?.getItem('authToken')){
-    return <>Loading ...</>
+  });
+  if (!localStorage?.getItem("authToken")) {
+    return <>Loading ...</>;
   }
   return (
     <div className="flex flex-col md:flex-row p-4 md:p-10 space-y-4 md:space-y-0 md:space-x-4 mt-10">
@@ -452,20 +462,20 @@ const dispatch=useDispatch()
             button
             selected={activeTab === "Log-Out"}
             onClick={() => {
-                                     Swal.fire({
-                                       title: 'Are you sure?',
-                                       text: 'You will be logged out of your account.',
-                                       icon: 'warning',
-                                       showCancelButton: true,
-                                       confirmButtonColor: '#3085d6',
-                                       cancelButtonColor: '#d33',
-                                       confirmButtonText: 'Yes, log me out'
-                                     }).then((result) => {
-                                       if (result.isConfirmed) {
-                                         handleLogout();
-                                       }
-                                     });
-                                   }}
+              Swal.fire({
+                title: "Are you sure?",
+                text: "You will be logged out of your account.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, log me out",
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  handleLogout();
+                }
+              });
+            }}
           >
             <ListItemIcon>
               <MdLogout className="text-orange-500" />
