@@ -17,16 +17,18 @@ const DonationsList = ({ userDonations }) => {
         <!-- Acknowledgment Message -->
         <div style="margin-top: 30px; text-align: center;">
           <p style="font-size: 16px; font-style: italic; color: #444;">
-            We acknowledge with gratitude the generous donation of 
-            <strong>₹${amount}</strong> 
-            (<strong>Rupees ${convertNumberToWords(amount)}</strong>) 
+            We acknowledge with gratitude the generous donation
             received from <strong>${userDonations?.full_name}</strong> 
-            (<strong>${userDonations?.email}</strong>). 
-            This contribution was made through 
-            <a href="https://giveaze.com" style="color: #007BFF;" target="_blank">Giveaze</a>, 
-            in support of the campaign titled "<strong>${
-              donation?.donation_campaign_id?.campaign_title
-            }</strong>".
+            (
+            This contribution was made through made through
+            <a href="https://giveaze.com" style="color: #007BFF;" target="_blank">www.giveaze.com</a>, 
+            in support of the campaign titled "
+            <a href="https://giveaze.com/campaign/${
+              donation?.donation_campaign_id?._id
+            }" 
+            target="_blank" style="color: #007BFF; font-weight: bold;" target="_blank">
+            ${donation?.donation_campaign_id?.campaign_title}
+            </a>
           </p>
         </div>
         <!-- Two Column Section -->
@@ -48,7 +50,7 @@ const DonationsList = ({ userDonations }) => {
     }</span></p>
     <p style="margin: 6px 0;"><span style="color: #555;">Date:</span> <span style="color: grey;">${new Date(
       donation.donated_date
-    ).toLocaleDateString()}</span></p>
+    ).toLocaleDateString("en-GB")}</span></p>
   </div>
 
   <!-- Right Column - Donor Info -->
@@ -82,7 +84,6 @@ const DonationsList = ({ userDonations }) => {
       </div>
     `;
 
-    // Create temporary DOM to render and convert to PDF
     const receiptContainer = document.createElement("div");
     receiptContainer.innerHTML = receiptHTML;
     document.body.appendChild(receiptContainer);
@@ -107,52 +108,61 @@ const DonationsList = ({ userDonations }) => {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h2 className="text-2xl font-semibold mb-4">My Donations</h2>
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="w-full max-w-full sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg px-2 sm:px-4 lg:px-2 mx-auto py-2">
+      <h2 className="text-2xl font-semibold mb-4 text-center">My Donations</h2>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
         {userDonations?.donations?.length > 0 ? (
-          userDonations?.donations?.map((donation) => (
-            <div
-              key={donation?._id}
-              className="bg-white shadow-lg rounded-lg p-4 border border-gray-200"
-            >
-              <h3 className="text-lg font-semibold">
-                Campaign: {donation?.donation_campaign_id?._id}
-              </h3>
-              <p className="text-gray-700">
-                Transaction ID: {donation.transaction_id}
-              </p>
-              <p className="text-gray-700">
-                Amount: ₹{donation.total_amount.$numberDecimal}
-              </p>
-              <p className="text-gray-500 text-sm">
-                Date: {new Date(donation.donated_date).toLocaleDateString()}
-              </p>
+          userDonations.donations.map((donation) => {
+            const isSuccessful = donation.payment_status === "successful";
+            const amount =
+              donation.total_amount?.$numberDecimal || donation.total_amount;
 
-              <span
-                className={`inline-block mt-2 px-3 py-1 text-sm font-medium rounded-lg text-white 
-                  ${
-                    donation.payment_status === "successful"
-                      ? "bg-green-500"
-                      : "bg-yellow-500"
-                  }`}
+            return (
+              <div
+                key={donation?._id}
+                className="bg-white shadow-md rounded-lg p-4 border border-gray-200 flex flex-col justify-between"
               >
-                {donation.payment_status.toUpperCase()}
-              </span>
+                <div>
+                  <h3 className="text-lg font-semibold mb-2 truncate">
+                    <span className="text-gray-700 font-medium">Campaign:</span>{" "}
+                    <span className="text-gray-500 font-medium">
+                      {donation?.donation_campaign_id?.campaign_title}
+                    </span>
+                  </h3>
 
-              {/* Spacing between badge and button */}
-              <div className="mt-4">
-                <button
-                  onClick={() =>
-                    generateDonationReceipt(donation, userDonations)
-                  }
-                  className="flex items-center gap-2 mt-2 text-blue-600 hover:underline"
-                >
-                  <Download size={16} /> Download Receipt
-                </button>
+                  <p className="text-gray-700">
+                    Transaction ID: {donation.transaction_id}
+                  </p>
+                  <p className="text-gray-700">Amount: ₹{amount}</p>
+                  <p className="text-gray-500 text-sm">
+                    Date:{" "}
+                    {new Date(donation.donated_date).toLocaleDateString(
+                      "en-GB"
+                    )}
+                  </p>
+                  <span
+                    className={`inline-block mt-2 px-3 py-1 text-sm font-medium rounded-full text-white ${
+                      isSuccessful ? "bg-green-500" : "bg-yellow-500"
+                    }`}
+                  >
+                    {donation.payment_status.toUpperCase()}
+                  </span>
+                </div>
+
+                {isSuccessful && (
+                  <button
+                    onClick={() =>
+                      generateDonationReceipt(donation, userDonations)
+                    }
+                    className="flex items-center gap-2 mt-4 text-blue-600 hover:underline self-start"
+                  >
+                    <Download size={16} /> Download Receipt
+                  </button>
+                )}
               </div>
-            </div>
-          ))
+            );
+          })
         ) : (
           <p className="text-gray-500">No donations found.</p>
         )}
@@ -164,7 +174,6 @@ const DonationsList = ({ userDonations }) => {
 export default DonationsList;
 
 function convertNumberToWords(amount) {
-  // You can replace this with a library like 'number-to-words' for better accuracy
   const num = parseInt(amount, 10);
   if (isNaN(num)) return "";
 

@@ -80,7 +80,7 @@ const DonationForm = ({
   const uniqueSortedAmounts = [...new Set(processedAmounts)].sort(
     (a, b) => a - b
   );
-
+  console.log(donation_amounts, uniqueSortedAmounts);
   const fallbackAmounts = [500, 1500, 3000];
   const displayAmounts =
     uniqueSortedAmounts.length > 0 ? uniqueSortedAmounts : fallbackAmounts;
