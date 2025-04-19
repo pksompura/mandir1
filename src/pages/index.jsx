@@ -4,8 +4,6 @@ import {
   useGetAllCampaignQuery,
   useLazyGetCampaignQuery,
 } from "../redux/services/campaignApi";
-import { useDispatch } from "react-redux";
-import { transactionApi } from "../redux/services/transactionApi";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import { Button, Tooltip } from "@mui/material";
@@ -27,89 +25,6 @@ const HeroSlider = () => {
   const handleClose = () => setOpen(false);
   const paginationRef = useRef(null);
   const { data: campaigns } = useGetAllCampaignQuery();
-  const [donorsMap, setDonorsMap] = useState({});
-  const dispatch = useDispatch();
-  const [campaignIds, setCampaignIds] = useState([]);
-
-  useEffect(() => {
-    const fetchAllDonorCounts = async () => {
-      if (!campaigns?.campaigns?.length) return;
-
-      const results = await Promise.all(
-        campaigns.campaigns.map(async (campaign) => {
-          try {
-            const res = await dispatch(
-              transactionApi.endpoints.getDonationsByCampaign.initiate(
-                campaign?._id
-              )
-            ).unwrap();
-            const donors =
-              res?.filter(
-                (donor) =>
-                  donor.payment_status?.toLowerCase().trim() === "successful"
-              ) || [];
-
-            return { id: campaign._id, count: donors.length };
-          } catch (error) {
-            console.error(
-              `Error fetching donations for ${campaign._id}:`,
-              error
-            );
-            return { id: campaign._id, count: 0 };
-          }
-        })
-      );
-
-      const newMap = {};
-      results.forEach(({ id, count }) => {
-        newMap[id] = count;
-      });
-
-      setDonorsMap(newMap);
-    };
-
-    fetchAllDonorCounts();
-  }, [campaigns]);
-
-  console.log(donorsMap);
-
-  useEffect(() => {
-    if (!campaigns?.campaigns?.length) return;
-
-    const ids = campaigns.campaigns.map((c) => c._id);
-    setCampaignIds(ids);
-  }, [campaigns]);
-
-  // const [donorsMap, setDonorsMap] = useState({});
-
-  // useEffect(() => {
-  //   const fetchDonorCounts = async () => {
-  //     if (!campaigns?.campaigns?.length) return;
-
-  //     const promises = campaigns.campaigns.map(async (campaign) => {
-  //       try {
-  //         const res = await triggerGetCampaign(campaign._id).unwrap();
-  //         console.log(res);
-  //         const donors = res?.data?.donors || [];
-  //         return { id: campaign._id, donorCount: donors.length };
-  //       } catch (err) {
-  //         console.error(`❌ Error fetching donors for ${campaign._id}:`, err);
-  //         return { id: campaign._id, donorCount: 0 };
-  //       }
-  //     });
-
-  //     const results = await Promise.all(promises);
-
-  //     const newMap = {};
-  //     results.forEach(({ id, donorCount }) => {
-  //       newMap[id] = donorCount;
-  //     });
-
-  //     setDonorsMap(newMap);
-  //   };
-
-  //   fetchDonorCounts();
-  // }, [campaigns]);
 
   useEffect(() => {
     if (paginationRef.current) {
@@ -242,7 +157,9 @@ const HeroSlider = () => {
                                 Goal ₹
                                 {data?.target_amount.$numberDecimal || "0"}
                               </span>
-                              <span>{donorsMap[data?._id] || 0} Donors</span>
+                              <span>
+                                {data?.successfulDonations || 0} Donors
+                              </span>
                             </div>
 
                             <hr className="h-2 my-2" />

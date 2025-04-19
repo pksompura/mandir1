@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Pagination } from "antd";
-import {
-  useGetCampaignsByCategoryQuery,
-  useLazyGetCampaignQuery,
-} from "../../redux/services/campaignApi";
+import { useGetCampaignsByCategoryQuery } from "../../redux/services/campaignApi";
 import { useDispatch } from "react-redux";
 
 import { transactionApi } from "../../redux/services/transactionApi";
@@ -13,6 +10,7 @@ import debounce from "lodash.debounce";
 import { Link } from "react-router-dom";
 import { CiHeart } from "react-icons/ci";
 import {} from "../../redux/services/campaignApi";
+import { CornerDownLeft } from "lucide-react";
 
 const DonationCard = ({ campaign, donorCount }) => {
   return (
@@ -118,8 +116,6 @@ const CampaignList = () => {
   const [perPage] = useState(10);
   const dispatch = useDispatch();
 
-  const [donorsMap, setDonorsMap] = useState({});
-
   // Fetch categories from the server
   const fetchCategories = async () => {
     try {
@@ -152,57 +148,6 @@ const CampaignList = () => {
     page,
     perPage,
   });
-  // For fetching a single campaign lazily (details on click or route)
-  const [
-    triggerGetCampaign,
-    {
-      data: campaignDetail,
-      isLoading: isCampaignLoading,
-      error: campaignError,
-    },
-  ] = useLazyGetCampaignQuery();
-
-  useEffect(() => {
-    const fetchAllDonorCounts = async () => {
-      const campaigns = campaignData?.data?.campaigns;
-      if (!campaigns?.length) return;
-      // if (!campaigns?.campaigns?.length) return;
-
-      const results = await Promise.all(
-        campaigns.map(async (campaign) => {
-          try {
-            const res = await dispatch(
-              transactionApi.endpoints.getDonationsByCampaign.initiate(
-                campaign?._id
-              )
-            ).unwrap();
-            const donors =
-              res?.filter(
-                (donor) =>
-                  donor.payment_status?.toLowerCase().trim() === "successful"
-              ) || [];
-
-            return { id: campaign._id, count: donors.length };
-          } catch (error) {
-            console.error(
-              `Error fetching donations for ${campaign._id}:`,
-              error
-            );
-            return { id: campaign._id, count: 0 };
-          }
-        })
-      );
-
-      const newMap = {};
-      results.forEach(({ id, count }) => {
-        newMap[id] = count;
-      });
-
-      setDonorsMap(newMap);
-    };
-
-    fetchAllDonorCounts();
-  }, [campaignData]);
 
   useEffect(() => {
     // Fetch categories on page load
@@ -241,7 +186,15 @@ const CampaignList = () => {
     };
   }, [debouncedSearch]);
 
-  const filteredCampaigns = campaignData?.data?.campaigns || [];
+  const campaignsWithDonorCount = (campaignData?.data?.campaigns || []).map(
+    (campaign) => ({
+      ...campaign,
+      successfulDonations:
+        (campaignData?.data?.donarsCount || []).find(
+          (d) => d._id === campaign._id
+        )?.successfulDonations || 0,
+    })
+  );
 
   return (
     <div className="w-full  lg:w-[1200px] mx-auto px-4 py-8 mt-[68px]">
@@ -279,7 +232,7 @@ const CampaignList = () => {
       </div>
       <hr className="mb-3" />
       {/* Campaign Cards or Skeleton */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6 ">
+      {/* <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6 ">
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => <CampaignSkeleton key={i} />)
         ) : filteredCampaigns.length > 0 ? (
@@ -288,6 +241,25 @@ const CampaignList = () => {
               key={index}
               campaign={campaign}
               donorCount={donorsMap[campaign?._id] || 0}
+            />
+          ))
+        ) : (
+          <div className="col-span-3 text-center">
+            <p className="text-gray-500 text-xl mt-10">
+              No campaigns found for this category.
+            </p>
+          </div>
+        )}
+      </div> */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6 ">
+        {isLoading ? (
+          Array.from({ length: 3 }).map((_, i) => <CampaignSkeleton key={i} />)
+        ) : campaignsWithDonorCount.length > 0 ? (
+          campaignsWithDonorCount.map((campaign, index) => (
+            <DonationCard
+              key={index}
+              campaign={campaign}
+              donorCount={campaign.successfulDonations}
             />
           ))
         ) : (

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
+import { motion, AnimatePresence } from "framer-motion";
+
 import {
   useLazyGetCampaignQuery,
   useLoginUserMutation,
@@ -22,64 +24,6 @@ import LoginModel from "../LoginModel";
 import { FaUser, FaUserCircle } from "react-icons/fa";
 import dayjs from "dayjs";
 import { CiUser } from "react-icons/ci";
-const mockDonations = [
-  { id: 1, name: "Arjun Reddy", amount: 5000, date: "2024-06-12", avatar: "" },
-  { id: 2, name: "Meera Sharma", amount: 2500, date: "2024-06-14", avatar: "" },
-  { id: 3, name: "Rahul Singh", amount: 1500, date: "2024-06-15", avatar: "" },
-  { id: 4, name: "Ananya Iyer", amount: 7000, date: "2024-06-17", avatar: "" },
-  { id: 5, name: "Vikram Batra", amount: 1000, date: "2024-06-18", avatar: "" },
-  { id: 6, name: "Sonia Kapoor", amount: 3200, date: "2024-06-19", avatar: "" },
-  { id: 7, name: "Dev Patel", amount: 2700, date: "2024-06-21", avatar: "" },
-  { id: 8, name: "Pooja Nair", amount: 4200, date: "2024-06-23", avatar: "" },
-  { id: 9, name: "Rohan Verma", amount: 3600, date: "2024-06-24", avatar: "" },
-  { id: 10, name: "Nisha Joshi", amount: 1900, date: "2024-06-26", avatar: "" },
-  {
-    id: 11,
-    name: "Amitabh Desai",
-    amount: 8100,
-    date: "2024-06-27",
-    avatar: "",
-  },
-  {
-    id: 12,
-    name: "Shivani Kapoor",
-    amount: 2200,
-    date: "2024-06-28",
-    avatar: "",
-  },
-  {
-    id: 13,
-    name: "Rajesh Kumar",
-    amount: 5900,
-    date: "2024-06-29",
-    avatar: "",
-  },
-  {
-    id: 14,
-    name: "Sanya Malhotra",
-    amount: 4700,
-    date: "2024-07-01",
-    avatar: "",
-  },
-  { id: 15, name: "Kabir Khan", amount: 8800, date: "2024-07-02", avatar: "" },
-  { id: 16, name: "Neha Sharma", amount: 5600, date: "2024-07-04", avatar: "" },
-  { id: 17, name: "Tarun Mehta", amount: 3000, date: "2024-07-06", avatar: "" },
-  {
-    id: 18,
-    name: "Anjali Menon",
-    amount: 4400,
-    date: "2024-07-07",
-    avatar: "",
-  },
-  { id: 19, name: "Vikas Gupta", amount: 2100, date: "2024-07-08", avatar: "" },
-  {
-    id: 20,
-    name: "Swati Chatterjee",
-    amount: 3700,
-    date: "2024-07-09",
-    avatar: "",
-  },
-];
 
 // Label Colors
 const labelStyles = {
@@ -122,7 +66,6 @@ const CampaignPage = () => {
     isLoading: donationLoading,
   } = useGetDonationsByCampaignQuery(campaign?._id);
 
-
   useEffect(() => {
     // Listen for profile dropdown changes
     const handleProfileDropdownChange = (event) => {
@@ -141,7 +84,6 @@ const CampaignPage = () => {
       );
     };
   }, []);
-
   useEffect(() => {
     if (isProfileDropdownOpen) {
       setShowNav(false); // Hide nav menu when profile is open
@@ -165,7 +107,7 @@ const CampaignPage = () => {
   const [filter, setFilter] = useState("all");
   // Sorting logic
   const [donations, setDonations] = useState([]);
-  
+
   useEffect(() => {
     if (!donationData || !Array.isArray(donationData)) return;
 
@@ -334,6 +276,8 @@ const CampaignPage = () => {
   // };
   const paginationRef = useRef(null);
   const [showFullStory, setShowFullStory] = useState(false);
+  const [showFullUpdates, setShowFullUpdates] = useState(false);
+
   useEffect(() => {
     if (paginationRef.current) {
       paginationRef.current.classList.add("custom-swiper-pagination");
@@ -582,6 +526,7 @@ const CampaignPage = () => {
           </div>
           {/* Description Section */}
           {/* Story & Updates Section */}
+          {/* Story Section */}
           <div ref={storyRef} className="bg-white rounded-xl shadow-md mt-4">
             <h3 className="text-lg font-semibold text-center bg-[#d8573e] text-white py-3 rounded-t-xl">
               Story
@@ -599,56 +544,109 @@ const CampaignPage = () => {
                   if (imageTag) {
                     return (
                       <>
-                        {/* Text before image */}
                         <div
                           dangerouslySetInnerHTML={{ __html: beforeImage }}
                         />
-
-                        {/* First image */}
                         <div
                           dangerouslySetInnerHTML={{ __html: imageTag }}
                           className="my-4"
                         />
-
-                        {/* Read More toggle */}
-                        {!showFullStory ? (
-                          <button
-                            onClick={() => setShowFullStory(true)}
-                            className="text-blue-500 mt-3 underline block text-center"
-                          >
-                            Read More
-                          </button>
-                        ) : (
-                          <div
-                            dangerouslySetInnerHTML={{ __html: afterImage }}
-                            className="mt-4"
-                          />
-                        )}
+                        <AnimatePresence>
+                          {showFullStory && (
+                            <motion.div
+                              key="storyContent"
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="mt-4 overflow-hidden"
+                            >
+                              <div
+                                dangerouslySetInnerHTML={{ __html: afterImage }}
+                              />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                        <button
+                          onClick={() => setShowFullStory(!showFullStory)}
+                          className="text-blue-500 mt-3 underline block text-center"
+                        >
+                          {showFullStory ? "Show Less" : "Read More"}
+                        </button>
                       </>
                     );
                   } else {
-                    // No image case
                     return (
                       <>
-                        <div
-                          dangerouslySetInnerHTML={{
-                            __html: !showFullStory
-                              ? html.slice(0, 300) + "..."
-                              : html,
-                          }}
-                        />
-                        {!showFullStory && (
-                          <button
-                            onClick={() => setShowFullStory(true)}
-                            className="text-blue-500 mt-3 underline block text-center"
+                        <AnimatePresence initial={false}>
+                          <motion.div
+                            key={showFullStory ? "full" : "short"}
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="overflow-hidden"
                           >
-                            Read More
-                          </button>
-                        )}
+                            <div
+                              dangerouslySetInnerHTML={{
+                                __html: showFullStory
+                                  ? html
+                                  : html.slice(0, 300) + "...",
+                              }}
+                            />
+                          </motion.div>
+                        </AnimatePresence>
+                        <button
+                          onClick={() => setShowFullStory(!showFullStory)}
+                          className="text-blue-500 mt-3 underline block text-center"
+                        >
+                          {showFullStory ? "Show Less" : "Read More"}
+                        </button>
                       </>
                     );
                   }
                 })()}
+            </div>
+            {/* Updates Section */}
+            <div
+              ref={updatesRef}
+              className="bg-white rounded-xl shadow-md mt-6"
+            >
+              <h3 className="text-lg font-semibold text-center bg-[#d8573e] text-white py-3 rounded-t-xl">
+                Updates
+              </h3>
+              <div className="text-gray-700 p-2 leading-snug">
+                {campaign?.story ? (
+                  <>
+                    <AnimatePresence initial={false}>
+                      <motion.div
+                        key={showFullUpdates ? "full" : "short"}
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden"
+                      >
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: showFullUpdates
+                              ? campaign.story
+                              : campaign.story.slice(0, 300) + "...",
+                          }}
+                        />
+                      </motion.div>
+                    </AnimatePresence>
+                    <button
+                      onClick={() => setShowFullUpdates(!showFullUpdates)}
+                      className="text-blue-500 mt-3 underline block text-center"
+                    >
+                      {showFullUpdates ? "Show Less" : "Read More"}
+                    </button>
+                  </>
+                ) : (
+                  "No updates available."
+                )}
+              </div>
             </div>
           </div>
 
@@ -669,16 +667,6 @@ const CampaignPage = () => {
               </button>
             </div>
           )}
-
-          {/* Updates Section */}
-          <div ref={updatesRef} className="bg-white rounded-xl shadow-md mt-6">
-            <h3 className="text-lg font-semibold text-center bg-[#d8573e] text-white py-3 rounded-t-xl">
-              Updates
-            </h3>
-            <div className="text-gray-700 p-2 leading-snug">
-              {campaign?.updates || "No updates available."}
-            </div>
-          </div>
 
           {/* Video Section */}
           {campaign?.video_link && (
