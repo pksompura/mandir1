@@ -1060,6 +1060,8 @@ const CampaignPage = () => {
           donation_campaign_id={id}
           donation_amounts={campaign?.donation_amounts}
           campaign_title={campaign?.campaign_title}
+          minAmount={campaign?.minimum_amount}
+          target={campaign?.target_amount}
         />
       )}
 

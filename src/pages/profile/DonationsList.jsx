@@ -131,9 +131,9 @@ const DonationsList = ({ userDonations }) => {
                     </span>
                   </h3>
 
-                  <p className="text-gray-700">
+                  {/* <p className="text-gray-700">
                     Transaction ID: {donation.transaction_id}
-                  </p>
+                  </p> */}
                   <p className="text-gray-700">Amount: ₹{amount}</p>
                   <p className="text-gray-500 text-sm">
                     Date:{" "}

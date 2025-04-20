@@ -25,6 +25,8 @@ const DonationForm = ({
   donationuser,
   donation_amounts,
   campaign_title,
+  minAmount,
+  target,
 }) => {
   const [loginUser] = useLoginUserMutation(); // Login mutation
   const [verifyOtp] = useVerifyOtpMutation(); // OTP verification mutation
@@ -50,8 +52,6 @@ const DonationForm = ({
   const [citizenStatus, setCitizenStatus] = useState("yes");
   const [showError, setShowError] = useState(false);
   const [receiveUpdates, setReceiveUpdates] = useState(false);
-  const target = 100000;
-  const minAmount = 5;
   const trackRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [percent, setPercent] = useState((minAmount / target) * 100);
