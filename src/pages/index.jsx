@@ -78,11 +78,11 @@ const HeroSlider = () => {
             {campaigns?.campaigns
               ? campaigns?.campaigns?.map((data, i) => (
                   <SwiperSlide
-                    className="flex items-center w-full justify-center h-96 mb-6"
+                    className="flex items-center w-full justify-center mb-6"
                     key={i + "1"}
                   >
                     <Link to={`/campaign/${data?._id}`}>
-                      <div className="bg-white rounded-lg cursor-pointer shadow-md overflow-hidden border-2 p-2">
+                      <div className="bg-white rounded-lg cursor-pointer shadow-md overflow-hidden border-2 p-2 h-[470px] w-[330px] md:h-[480px] md:w-[350px] lg:h-[480px] lg:w-[350px] mx-auto flex flex-col">
                         <div className="relative">
                           <img
                             src={data?.main_picture}
@@ -97,19 +97,21 @@ const HeroSlider = () => {
                         </div>
                         <div className="p-4">
                           <div className="flex gap-3">
-                            {data?.is_tax && (
+                            {data?.is_tax ? (
                               <img
                                 src="/images/VALIDATED.png"
                                 alt=""
                                 className="w-16"
                               />
+                            ) : (
+                              // Empty content to keep the space even when is_tax is not found
+                              <div className="bg-transparent w-5 h-5 flex items-center justify-center" />
                             )}
                           </div>
-                          <h3 className="mt-1 text-[17px] font-bold">
-                            {data?.campaign_title?.length > 58
-                              ? data?.campaign_title?.slice(0, 58) + ". . ."
-                              : data?.campaign_title}
+                          <h3 className="mt-1 text-[17px] font-bold h-[50px] leading-snug overflow-hidden line-clamp-2">
+                            {data?.campaign_title}
                           </h3>
+
                           <div className="mt-4">
                             <div className="flex items-center justify-between text-sm text-gray-600">
                               <div className="flex items-center gap-1">

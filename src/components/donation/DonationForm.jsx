@@ -25,17 +25,19 @@ const DonationForm = ({
   donationuser,
   donation_amounts,
   campaign_title,
-  minAmount,
-  target,
+  minimum_amount,
+  target_amount,
 }) => {
   const [loginUser] = useLoginUserMutation(); // Login mutation
   const [verifyOtp] = useVerifyOtpMutation(); // OTP verification mutation
   const [updateUser] = useUpdateUserMutation(); // Redux API to update user
-
+  console.log(donation_amounts);
   const [verifyPayment] = useVerifyPaymentMutation(); // OTP verification mutation
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user.userData);
   const [isChecked, setIsChecked] = useState(false);
+  const minAmount = Number(minimum_amount?.$numberDecimal);
+  const target = Number(target_amount?.$numberDecimal);
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   // const [donationAmount, setDonationAmount] = useState('');
@@ -47,7 +49,6 @@ const DonationForm = ({
     full_name: donationuser?.full_name || "",
     email: donationuser?.email || "",
   });
-
   const [timer, setTimer] = useState(0);
   const [citizenStatus, setCitizenStatus] = useState("yes");
   const [showError, setShowError] = useState(false);
@@ -700,7 +701,7 @@ const DonationForm = ({
               className={`absolute top-0 left-0 h-2 bg-[#ff4757] rounded-full ${
                 isDragging ? "" : "transition-all duration-200"
               }`}
-              style={{ width: `${percent}%` }}
+              style={{ width: `${Math.min(percent, 100)}%` }}
             ></div>
 
             <div

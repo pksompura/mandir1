@@ -442,7 +442,7 @@ const ProfilePage = () => {
             onClick={() => setActiveTab("Donations")}
           >
             <ListItemIcon>
-              <MdReceipt />
+              <MdReceipt className="text-orange-500" />
             </ListItemIcon>
             <ListItemText primary="Donations" />
           </ListItem>

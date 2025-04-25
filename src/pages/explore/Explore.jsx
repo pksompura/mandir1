@@ -14,13 +14,13 @@ import { CornerDownLeft } from "lucide-react";
 
 const DonationCard = ({ campaign, donorCount }) => {
   return (
-    <div className="max-w-sm rounded-lg shadow-lg mx-auto border border-gray-200">
+    <div className="w-full h-full rounded-lg shadow-lg border border-gray-200 flex flex-col">
       <Link to={`/campaign/${campaign?._id}`}>
-        <div className="bg-white rounded-lg cursor-pointer shadow-md overflow-hidden border-2 p-2">
+        <div class="bg-white rounded-lg overflow-hidden">
           <img
             src={campaign?.main_picture}
             alt={campaign?.campaign_title}
-            className="w-full h-48 object-cover rounded"
+            className="w-full h-48 object-cover rounded-t-lg"
           />
           <div className="p-4">
             <div className="flex gap-3">
@@ -29,10 +29,11 @@ const DonationCard = ({ campaign, donorCount }) => {
                 <img src="/images/tax.png" alt="" className="w-16" />
               )}
             </div>
-            <h3 className="mt-1 text-[17px] font-bold">
-              {campaign?.campaign_title?.length > 58
+            <h3 className="mt-1 text-[17px] font-bold h-[50px] leading-snug overflow-hidden line-clamp-2">
+              {/* {campaign?.campaign_title?.length > 58
                 ? campaign?.campaign_title?.slice(0, 58) + ". . ."
-                : campaign?.campaign_title}
+                : campaign?.campaign_title} */}
+              {campaign?.campaign_title}
             </h3>
             <div className="mt-4">
               <div className="flex items-center justify-between text-sm text-gray-600">
@@ -113,7 +114,7 @@ const CampaignList = () => {
   const [activeCategory, setActiveCategory] = useState("All"); // Default is "All"
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
-  const [perPage] = useState(10);
+  const [perPage] = useState(9);
   const dispatch = useDispatch();
 
   // Fetch categories from the server
@@ -278,6 +279,7 @@ const CampaignList = () => {
           pageSize={perPage}
           total={campaignData?.data?.totalCampaigns || 0}
           onChange={(page) => setPage(page)}
+          showSizeChanger={false}
           className="text-center"
         />
       </div>
