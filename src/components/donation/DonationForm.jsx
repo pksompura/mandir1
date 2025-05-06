@@ -378,7 +378,6 @@ const DonationForm = ({
       message.error("Please enter a valid 6-digit OTP.");
     }
   };
-  console.log(donationuser);
   const initiatePayment = async () => {
     try {
       const orderResponse = await createOrder({
