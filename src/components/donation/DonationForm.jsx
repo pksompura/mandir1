@@ -378,7 +378,7 @@ const DonationForm = ({
       message.error("Please enter a valid 6-digit OTP.");
     }
   };
-
+  console.log(donationuser);
   const initiatePayment = async () => {
     try {
       const orderResponse = await createOrder({
@@ -387,7 +387,6 @@ const DonationForm = ({
         amount: calculateTotal(),
         // payment_method: "upi",
       }).unwrap();
-
       await triggerRazorpay(orderResponse.data, orderResponse.donation_id);
 
       // Redirect to Razorpay payment or show payment UI here

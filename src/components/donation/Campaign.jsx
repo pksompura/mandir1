@@ -264,7 +264,7 @@ const CampaignPage = () => {
   // const images =   [campaign?.main_picture , ...campaign?.other_pictures]
   // const [isDonationModalVisible, setIsDonationModalVisible] = useState(false);
   const openDonationModal = () => {
-    if (user?.full_name) {
+    if (user?.mobile_number) {
       setIsDonationModalVisible(true);
     } else {
       setIsLoginModalVisible(true);
@@ -300,7 +300,7 @@ const CampaignPage = () => {
     }
   };
   useEffect(() => {
-    if (user?.full_name) {
+    if (user?.mobile_number) {
       setDonationuser(user);
     }
   }, [user]);

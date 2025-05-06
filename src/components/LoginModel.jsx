@@ -40,7 +40,6 @@ const LoginModel = ({
       error: verifyOtpError,
     },
   ] = useVerifyOtpMutation();
-
   function removeCountryCode(phoneNumber) {
     return phoneNumber.replace(/^\+\d{1,2}/, "");
   }
