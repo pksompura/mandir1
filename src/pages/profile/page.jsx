@@ -178,11 +178,11 @@ const ProfilePage = () => {
             </div>
             <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
               <div className="flex flex-col items-center space-y-4">
-                <Avatar
+                {/* <Avatar
                   sx={{ width: 100, height: 100, cursor: "pointer" }}
                   src={userInfo.profile_pic}
                   onClick={handleAvatarClick}
-                />
+                /> */}
                 <HiddenInput
                   id="fileInput"
                   type="file"
@@ -228,7 +228,7 @@ const ProfilePage = () => {
                   }}
                   className={editMode ? "" : "bg-gray-100"}
                 />
-                <TextField
+                {/* <TextField
                   label="Full Address"
                   variant="outlined"
                   fullWidth
@@ -251,7 +251,7 @@ const ProfilePage = () => {
                     readOnly: !editMode, // Make read-only if not editing
                   }}
                   className={editMode ? "" : "bg-gray-100"}
-                />
+                /> */}
               </div>
             </div>
             {editMode && (

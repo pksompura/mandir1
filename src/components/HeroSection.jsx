@@ -11,7 +11,7 @@ import {
 const HeroSection = () => {
   const { data: images } = useGetBannerImagesQuery();
   const { data: settings } = useGetSettingsQuery();
-
+  console.log(images);
   return (
     <section className="relative bg-white mt-[60px] lg:w-[1200px] w-full mx-auto">
       <div className=" mx-auto">
@@ -41,7 +41,7 @@ const HeroSection = () => {
                 </p>
                 <a href={settings?.data?.banner_link}>
                   <button className="mt-6 py-3 w-[200px] px-6 bg-[#545454] text-white font-semibold rounded-full hover:bg-[#7b7a7a]">
-                    Join Us Now!
+                    Donate Now
                   </button>
                 </a>
               </div>

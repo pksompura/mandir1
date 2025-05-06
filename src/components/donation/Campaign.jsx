@@ -36,7 +36,6 @@ const CampaignPage = () => {
   const [donationuser, setDonationuser] = useState();
   const { id } = useParams();
   const [get, { data, error, isLoading }] = useLazyGetCampaignQuery();
-  console.log(data);
 
   // const [donationCampaign, setDonationCampaign] =
   //   useGetCampaignDonationsQuery();
@@ -301,7 +300,6 @@ const CampaignPage = () => {
     }
   };
   useEffect(() => {
-    console.log(user);
     if (user?.full_name) {
       setDonationuser(user);
     }
@@ -314,7 +312,20 @@ const CampaignPage = () => {
       document.body.style.overflow = "auto";
     }
   }, [isModalOpen]);
-  console.log(campaign?.donation_amounts);
+  // Utility: Extract image URLs from HTML
+  const extractImagesFromHTML = (html) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+    return Array.from(doc.querySelectorAll("img")).map((img) => img.src);
+  };
+
+  // Utility: Remove images from HTML
+  const removeImagesFromHTML = (html) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+    doc.querySelectorAll("img").forEach((img) => img.remove());
+    return doc.body.innerHTML;
+  };
 
   return (
     <div className="w-full lg:w-[1300px] mx-auto p-4 mt-14 ">
@@ -506,7 +517,7 @@ const CampaignPage = () => {
                   </div>
                   <div>
                     <p className="text-gray-900 font-semibold capitalize md:text-lg">
-                      {campaign?.ngo_name || "NGO Name"}
+                      {campaign?.beneficiary || "NGO Name"}
                     </p>
                     <p className="text-gray-500 text-sm">Beneficiary</p>
                   </div>
@@ -610,7 +621,7 @@ const CampaignPage = () => {
                 })()}
             </div>
             {/* Updates Section */}
-            <div
+            {/* <div
               ref={updatesRef}
               className="bg-white rounded-xl shadow-md mt-6"
             >
@@ -638,6 +649,77 @@ const CampaignPage = () => {
                         />
                       </motion.div>
                     </AnimatePresence>
+                    <button
+                      onClick={() => setShowFullUpdates(!showFullUpdates)}
+                      className="text-blue-500 mt-3 underline block text-center"
+                    >
+                      {showFullUpdates ? "Show Less" : "Read More"}
+                    </button>
+                  </>
+                ) : (
+                  "No updates available."
+                )}
+              </div>
+            </div> */}
+            <div
+              ref={updatesRef}
+              className="bg-white rounded-xl shadow-md mt-6"
+            >
+              <h3 className="text-lg font-semibold text-center bg-[#d8573e] text-white py-3 rounded-t-xl">
+                Updates
+              </h3>
+
+              <div className="text-gray-700 p-2 leading-snug">
+                {campaign?.story ? (
+                  <>
+                    {/* Swiper Slider for Images */}
+                    {extractImagesFromHTML(campaign.story).length > 0 && (
+                      <Swiper
+                        modules={[Pagination, Autoplay]}
+                        slidesPerView={1}
+                        spaceBetween={10}
+                        pagination={{ clickable: true }}
+                        autoplay={{ delay: 3000, disableOnInteraction: false }} // ✅ autoplay config
+                        loop={true} // Optional: enables infinite loop
+                        className="rounded-xl mb-4"
+                      >
+                        {extractImagesFromHTML(campaign.story).map(
+                          (src, index) => (
+                            <SwiperSlide key={index}>
+                              <img
+                                src={src}
+                                alt={`Slide ${index + 1}`}
+                                className="w-full h-auto object-contain rounded-md"
+                              />
+                            </SwiperSlide>
+                          )
+                        )}
+                      </Swiper>
+                    )}
+
+                    {/* Story Text Content (without images) */}
+                    <AnimatePresence initial={false}>
+                      <motion.div
+                        key={showFullUpdates ? "full" : "short"}
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden"
+                      >
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: showFullUpdates
+                              ? removeImagesFromHTML(campaign.story)
+                              : removeImagesFromHTML(campaign.story).slice(
+                                  0,
+                                  300
+                                ) + "...",
+                          }}
+                        />
+                      </motion.div>
+                    </AnimatePresence>
+
                     <button
                       onClick={() => setShowFullUpdates(!showFullUpdates)}
                       className="text-blue-500 mt-3 underline block text-center"
@@ -891,16 +973,18 @@ const CampaignPage = () => {
             </div>
 
             {/* Donate Button */}
-            <div className="mt-8 flex justify-center">
-              <button
-                onClick={openDonationModal}
-                className="bg-[#d8573e] text-white font-bold text-sm px-20 py-3 rounded-full transition duration-300 transform hover:scale-110 hover:bg-[#c85139] focus:outline-none focus:ring-2 focus:ring-[#d8573e] group animate-bounce"
-              >
-                <span className="group-hover:text-white transition duration-300">
-                  DONATE NOW
-                </span>
-              </button>
-            </div>
+            {campaign?.is_approved === true && (
+              <div className="mt-8 flex justify-center">
+                <button
+                  onClick={openDonationModal}
+                  className="bg-[#d8573e] text-white font-bold text-sm px-20 py-3 rounded-full transition duration-300 transform hover:scale-110 hover:bg-[#c85139] focus:outline-none focus:ring-2 focus:ring-[#d8573e] group animate-bounce"
+                >
+                  <span className="group-hover:text-white transition duration-300">
+                    DONATE NOW
+                  </span>
+                </button>
+              </div>
+            )}
 
             {/* Share Section */}
             <div className="mt-6 flex flex-col items-center">
@@ -927,7 +1011,7 @@ const CampaignPage = () => {
                 </div>
                 <div>
                   <p className="text-gray-900 font-semibold capitalize">
-                    {campaign?.ngo_name || "NGO Name"}
+                    {campaign?.beneficiary || "Beneficiary"}
                   </p>
                   <p className="text-gray-500 text-sm">Beneficiary</p>
                 </div>
@@ -1065,16 +1149,18 @@ const CampaignPage = () => {
         />
       )}
 
-      <div className="visible md:hidden fixed bottom-0 left-1/2 -translate-x-1/2 w-full border-2 flex justify-center py-2 bg-white">
-        <button
-          onClick={openDonationModal}
-          className="bg-[#d8573e] w-[90vw]  text-white font-bold text-lg px-1 py-2 rounded-full shadow-md transition duration-300 transform hover:scale-110 hover:bg-[#d8573e] focus:outline-none focus:ring-2 focus:ring-[#d8573e] group "
-        >
-          <span className="group-hover:text-white transition duration-300">
-            DONATE NOW
-          </span>
-        </button>
-      </div>
+      {campaign?.is_approved === true && (
+        <div className="visible md:hidden fixed bottom-0 left-1/2 -translate-x-1/2 w-full border-2 flex justify-center py-2 bg-white">
+          <button
+            onClick={openDonationModal}
+            className="bg-[#d8573e] w-[90vw]  text-white font-bold text-lg px-1 py-2 rounded-full shadow-md transition duration-300 transform hover:scale-110 hover:bg-[#d8573e] focus:outline-none focus:ring-2 focus:ring-[#d8573e] group "
+          >
+            <span className="group-hover:text-white transition duration-300">
+              DONATE NOW
+            </span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };

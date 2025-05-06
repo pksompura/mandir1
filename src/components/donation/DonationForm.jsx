@@ -31,7 +31,6 @@ const DonationForm = ({
   const [loginUser] = useLoginUserMutation(); // Login mutation
   const [verifyOtp] = useVerifyOtpMutation(); // OTP verification mutation
   const [updateUser] = useUpdateUserMutation(); // Redux API to update user
-  console.log(donation_amounts);
   const [verifyPayment] = useVerifyPaymentMutation(); // OTP verification mutation
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user.userData);
@@ -65,7 +64,7 @@ const DonationForm = ({
   // });
   const [infoErrors, setInfoErrors] = useState({});
   const [foreignError, setForeignError] = useState(false);
-  const [supportPercent, setSupportPercent] = useState(5); // Default 5%
+  const [supportPercent, setSupportPercent] = useState(0); // Default 5%
   const [manualTip, setManualTip] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isOtherSelected, setIsOtherSelected] = useState(false);
@@ -81,7 +80,6 @@ const DonationForm = ({
   const uniqueSortedAmounts = [...new Set(processedAmounts)].sort(
     (a, b) => a - b
   );
-  console.log(donation_amounts, uniqueSortedAmounts);
   const fallbackAmounts = [500, 1500, 3000];
   const displayAmounts =
     uniqueSortedAmounts.length > 0 ? uniqueSortedAmounts : fallbackAmounts;
@@ -97,11 +95,11 @@ const DonationForm = ({
   const [donationAmount, setDonationAmount] = useState(defaultAmount);
 
   // Calculate tip amount
+
   const tipAmount =
     isOtherSelected && manualTip > 0
       ? manualTip
       : (donationAmount * supportPercent) / 100;
-
   // Predefined Tip Options
   const tipOptions = [5, 10, 20];
 
@@ -124,7 +122,7 @@ const DonationForm = ({
     if (manualTip) {
       setSupportPercent(Number(manualTip)); // Set custom tip
     } else {
-      setSupportPercent(5); // Reset to default 5% if empty
+      setSupportPercent(0); // Reset to default 5% if empty
     }
     setIsDropdownOpen(false);
   };
@@ -146,6 +144,23 @@ const DonationForm = ({
       ? `₹${manualTip || 0}` // Custom tip shows INR amount
       : `${supportPercent}%`; // Selected percentage shows only %
 
+  // const updatePosition = (e) => {
+  //   if (!trackRef.current) return;
+  //   const rect = trackRef.current.getBoundingClientRect();
+  //   let clientX = e.clientX || (e.touches && e.touches[0].clientX);
+  //   const x = Math.min(Math.max(clientX - rect.left, 0), rect.width);
+
+  //   let newPercent = (x / rect.width) * 100;
+  //   const value = Math.round((newPercent / 100) * target);
+
+  //   if (value < minAmount) {
+  //     setPercent((minAmount / target) * 100);
+  //     setDonationAmount(minAmount);
+  //   } else {
+  //     setPercent(newPercent);
+  //     setDonationAmount(value);
+  //   }
+  // };
   const updatePosition = (e) => {
     if (!trackRef.current) return;
     const rect = trackRef.current.getBoundingClientRect();
@@ -159,10 +174,25 @@ const DonationForm = ({
       setPercent((minAmount / target) * 100);
       setDonationAmount(minAmount);
     } else {
-      setPercent(newPercent);
-      setDonationAmount(value);
+      setPercent(Math.min(newPercent, 100)); // ✅ progress bar max 100%
+      setDonationAmount(Math.min(value, target)); // ✅ dragging donation capped at target
     }
   };
+  // useEffect(() => {
+  //   const stopDrag = () => setIsDragging(false);
+  //   if (isDragging) {
+  //     document.addEventListener("mousemove", updatePosition);
+  //     document.addEventListener("mouseup", stopDrag);
+  //     document.addEventListener("touchmove", updatePosition);
+  //     document.addEventListener("touchend", stopDrag);
+  //   }
+  //   return () => {
+  //     document.removeEventListener("mousemove", updatePosition);
+  //     document.removeEventListener("mouseup", stopDrag);
+  //     document.removeEventListener("touchmove", updatePosition);
+  //     document.removeEventListener("touchend", stopDrag);
+  //   };
+  // }, [isDragging]);
   useEffect(() => {
     const stopDrag = () => setIsDragging(false);
     if (isDragging) {
@@ -190,6 +220,15 @@ const DonationForm = ({
   // }, [percent]);
 
   // Validate donation amount
+  // useEffect(() => {
+  //   if (!donationAmount || donationAmount === 0) {
+  //     setError("Please enter donation amount");
+  //   } else if (donationAmount < minAmount) {
+  //     setError(`Minimum donation amount is INR ${minAmount}`);
+  //   } else {
+  //     setError("");
+  //   }
+  // }, [donationAmount]);
   useEffect(() => {
     if (!donationAmount || donationAmount === 0) {
       setError("Please enter donation amount");
@@ -199,6 +238,13 @@ const DonationForm = ({
       setError("");
     }
   }, [donationAmount]);
+
+  useEffect(() => {
+    if (donationAmount > 0 && target > 0) {
+      const initialPercent = (donationAmount / target) * 100;
+      setPercent(Math.min(initialPercent, 100));
+    }
+  }, [donationAmount, target]);
 
   const startDrag = (e) => {
     e.preventDefault();
@@ -233,7 +279,10 @@ const DonationForm = ({
   }, []); // This only runs once, after the component mounts
 
   // Calculate total donation
-  const calculateTotal = () => (donationAmount + tipAmount).toFixed(2);
+  // const calculateTotal = () => (donationAmount + tipAmount).toFixed(2);
+  const calculateTotal = () => {
+    return (parseFloat(donationAmount) + parseFloat(tipAmount)).toFixed(2);
+  };
 
   const validateForm = () => {
     if (!citizenStatus) {
@@ -252,24 +301,31 @@ const DonationForm = ({
       });
     }
   }, [donationuser]);
-
   const handleDonateNow = async () => {
     const errors = {};
+
     if (!isChecked) {
       message.error(
         "You must agree to the terms & conditions before proceeding."
       );
       return;
     }
-    // Validate input fields (New & Existing Users)
+
+    // Validate donation amount
+    if (donationAmount < minAmount) {
+      message.error(`Minimum donation amount is INR ${minAmount}`);
+      return;
+    }
+
+    // Validate input fields
     if (!userData.full_name) errors.full_name = "Full Name is required";
     if (!userData.email) errors.email = "Email is required";
 
-    // Check Citizenship (Only 'Yes' is allowed)
+    // Check Citizenship
     if (citizenStatus !== "yes") {
       setShowError(true);
       message.error("Only Indian citizens are allowed to donate.");
-      return; // Stop execution
+      return;
     }
 
     if (Object.keys(errors).length > 0) {
@@ -277,16 +333,13 @@ const DonationForm = ({
       return;
     }
 
-    console.log("userdate:", userData, "Donation:", donationuser);
     try {
       // ✅ If user is new, update details before proceeding
       await updateUser({
-        mobile: donationuser?.mobile, // Keep existing mobile number
+        mobile: donationuser?.mobile,
         full_name: userData.full_name,
         email: userData.email,
       });
-
-      // message.success("User details updated successfully");
 
       // ✅ Proceed with payment
       await initiatePayment();
@@ -363,6 +416,46 @@ const DonationForm = ({
 
   //   setDonationAmount(value);
   // };
+  // const handleInputChange = (e) => {
+  //   let value = e.target.value;
+
+  //   // Allow empty input
+  //   if (value.trim() === "") {
+  //     setDonationAmount(0); // show ₹ 0 in input
+  //     setPercent(0);
+  //     setError("Please enter donation amount");
+  //     return;
+  //   }
+
+  //   // Remove non-numeric characters and parse to number
+  //   const numericValue = parseInt(value.replace(/\D/g, ""), 10);
+
+  //   if (isNaN(numericValue)) {
+  //     setDonationAmount(0);
+  //     setPercent(0);
+  //     setError("Please enter donation amount");
+  //     return;
+  //   }
+
+  //   if (numericValue < minAmount) {
+  //     setDonationAmount(numericValue);
+  //     setPercent((numericValue / target) * 100);
+  //     setError(`Minimum donation amount is INR ${minAmount}`);
+  //   } else {
+  //     const clampedValue = Math.min(numericValue, target);
+  //     setDonationAmount(clampedValue);
+  //     setPercent((clampedValue / target) * 100);
+  //     setError("");
+  //   }
+  // };
+  // Inside your component
+  // useEffect(() => {
+  //   if (donationAmount > 0) {
+  //     const newPercent = (donationAmount / target) * 100;
+  //     setPercent(Math.min(newPercent, 100));
+  //   }
+  // }, [donationAmount]);
+
   const handleInputChange = (e) => {
     let value = e.target.value;
 
@@ -389,9 +482,9 @@ const DonationForm = ({
       setPercent((numericValue / target) * 100);
       setError(`Minimum donation amount is INR ${minAmount}`);
     } else {
-      const clampedValue = Math.min(numericValue, target);
-      setDonationAmount(clampedValue);
-      setPercent((clampedValue / target) * 100);
+      setDonationAmount(numericValue); // ❗ do NOT clamp
+      const progress = Math.min((numericValue / target) * 100, 100); // ❗ cap progress bar at 100%
+      setPercent(progress);
       setError("");
     }
   };
@@ -411,6 +504,7 @@ const DonationForm = ({
   //     setDonationAmount(value);
   //   }
   // };
+
   const handleCloseThankYouModal = () => {
     setShowThankYouModal(false);
   };
@@ -437,15 +531,14 @@ const DonationForm = ({
             donorName: donationuser.full_name,
             email: donationuser.email,
           }).unwrap();
-          console.log(verifyResponse);
           if (verifyResponse.status) {
             setTimeout(() => {
               setShowLoader(false);
               setIsDonationModalVisible(false);
-              message.success(
-                "Payment successful! Thank you for your donation."
-              );
-            }, 10000);
+              // message.success(
+              //   "Payment successful! Thank you for your donation."
+              // );
+            }, 3000);
             setShowThankYouModal(true);
           } else {
             setShowLoader(false);
@@ -645,6 +738,7 @@ const DonationForm = ({
               </div>
             ))}
           </div> */}
+
           <h3 className="text-lg text-center font-semibold mb-6">
             Select Donation Amount in INR
           </h3>
@@ -653,7 +747,7 @@ const DonationForm = ({
             {displayAmounts.map((amount) => (
               <div key={amount} className="relative">
                 {popularAmount === amount && (
-                  <span className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-[#ffdd04] text-black text-[10px] px-2 py-1 rounded">
+                  <span className="absolute -top-5 left-1/2 transform -translate-x-1/2 text-black text-[10px] px-2 py-1 rounded">
                     Popular
                   </span>
                 )}
@@ -692,8 +786,45 @@ const DonationForm = ({
               </label>
             )}
           </div>
+          {/* <div
+            ref={trackRef}
+            className="relative w-full h-2 bg-gray-200 rounded-full mt-3 mb-3"
+          >
+            <div
+              className={`absolute top-0 left-0 h-2 rounded-full ${
+                isDragging ? "" : "transition-all duration-200"
+              }`}
+              style={{
+                width: `${Math.min(percent, 100)}%`,
+                backgroundColor:
+                  donationAmount >= target ? "#FFD700" : "#ff4757", // ✅ dynamic color
+              }}
+            ></div>
 
-          <div
+            <div
+              className={`absolute cursor-pointer z-20 ${
+                isDragging ? "" : "transition-all duration-200"
+              }`}
+              style={{
+                left: `${Math.min(percent, 100)}%`, // ✅ prevent going outside
+                top: "50%",
+                transform: "translate(-50%, -50%)",
+              }}
+              onMouseDown={startDrag}
+              onTouchStart={startDrag}
+            >
+              <div
+                className={`w-7 h-7 bg-white border-2 ${
+                  donationAmount >= target
+                    ? "border-[#FFD700]"
+                    : "border-[#ff4757]"
+                } rounded-full flex items-center justify-center shadow`}
+              >
+                {/* heart-icon or keep empty */}
+          {/* </div>
+            </div> */}
+
+          {/* <div
             ref={trackRef}
             className="relative w-full h-2 bg-gray-200 rounded-full mt-3 mb-3"
           >
@@ -716,30 +847,30 @@ const DonationForm = ({
               onMouseDown={startDrag}
               onTouchStart={startDrag}
             >
-              <div className="w-7 h-7 bg-white border-2 border-[#ff4757] rounded-full flex items-center justify-center shadow">
-                {/* <img
+              <div className="w-7 h-7 bg-white border-2 border-[#ff4757] rounded-full flex items-center justify-center shadow"> */}
+          {/* <img
                   src="/images/heart-icon.svg"
                   alt="Heart"
                   className="w-4 h-4"
                   draggable={false}
                 /> */}
-              </div>
-            </div>
-          </div>
+          {/* </div> */}
+          {/* </div> */}
+          {/* </div>
           <h3 className="text-base font-semibold text-center mb-3">
             Support Us
-          </h3>
-          <div className="relative w-full">
-            {/* Main Input Field */}
-            <button
+          </h3> */}
+          {/* <div className="relative w-full"> */}
+          {/* Main Input Field */}
+          {/* <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="w-full p-2 border rounded-lg text-xs focus:outline-none mb-3 bg-white text-left"
             >
               {isOtherSelected ? `₹${manualTip}` : `${supportPercent}%`}
-            </button>
+            </button> */}
 
-            {/* Dropdown Menu */}
-            {isDropdownOpen && (
+          {/* Dropdown Menu */}
+          {/* {isDropdownOpen && (
               <ul className="absolute left-0 w-full bg-white border rounded-lg shadow-md p-2 mt-1 z-10">
                 {[5, 10, 20].map((percent) => (
                   <li
@@ -755,10 +886,10 @@ const DonationForm = ({
                     {percent}% - ₹
                     {((donationAmount * percent) / 100).toFixed(2)}
                   </li>
-                ))}
+                ))} */}
 
-                {/* Other Option with Input */}
-                <li className="p-2 text-xs hover:bg-gray-100 cursor-pointer flex items-center">
+          {/* Other Option with Input */}
+          {/* <li className="p-2 text-xs hover:bg-gray-100 cursor-pointer flex items-center">
                   Other -
                   <input
                     type="text"
@@ -769,34 +900,34 @@ const DonationForm = ({
                     value={manualTip}
                     onChange={(e) => {
                       setManualTip(Number(e.target.value) || 0);
-                      setSupportPercent(""); // Clear percent selection
+                      setSupportPercent("");
                       setIsOtherSelected(true);
                     }}
                     onBlur={() => {
                       if (manualTip > 0) {
-                        setIsDropdownOpen(false); // Close dropdown
+                        setIsDropdownOpen(false);
                       } else {
-                        setSupportPercent(5); // Default to 5% if empty
+                        setSupportPercent(5);
                         setIsOtherSelected(false);
                       }
                     }}
-                    onClick={(e) => e.stopPropagation()} // Prevent dropdown from closing
+                    onClick={(e) => e.stopPropagation()}
                   />
                 </li>
               </ul>
-            )}
+            )} */}
 
-            {/* Selected Tip Display */}
-            {/* <h3 className="text-base font-semibold mb-3">
+          {/* Selected Tip Display */}
+          {/* <h3 className="text-base font-semibold mb-3">
               Selected Tip:{" "}
               {isOtherSelected ? `₹${manualTip}` : `${supportPercent}%`}
             </h3> */}
 
-            {/* Total Donation Display */}
-            <h3 className="text-base font-semibold mb-3">
+          {/* Total Donation Display */}
+          {/* <h3 className="text-base font-semibold mb-3">
               Total Donation: ₹ {calculateTotal()}
             </h3>
-          </div>
+          </div> */}
           <div>
             <p className="text-sm mb-2">
               Are you an Indian Citizen? <sup>*</sup>
@@ -864,13 +995,13 @@ const DonationForm = ({
               onChange={() => setIsChecked(!isChecked)}
             />
             <label htmlFor="agreeTerms" className="text-xs text-gray-500 ml-2">
-              By proceeding, you agree to Impact Giveaze Foundation's
+              By proceeding, you agree to Giveaze Foundation's
               <a
                 href="/privacy-policy"
                 className="text-[#8d7f24] underline ml-1"
               >
                 Privacy Policy
-              </a>
+              </a>{" "}
               and
               <a
                 href="/terms-and-conditions"
@@ -938,8 +1069,8 @@ const DonationForm = ({
             *By continuing, I agree to the{" "}
             <a href="/terms" className="underline">
               Terms Of Use
-            </a>{" "}
-            and{" "}
+            </a>
+            and
             <a href="/privacy-policy" className="underline">
               Privacy Policy
             </a>

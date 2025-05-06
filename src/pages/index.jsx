@@ -76,7 +76,7 @@ const HeroSlider = () => {
             className="w-full my-3"
           >
             {campaigns?.campaigns
-              ? campaigns?.campaigns?.map((data, i) => (
+              ? campaigns?.campaigns?.filter(data=>!data.hidden).map((data, i) => (
                   <SwiperSlide
                     className="flex items-center w-full justify-center mb-6"
                     key={i + "1"}
@@ -89,15 +89,15 @@ const HeroSlider = () => {
                             alt={data?.campaign_title}
                             className="w-full h-48 object-cover rounded"
                           />
-                          <img
+                       {data?.is_tax&&   <img
                             alt=""
                             src="/images/tax.png"
                             className="w-16 absolute right-1 top-1"
-                          />
+                          />}
                         </div>
                         <div className="p-4">
                           <div className="flex gap-3">
-                            {data?.is_tax ? (
+                            {data?.is_validated ? (
                               <img
                                 src="/images/VALIDATED.png"
                                 alt=""
@@ -165,6 +165,7 @@ const HeroSlider = () => {
                             </div>
 
                             <hr className="h-2 my-2" />
+                            {data?.is_approved!==true?
                             <Link to={`/campaign/${data?._id}`}>
                               <button className="w-full flex gap-2 items-center justify-center bg-[#d6573d] text-white font-bold py-2 px-4 rounded-full">
                                 <div className="relative">
@@ -174,7 +175,17 @@ const HeroSlider = () => {
                                   </span>
                                 </div>
                               </button>
-                            </Link>
+                            </Link>:
+                            <Link to={`/campaign/${data?._id}`}>
+                              <button className="w-full flex gap-2 items-center justify-center bg-[#d6573d] text-white font-bold py-2 px-4 rounded-full">
+                                <div className="relative">
+                                View Updates
+                                  <span>
+                                    <CiHeart className="animate-ping absolute -right-8 top-[5px]" />
+                                  </span>
+                                </div>
+                              </button>
+                            </Link>}
                           </div>
                         </div>
                       </div>

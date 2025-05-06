@@ -11,6 +11,7 @@ import { Link } from "react-router-dom";
 import { CiHeart } from "react-icons/ci";
 import {} from "../../redux/services/campaignApi";
 import { CornerDownLeft } from "lucide-react";
+import { data } from "autoprefixer";
 
 const DonationCard = ({ campaign, donorCount }) => {
   return (
@@ -78,16 +79,27 @@ const DonationCard = ({ campaign, donorCount }) => {
                 <span>{donorCount} Donors</span>
               </div>
               <hr className="h-2 my-2" />
-              <Link to={`/campaign/${campaign?._id}`}>
-                <button className="w-full flex gap-2 items-center justify-center bg-[#d6573d] text-white font-bold py-2 px-4 rounded-full">
-                  <div className="relative">
-                    Donate Now{" "}
-                    <span>
-                      <CiHeart className="animate-ping absolute -right-8 top-[5px]" />
-                    </span>
-                  </div>
-                </button>
-              </Link>
+               {campaign?.is_approved!==true?
+                                        <Link to={`/campaign/${campaign?._id}`}>
+                                          <button className="w-full flex gap-2 items-center justify-center bg-[#d6573d] text-white font-bold py-2 px-4 rounded-full">
+                                            <div className="relative">
+                                              Donate Now{" "}
+                                              <span>
+                                                <CiHeart className="animate-ping absolute -right-8 top-[5px]" />
+                                              </span>
+                                            </div>
+                                          </button>
+                                        </Link>:
+                                        <Link to={`/campaign/${campaign?._id}`}>
+                                          <button className="w-full flex gap-2 items-center justify-center bg-[#d6573d] text-white font-bold py-2 px-4 rounded-full">
+                                            <div className="relative">
+                                            View Updates
+                                              <span>
+                                                <CiHeart className="animate-ping absolute -right-8 top-[5px]" />
+                                              </span>
+                                            </div>
+                                          </button>
+                                        </Link>}
             </div>
           </div>
         </div>
@@ -200,7 +212,8 @@ const CampaignList = () => {
   return (
     <div className="w-full  lg:w-[1200px] mx-auto px-4 py-8 mt-[68px]">
       <h2 className="text-4xl font-bold text-center mb-8 text-gray-700">
-        Create Your Impact!
+        {/* Create Your Impact! */}
+        Explore Campaigns
       </h2>
 
       {/* Category Filters */}
@@ -256,7 +269,7 @@ const CampaignList = () => {
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => <CampaignSkeleton key={i} />)
         ) : campaignsWithDonorCount.length > 0 ? (
-          campaignsWithDonorCount.map((campaign, index) => (
+          campaignsWithDonorCount.filter(data=>!data.hidden).map((campaign, index) => (
             <DonationCard
               key={index}
               campaign={campaign}
