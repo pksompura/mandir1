@@ -57,7 +57,7 @@ const DonationForm = ({
   const [percent, setPercent] = useState((minAmount / target) * 100);
   // const [donationAmount, setDonationAmount] = useState(1500);
   const [error, setError] = useState("");
-
+  console.log(donationuser);
   // const [infoErrors, setInfoErrors] = useState({
   //   full_name: "",
   //   email: "",
