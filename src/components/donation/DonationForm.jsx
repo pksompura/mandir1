@@ -383,8 +383,8 @@ const DonationForm = ({
       const orderResponse = await createOrder({
         user_id: donationuser?._id,
         donation_campaign_id: donation_campaign_id, // Replace this dynamically
-        amount: calculateTotal(),
-        // payment_method: "upi",
+        amount: calculateTotal(), // payment_method: "upi",
+        is_anonymous: isAnonymous, // ← add this
       }).unwrap();
       await triggerRazorpay(orderResponse.data, orderResponse.donation_id);
 
@@ -970,29 +970,36 @@ const DonationForm = ({
               </p>
             )}
           </div>
-          {/* ✅ Anonymous Option (Responsive) */}
-          <div className="flex flex-wrap items-center mt-4">
+          {/* Anonymous Donation */}
+          <div className="flex items-start mt-4">
             <input
               type="checkbox"
               id="donateAnonymous"
-              className="w-3 h-3 text-[#8d7f24] border-gray-300 rounded focus:ring-[#8d7f24]"
+              className="w-4 h-4 mt-1 text-[#8d7f24] border-gray-300 rounded focus:ring-[#8d7f24] shrink-0"
               checked={isAnonymous}
               onChange={() => setIsAnonymous(!isAnonymous)}
             />
-            <label htmlFor="donateAnonymous" className="text-sm ml-2">
+            <label
+              htmlFor="donateAnonymous"
+              className="ml-2 text-sm text-gray-700 leading-snug"
+            >
               Donate Anonymously
             </label>
           </div>
 
+          {/* Terms Agreement */}
           <div className="flex items-start mt-4">
             <input
               type="checkbox"
               id="agreeTerms"
-              className="w-4 h-4 text-[#8d7f24] border-gray-300 rounded focus:ring-[#8d7f24]"
+              className="w-4 h-4 mt-1 text-[#8d7f24] border-gray-300 rounded focus:ring-[#8d7f24] shrink-0"
               checked={isChecked}
               onChange={() => setIsChecked(!isChecked)}
             />
-            <label htmlFor="agreeTerms" className="text-xs text-gray-500 ml-2">
+            <label
+              htmlFor="agreeTerms"
+              className="ml-2 text-xs text-gray-700 leading-snug"
+            >
               By proceeding, you agree to Giveaze Foundation's
               <a
                 href="/privacy-policy"

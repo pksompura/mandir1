@@ -1,14 +1,17 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { HiUserCircle, HiOutlineLogout, HiMenu, HiX } from "react-icons/hi";
 import { IoIosArrowDown } from "react-icons/io";
 import { FiUser } from "react-icons/fi";
 import axios from "axios";
 import LoginModel from "./LoginModel";
 import FormModal from "./AddCampaignForm";
-import { useLazyGetUserProfileQuery } from "../redux/services/campaignApi";
+import {
+  useLazyGetUserProfileQuery,
+  useLogoutMutation,
+} from "../redux/services/campaignApi";
 import { useDispatch, useSelector } from "react-redux";
 import { setUserData } from "../redux/slices/userSlice";
 import Swal from "sweetalert2";
@@ -16,6 +19,8 @@ import { MdOutlineCampaign } from "react-icons/md";
 import { RiQuestionnaireLine } from "react-icons/ri"; // FAQ
 
 const PublicHeader = () => {
+  const navigate = useNavigate();
+
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isCampaignModalOpen, setIsCampaignModalOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
@@ -25,6 +30,7 @@ const PublicHeader = () => {
   const user = useSelector((state) => state.user.userData);
   const dispatch = useDispatch();
   const dropdownRef = useRef(null); // Reference for dropdown
+  const [logout] = useLogoutMutation();
 
   const toggleDropdown = (event) => {
     event.stopPropagation(); // Prevents immediate closing after opening
@@ -87,26 +93,39 @@ const PublicHeader = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.post(
-        "https://devaseva.onrender.com/api/users/logout",
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await logout(token).unwrap();
       if (typeof window !== "undefined") {
-        localStorage?.removeItem("authToken");
-        dispatch(setUserData());
+        localStorage.removeItem("authToken");
       }
       setIsProfileDropdownOpen(false);
       setToken(null);
-      window.location.href = "/";
+      navigate("/");
     } catch (error) {
-      console.error("Error logging out:", error);
+      console.error("Logout failed:", error);
     }
   };
+  // const handleLogout = async () => {
+  //   try {
+  //     await axios.post(
+  //       "https://devaseva.onrender.com/api/users/logout",
+  //       {},
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
+  //     if (typeof window !== "undefined") {
+  //       localStorage?.removeItem("authToken");
+  //       dispatch(setUserData());
+  //     }
+  //     setIsProfileDropdownOpen(false);
+  //     setToken(null);
+  //     window.location.href = "/";
+  //   } catch (error) {
+  //     console.error("Error logging out:", error);
+  //   }
+  // };
 
   const navigationLinks = [
     // { name: "How it works?", path: "/" },

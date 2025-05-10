@@ -170,7 +170,11 @@ const LoginModel = ({
                 Sent to {phoneForm.values?.mobile_number}{" "}
                 <span
                   className="text-blue-500 cursor-pointer underline"
-                  onClick={() => setStepCount(null)}
+                  onClick={() => {
+                    otpForm.resetForm(); // Reset the OTP form
+                    verifyOtpReset(); // Clear backend error
+                    setStepCount(null); // Go back to phone number input
+                  }}
                 >
                   Change
                 </span>

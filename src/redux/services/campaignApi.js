@@ -88,6 +88,7 @@ export const campaignApi = createApi({
       }),
       invalidatesTags: ["login"],
     }),
+
     updateUser: builder.mutation({
       query: (body) => ({
         url: "/users/update",
@@ -104,6 +105,30 @@ export const campaignApi = createApi({
       }),
       invalidatesTags: ["login"],
     }),
+    logout: builder.mutation({
+      query: () => ({
+        url: "/users/logout",
+        method: "POST",
+        withCredentials: true, // if using cookies for logout
+      }),
+      // async onQueryStarted(_, { dispatch, queryFulfilled }) {
+      //   try {
+      //     // Wait for mutation to complete
+      //     await queryFulfilled;
+
+      //     // Clear the local storage and Redux state upon successful logout
+      //     localStorage.removeItem("authToken");
+      //     dispatch({ type: "user/clearUserData" });
+
+      //     // You can also redirect the user or show a success message
+      //     window.location.href = "/"; // or use a routing library for navigation
+      //   } catch (err) {
+      //     console.error("Logout failed:", err);
+      //   }
+      // },
+      invalidatesTags: ["User", "Auth"], // Optional: Invalidates related cache
+    }),
+
     createEnquiry: builder.mutation({
       query: (body) => ({
         url: "/enquiry/create",
@@ -155,6 +180,7 @@ export const {
   useCreateEnquiryMutation,
   useGetCampaignsByCategoryQuery,
   useLoginUserMutation,
+  useLogoutMutation,
   useGetAllCampaignQuery,
   useGetCampaignDonationsQuery,
 } = campaignApi;

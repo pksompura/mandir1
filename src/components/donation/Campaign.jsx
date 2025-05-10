@@ -111,18 +111,20 @@ const CampaignPage = () => {
   useEffect(() => {
     if (!donationData || !Array.isArray(donationData)) return;
 
-    // Filter for only successful donations
     const successfulDonors = donationData.filter(
       (donation) => donation.payment_status === "successful"
     );
 
     const transformed = successfulDonors.map((d) => {
-      const name = d.user_id?.full_name || "Anonymous";
-      const avatar = name
-        ? `https://ui-avatars.com/api/?name=${encodeURIComponent(
-            name[0]
-          )}&color=ffffff&background=0D8ABC&bold=true`
-        : "";
+      const isAnonymous = d.is_anonymous;
+      const name = isAnonymous
+        ? "Anonymous"
+        : d.user_id?.full_name || "Anonymous";
+      const avatar = isAnonymous
+        ? `https://ui-avatars.com/api/?name=A&color=ffffff&background=888`
+        : `https://ui-avatars.com/api/?name=${encodeURIComponent(
+            name
+          )}&color=ffffff&background=0D8ABC&bold=true`;
 
       return {
         id: d._id,
