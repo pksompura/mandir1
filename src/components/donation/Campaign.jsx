@@ -27,9 +27,9 @@ import { CiUser } from "react-icons/ci";
 
 // Label Colors
 const labelStyles = {
-  "Recent Donation": "bg-yellow-200 text-grey-100",
-  "First Donation": "bg-green-200 text-grey-100",
-  "Top Donation": "bg-blue-200 text-grey-100",
+  "Recent Donation": "bg-[#ffdd04] text-grey-100",
+  "First Donation": "bg-[#d6573d] text-white",
+  "Top Donation": "bg-[#545454] text-white",
 };
 const CampaignPage = () => {
   // const [currentSlide, setCurrentSlide] = useState(1);
@@ -84,13 +84,13 @@ const CampaignPage = () => {
       );
     };
   }, []);
-  useEffect(() => {
-    if (isProfileDropdownOpen) {
-      setShowNav(false); // Hide nav menu when profile is open
-    } else {
-      setShowNav(true); // Show nav menu when profile is closed
-    }
-  }, [isProfileDropdownOpen]);
+  // useEffect(() => {
+  //   if (isProfileDropdownOpen) {
+  //     setShowNav(false); // Hide nav menu when profile is open
+  //   } else {
+  //     setShowNav(true); // Show nav menu when profile is closed
+  //   }
+  // }, [isProfileDropdownOpen]);
 
   const handleViewMore = () => {
     setVisibleDonations((prev) => prev + 10); // Load 10 more each time
@@ -173,10 +173,26 @@ const CampaignPage = () => {
   };
 
   // Handle scroll to show nav after user scrolls down
+  // useEffect(() => {
+  //   const handleScroll = () => {
+  //     const scrollPosition = window.scrollY;
+  //     if (scrollPosition > 300) {
+  //       setShowNav(true);
+  //     } else {
+  //       setShowNav(false);
+  //     }
+  //   };
+
+  //   window.addEventListener("scroll", handleScroll);
+  //   return () => window.removeEventListener("scroll", handleScroll);
+  // }, []);
+
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
-      if (scrollPosition > 300) {
+
+      // Only show nav if user scrolled past 300px and profile dropdown is closed
+      if (scrollPosition > 300 && !isProfileDropdownOpen) {
         setShowNav(true);
       } else {
         setShowNav(false);
@@ -185,8 +201,7 @@ const CampaignPage = () => {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
+  }, [isProfileDropdownOpen]);
   const scrollToSection = (ref) => {
     if (ref.current) {
       setShowNav(true); // Ensure nav is visible
@@ -394,7 +409,7 @@ const CampaignPage = () => {
                 {campaign?.campaign_title || "Campaign Title"}
               </h1>
             </div>
-            <div className="border p-6 border-gray-300 rounded-xl">
+            <div className="border p-6 border-gray-500 rounded-xl">
               <div className="w-full">
                 <div className="flex justify-center items-center mb-4">
                   <div className="flex items-center gap-1">
@@ -683,7 +698,7 @@ const CampaignPage = () => {
                         pagination={{ clickable: true }}
                         autoplay={{ delay: 3000, disableOnInteraction: false }} // ✅ autoplay config
                         loop={true} // Optional: enables infinite loop
-                        className="rounded-xl mb-4"
+                        className=" rounded-xl mb-4"
                       >
                         {extractImagesFromHTML(campaign.story).map(
                           (src, index) => (
@@ -1152,14 +1167,12 @@ const CampaignPage = () => {
       )}
 
       {campaign?.is_approved === true && (
-        <div className="visible md:hidden fixed bottom-0 left-1/2 -translate-x-1/2 w-full border-2 flex justify-center py-2 bg-white">
+        <div className="visible md:hidden fixed bottom-0 left-1/2 -translate-x-1/2 w-full border-t flex justify-center py-2 bg-white z-50">
           <button
             onClick={openDonationModal}
-            className="bg-[#d8573e] w-[90vw]  text-white font-bold text-lg px-1 py-2 rounded-full shadow-md transition duration-300 transform hover:scale-110 hover:bg-[#d8573e] focus:outline-none focus:ring-2 focus:ring-[#d8573e] group "
+            className="bg-[#d8573e] w-[90vw] text-white font-bold text-lg px-1 py-2 rounded-full shadow-md transition duration-300 transform hover:scale-110 hover:bg-[#d8573e] focus:outline-none focus:ring-2 focus:ring-[#d8573e]"
           >
-            <span className="group-hover:text-white transition duration-300">
-              DONATE NOW
-            </span>
+            DONATE NOW
           </button>
         </div>
       )}

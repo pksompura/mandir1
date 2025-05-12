@@ -121,11 +121,10 @@ const DonationsList = ({ userDonations }) => {
             return (
               <div
                 key={donation?._id}
-                className="bg-white shadow-md rounded-lg p-4 border border-gray-200 flex flex-col justify-between"
+                className="bg-white shadow-md rounded-lg p-2 border border-gray-200 flex flex-col justify-between"
               >
                 <div>
-                  <h3 className="text-lg font-semibold mb-2 truncate">
-                    <span className="text-gray-700 font-medium">Campaign:</span>{" "}
+                  <h3 className="text-md font-semibold mb-2">
                     <span className="text-gray-500 font-medium">
                       {donation?.donation_campaign_id?.campaign_title}
                     </span>
@@ -151,14 +150,24 @@ const DonationsList = ({ userDonations }) => {
                 </div>
 
                 {isSuccessful && (
-                  <button
-                    onClick={() =>
-                      generateDonationReceipt(donation, userDonations)
-                    }
-                    className="flex items-center gap-2 mt-4 text-blue-600 hover:underline self-start"
-                  >
-                    <Download size={16} /> Download Receipt
-                  </button>
+                  <>
+                    <button
+                      onClick={() =>
+                        generateDonationReceipt(donation, userDonations)
+                      }
+                      className="flex items-center gap-2 mt-4 text-blue-600 hover:underline self-start"
+                    >
+                      <Download size={16} /> Download Receipt
+                    </button>
+                    <button
+                      onClick={() =>
+                        generateDonationReceipt(donation, userDonations)
+                      }
+                      className="flex items-center gap-2 mt-4 text-blue-600 hover:underline self-end"
+                    >
+                      <Download size={16} /> Get 80g
+                    </button>
+                  </>
                 )}
               </div>
             );

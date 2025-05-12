@@ -45,9 +45,9 @@ const HeroSection = () => {
                   </button>
                 </a>
               </div>
-              <div className="lg:w-1/2">
+              <div className="w-[500px] h-[280px] sm:h-[330px] sm:w-1/2 overflow-hidden">
                 <img
-                  className="w-full h-[330px] object-cover"
+                  className="w-full h-full object-cover"
                   src={images?.banners[0]}
                   alt=""
                 />

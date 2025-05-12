@@ -621,7 +621,7 @@ const DonationForm = ({
         open={open}
         onClose={handleClose}
         aria-labelledby="donation-modal"
-        className="flex justify-center items-center"
+        className="flex justify-center sm:items-center items-end"
       >
         <div className="relative bg-white w-full sm:w-[400px] md:w-[450px] lg:w-[500px] xl:w-[550px] p-6 rounded-lg shadow-lg flex flex-col justify-between min-h-[250px]">
           {/* Close Button */}
@@ -998,7 +998,7 @@ const DonationForm = ({
             />
             <label
               htmlFor="agreeTerms"
-              className="ml-2 text-xs text-gray-700 leading-snug"
+              className="ml-2 text-[10px] text-gray-700 leading-snug"
             >
               By proceeding, you agree to Giveaze Foundation's
               <a
@@ -1020,7 +1020,7 @@ const DonationForm = ({
 
           <button
             className={`w-full py-3 mt-4 text-xl font-semibold text-white rounded-lg shadow-md transition-all duration-300 ${
-              isChecked
+              isChecked && citizenStatus == "yes"
                 ? "bg-[#d8573e] hover:bg-[#a84430] hover:shadow-lg cursor-pointer"
                 : "bg-[#d8573e] cursor-not-allowed opacity-50"
             }`}

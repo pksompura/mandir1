@@ -79,27 +79,29 @@ const DonationCard = ({ campaign, donorCount }) => {
                 <span>{donorCount} Donors</span>
               </div>
               <hr className="h-2 my-2" />
-               {campaign?.is_approved!==true?
-                                        <Link to={`/campaign/${campaign?._id}`}>
-                                          <button className="w-full flex gap-2 items-center justify-center bg-[#d6573d] text-white font-bold py-2 px-4 rounded-full">
-                                            <div className="relative">
-                                              Donate Now{" "}
-                                              <span>
-                                                <CiHeart className="animate-ping absolute -right-8 top-[5px]" />
-                                              </span>
-                                            </div>
-                                          </button>
-                                        </Link>:
-                                        <Link to={`/campaign/${campaign?._id}`}>
-                                          <button className="w-full flex gap-2 items-center justify-center bg-[#d6573d] text-white font-bold py-2 px-4 rounded-full">
-                                            <div className="relative">
-                                            View Updates
-                                              <span>
-                                                <CiHeart className="animate-ping absolute -right-8 top-[5px]" />
-                                              </span>
-                                            </div>
-                                          </button>
-                                        </Link>}
+              {campaign?.is_approved == true ? (
+                <Link to={`/campaign/${campaign?._id}`}>
+                  <button className="w-full flex gap-2 items-center justify-center bg-[#d6573d] text-white font-bold py-2 px-4 rounded-full">
+                    <div className="relative">
+                      Donate Now{" "}
+                      <span>
+                        <CiHeart className="animate-ping absolute -right-8 top-[5px]" />
+                      </span>
+                    </div>
+                  </button>
+                </Link>
+              ) : (
+                <Link to={`/campaign/${campaign?._id}`}>
+                  <button className="w-full flex gap-2 items-center justify-center bg-[#d6573d] text-white font-bold py-2 px-4 rounded-full">
+                    <div className="relative">
+                      View Updates
+                      <span>
+                        <CiHeart className="animate-ping absolute -right-8 top-[5px]" />
+                      </span>
+                    </div>
+                  </button>
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -171,7 +173,7 @@ const CampaignList = () => {
     // Refetch campaigns when category, search term, or page changes
     refetch();
   }, [activeCategory, searchTerm, page]);
-
+  console.log(campaignData?.data);
   // Handle category filter click
   const handleFilter = (category) => {
     setActiveCategory(category);
@@ -269,13 +271,15 @@ const CampaignList = () => {
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => <CampaignSkeleton key={i} />)
         ) : campaignsWithDonorCount.length > 0 ? (
-          campaignsWithDonorCount.filter(data=>!data.hidden).map((campaign, index) => (
-            <DonationCard
-              key={index}
-              campaign={campaign}
-              donorCount={campaign.successfulDonations}
-            />
-          ))
+          campaignsWithDonorCount
+            .filter((data) => !data.hidden)
+            .map((campaign, index) => (
+              <DonationCard
+                key={index}
+                campaign={campaign}
+                donorCount={campaign.successfulDonations}
+              />
+            ))
         ) : (
           <div className="col-span-3 text-center">
             <p className="text-gray-500 text-xl mt-10">

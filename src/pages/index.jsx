@@ -76,122 +76,129 @@ const HeroSlider = () => {
             className="w-full my-3"
           >
             {campaigns?.campaigns
-              ? campaigns?.campaigns?.filter(data=>!data.hidden).map((data, i) => (
-                  <SwiperSlide
-                    className="flex items-center w-full justify-center mb-6"
-                    key={i + "1"}
-                  >
-                    <Link to={`/campaign/${data?._id}`}>
-                      <div className="bg-white rounded-lg cursor-pointer shadow-md overflow-hidden border-2 p-2 h-[470px] w-[330px] md:h-[480px] md:w-[350px] lg:h-[480px] lg:w-[350px] mx-auto flex flex-col">
-                        <div className="relative">
-                          <img
-                            src={data?.main_picture}
-                            alt={data?.campaign_title}
-                            className="w-full h-48 object-cover rounded"
-                          />
-                       {data?.is_tax&&   <img
-                            alt=""
-                            src="/images/tax.png"
-                            className="w-16 absolute right-1 top-1"
-                          />}
-                        </div>
-                        <div className="p-4">
-                          <div className="flex gap-3">
-                            {data?.is_validated ? (
+              ? campaigns?.campaigns
+                  ?.filter((data) => !data.hidden)
+                  .map((data, i) => (
+                    <SwiperSlide
+                      className="flex items-center w-full justify-center mb-6"
+                      key={i + "1"}
+                    >
+                      <Link to={`/campaign/${data?._id}`}>
+                        <div className="bg-white rounded-lg cursor-pointer shadow-md overflow-hidden border-2 p-2 h-[470px] w-[330px] md:h-[480px] md:w-[350px] lg:h-[480px] lg:w-[350px] mx-auto flex flex-col">
+                          <div className="relative">
+                            <img
+                              src={data?.main_picture}
+                              alt={data?.campaign_title}
+                              className="w-full h-48 object-cover rounded"
+                            />
+                            {data?.is_tax && (
                               <img
-                                src="/images/VALIDATED.png"
                                 alt=""
-                                className="w-16"
+                                src="/images/tax.png"
+                                className="w-16 absolute right-1 top-1"
                               />
-                            ) : (
-                              // Empty content to keep the space even when is_tax is not found
-                              <div className="bg-transparent w-5 h-5 flex items-center justify-center" />
                             )}
                           </div>
-                          <h3 className="mt-1 text-[17px] font-bold h-[50px] leading-snug overflow-hidden line-clamp-2">
-                            {data?.campaign_title}
-                          </h3>
-
-                          <div className="mt-4">
-                            <div className="flex items-center justify-between text-sm text-gray-600">
-                              <div className="flex items-center gap-1">
-                                <h2 className="text-lg font-extrabold text-[#d8573e] animate-pulse">
-                                  ₹{data?.raised_amount?.$numberDecimal || "0"}{" "}
-                                </h2>
-                                <h4 className="text-gray-600 text-sm">
-                                  Raised
-                                </h4>
-                              </div>
-                              <span>
-                                {Math.round(
-                                  (Math.round(
-                                    data?.raised_amount?.$numberDecimal
-                                  ) /
-                                    Math.round(
-                                      data?.target_amount?.$numberDecimal
-                                    )) *
-                                    100
-                                ) || 0}
-                                %
-                              </span>
+                          <div className="p-4">
+                            <div className="flex gap-3">
+                              {data?.is_validated ? (
+                                <img
+                                  src="/images/VALIDATED.png"
+                                  alt=""
+                                  className="w-16"
+                                />
+                              ) : (
+                                // Empty content to keep the space even when is_tax is not found
+                                <div className="bg-transparent w-5 h-5 flex items-center justify-center" />
+                              )}
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2 overflow-hidden">
-                              {/* ₹ {data?.raised_amount?.$numberDecimal || "0"} */}
+                            <h3 className="mt-1 text-[17px] font-bold h-[50px] leading-snug overflow-hidden line-clamp-2">
+                              {data?.campaign_title}
+                            </h3>
 
-                              <div
-                                className="bg-orange-500 h-2.5 rounded-full transition-all duration-300 ease-in-out"
-                                style={{
-                                  width: `${Math.min(
-                                    100,
+                            <div className="mt-4">
+                              <div className="flex items-center justify-between text-sm text-gray-600">
+                                <div className="flex items-center gap-1">
+                                  <h2 className="text-lg font-extrabold text-[#d8573e] animate-pulse">
+                                    ₹
+                                    {data?.raised_amount?.$numberDecimal || "0"}{" "}
+                                  </h2>
+                                  <h4 className="text-gray-600 text-sm">
+                                    Raised
+                                  </h4>
+                                </div>
+                                <span>
+                                  {Math.round(
                                     (Math.round(
                                       data?.raised_amount?.$numberDecimal
                                     ) /
                                       Math.round(
                                         data?.target_amount?.$numberDecimal
                                       )) *
-                                      100 || 0
-                                  )}%`,
-                                }}
-                              ></div>
-                            </div>
-                            <div className="flex justify-between items-center text-sm text-gray-600 my-1">
-                              <span>
-                                Goal ₹
-                                {data?.target_amount.$numberDecimal || "0"}
-                              </span>
-                              <span>
-                                {data?.successfulDonations || 0} Donors
-                              </span>
-                            </div>
+                                      100
+                                  ) || 0}
+                                  %
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2 overflow-hidden">
+                                {/* ₹ {data?.raised_amount?.$numberDecimal || "0"} */}
 
-                            <hr className="h-2 my-2" />
-                            {data?.is_approved!==true?
-                            <Link to={`/campaign/${data?._id}`}>
-                              <button className="w-full flex gap-2 items-center justify-center bg-[#d6573d] text-white font-bold py-2 px-4 rounded-full">
-                                <div className="relative">
-                                  Donate Now{" "}
-                                  <span>
-                                    <CiHeart className="animate-ping absolute -right-8 top-[5px]" />
-                                  </span>
-                                </div>
-                              </button>
-                            </Link>:
-                            <Link to={`/campaign/${data?._id}`}>
-                              <button className="w-full flex gap-2 items-center justify-center bg-[#d6573d] text-white font-bold py-2 px-4 rounded-full">
-                                <div className="relative">
-                                View Updates
-                                  <span>
-                                    <CiHeart className="animate-ping absolute -right-8 top-[5px]" />
-                                  </span>
-                                </div>
-                              </button>
-                            </Link>}
+                                <div
+                                  className="bg-orange-500 h-2.5 rounded-full transition-all duration-300 ease-in-out"
+                                  style={{
+                                    width: `${Math.min(
+                                      100,
+                                      (Math.round(
+                                        data?.raised_amount?.$numberDecimal
+                                      ) /
+                                        Math.round(
+                                          data?.target_amount?.$numberDecimal
+                                        )) *
+                                        100 || 0
+                                    )}%`,
+                                  }}
+                                ></div>
+                              </div>
+                              <div className="flex justify-between items-center text-sm text-gray-600 my-1">
+                                <span>
+                                  Goal ₹
+                                  {data?.target_amount.$numberDecimal || "0"}
+                                </span>
+                                <span>
+                                  {data?.successfulDonations || 0} Donors
+                                </span>
+                              </div>
+
+                              <hr className="h-2 my-2" />
+                              {data?.is_approved == true ? (
+                                <Link to={`/campaign/${data?._id}`}>
+                                  <button className="w-full flex gap-2 items-center justify-center bg-[#d6573d] text-white font-bold py-2 px-4 rounded-full">
+                                    <div className="relative">
+                                      Donate Now{" "}
+                                      <span>
+                                        <CiHeart className="animate-ping absolute -right-8 top-[5px]" />
+                                      </span>
+                                    </div>
+                                  </button>
+                                </Link>
+                              ) : (
+                                <Link to={`/campaign/${data?._id}`}>
+                                  <button className="w-full flex gap-2 items-center justify-center bg-[#d6573d] text-white font-bold py-2 px-4 rounded-full">
+                                    <div className="relative">
+                                      View Updates
+                                      <span>
+                                        <CiHeart className="animate-ping absolute -right-8 top-[5px]" />
+                                      </span>
+                                    </div>
+                                  </button>
+                                </Link>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </Link>
-                  </SwiperSlide>
-                ))
+                      </Link>
+                    </SwiperSlide>
+                  ))
               : Array.from({ length: 3 }).map((_, i) => (
                   <SwiperSlide key={i + "skeleton"}>
                     <CampaignSkeleton />
