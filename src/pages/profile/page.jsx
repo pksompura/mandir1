@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -28,6 +29,7 @@ import {
   useCreateCampaignByUserMutation,
   useGetDonationCampaignsByUserQuery,
   useUpdateUserMutation,
+  useLazyGetUserProfileQuery,
 } from "../../redux/services/campaignApi";
 import { toast } from "react-toastify"; // Import react-toastify
 import "react-toastify/dist/ReactToastify.css";
@@ -79,11 +81,25 @@ const ProfilePage = () => {
     isLoading: campaignsLoading,
     refetch,
   } = useGetDonationCampaignsByUserQuery(); // Fetch user's donation campaigns
+
+  const [userDonation, setUserDonation] = useState(null);
+  const [fetchData, { data }] = useLazyGetUserProfileQuery();
+  const handleFetchUserProfile = async () => {
+    const result = await fetchData(); // fetchData returns a promise
+    const user = result?.data?.data;
+    const donations = result?.data?.donations;
+    if (user && donations) {
+      setUserDonation({ ...user, donations }); // merge
+    }
+  };
+  useEffect(() => {
+    handleFetchUserProfile();
+  }, [handleFetchUserProfile]);
+
   // console.log(useGetDonationCampaignsByUserQuery());
   const [createCampaign] = useCreateCampaignByUserMutation(); // API hook for creating a new donation campaign
 
   const [isModalVisible, setIsModalVisible] = useState(false); // Modal visibility state
-
   const [updateUser] = useUpdateUserMutation(); // API hook for updating user
 
   // Handle form field change
@@ -270,7 +286,7 @@ const ProfilePage = () => {
           </>
         );
       case "Donations":
-        return <DonationsList userDonations={user} />;
+        return <DonationsList userDonations={userDonation} />;
       case "Campaigns":
         return (
           <>

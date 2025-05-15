@@ -174,7 +174,10 @@ const PublicHeader = () => {
               {token ? (
                 <div
                   className="relative  "
-                  onMouseLeave={() => setIsProfileDropdownOpen(false)}
+                  onMouseLeave={() => {
+                    if (window.innerWidth >= 768)
+                      setIsProfileDropdownOpen(false);
+                  }}
                   ref={dropdownRef}
                 >
                   <button
@@ -189,6 +192,7 @@ const PublicHeader = () => {
                       <div className="md:hidden">
                         <Link
                           to="/explore-campaign"
+                          onClick={() => setIsProfileDropdownOpen(false)}
                           className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"
                         >
                           <MdOutlineCampaign className="w-4 h-4 mr-2" />
@@ -196,6 +200,7 @@ const PublicHeader = () => {
                         </Link>
                         <Link
                           to="/faq"
+                          onClick={() => setIsProfileDropdownOpen(false)}
                           className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"
                         >
                           <RiQuestionnaireLine className="w-4 h-4 mr-2" />
@@ -205,6 +210,7 @@ const PublicHeader = () => {
                       </div>
                       <Link
                         to="/profile"
+                        onClick={() => setIsProfileDropdownOpen(false)}
                         className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition duration-150"
                       >
                         <FiUser className="w-4 h-4 mr-2" />
@@ -222,6 +228,7 @@ const PublicHeader = () => {
                             confirmButtonText: "Yes, log me out",
                           }).then((result) => {
                             if (result.isConfirmed) {
+                              setIsProfileDropdownOpen(false);
                               handleLogout();
                             }
                           });
