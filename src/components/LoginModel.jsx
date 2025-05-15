@@ -146,14 +146,27 @@ const LoginModel = ({
     onClose(); // Close the modal
   };
 
+  useEffect(() => {
+    if (stepCount === 1) {
+      // Scroll the button into view
+      const verifyButton = document.getElementById("verify-button");
+      if (verifyButton) {
+        verifyButton.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+  }, [stepCount]);
+
   return (
     <Dialog
       open={open}
       onClose={handleClose}
       sx={{
         "& .MuiDialog-paper": {
-          borderRadius: "12px", // Ensures the dialog itself is rounded
-          overflow: "hidden", // Prevents stretching on content change
+          borderRadius: "12px",
+          overflow: "hidden",
+          maxHeight: "90vh", // Limit the height
+          display: "flex",
+          flexDirection: "column",
         },
       }}
       className="rounded-lg" // Tailwind class for extra rounded effect
@@ -185,7 +198,7 @@ const LoginModel = ({
           )}
         </DialogTitle>
 
-        <DialogContent>
+        <DialogContent sx={{ padding: { xs: "16px", sm: "24px", md: "32px" } }}>
           <div className="flex w-full justify-center items-center rounded-full space-x-2 py-1">
             {stepCount ? (
               <CaptureOtp
@@ -212,7 +225,7 @@ const LoginModel = ({
         >
           {stepCount ? (
             <>
-              <Button
+              {/* <Button
                 type="button"
                 onClick={() => otpForm.handleSubmit()}
                 variant="contained"
@@ -235,7 +248,33 @@ const LoginModel = ({
                 ) : (
                   "Verify"
                 )}
+              </Button> */}
+              <Button
+                id="verify-button"
+                type="button"
+                onClick={() => otpForm.handleSubmit()}
+                variant="contained"
+                className="w-[50%] md:w-[40%] !mx-auto font-bold"
+                sx={{
+                  height: "40px",
+                  minWidth: "160px",
+                  maxWidth: "200px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#ffdd04",
+                  color: "#000",
+                  "&:hover": { backgroundColor: "#e6c703" },
+                  marginTop: "-8px",
+                }}
+              >
+                {verifyOtpLoading ? (
+                  <CircularProgress size={20} sx={{ color: "#000" }} />
+                ) : (
+                  "Verify"
+                )}
               </Button>
+
               <div className="text-center text-sm mt-1 mb-2">
                 {sendOtpInSeconds > 0 ? (
                   <span className="text-gray-500">

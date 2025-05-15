@@ -56,6 +56,14 @@ export const campaignApi = createApi({
       }),
       providesTags: ["campaign"],
     }),
+    updateDonationDetails: builder.mutation({
+      query: ({ donationId, pan_number, full_address }) => ({
+        url: `donation_campaign/tax/update/${donationId}/pan-address`,
+        method: "PUT",
+        body: { pan_number, full_address },
+      }),
+      providesTags: ["campaign"],
+    }),
     updateCampaign: builder.mutation({
       query: (body) => ({
         url: "donation_campaign/add",
@@ -183,4 +191,5 @@ export const {
   useLogoutMutation,
   useGetAllCampaignQuery,
   useGetCampaignDonationsQuery,
+  useUpdateDonationDetailsMutation,
 } = campaignApi;

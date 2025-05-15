@@ -1,8 +1,39 @@
-import React from "react";
-import { Download } from "lucide-react";
+import React, { useState } from "react";
+import { Tooltip } from "react-tooltip";
+import "react-tooltip/dist/react-tooltip.css";
+import { ClipboardEdit, Download, Edit3 } from "lucide-react";
 import html2pdf from "html2pdf.js";
+import PanAddressModal from ".//PanAddressModal";
+import { message } from "antd";
+
+import { useUpdateDonationDetailsMutation } from "../../redux/services/campaignApi";
 
 const DonationsList = ({ userDonations }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedDonationId, setSelectedDonationId] = useState(null);
+
+  const [updateDonationDetails] = useUpdateDonationDetailsMutation();
+
+  const handleUpdateDonation = async (formData) => {
+    try {
+      const response = await updateDonationDetails(formData);
+
+      if (response?.data?.issued_80g) {
+        message.success(
+          response.data.message || "Donation updated successfully with 80G."
+        );
+      } else {
+        message.success(
+          response.data.message || "Donation updated successfully without 80G."
+        );
+      }
+    } catch (error) {
+      message.error("Failed to update donation details. Please try again.");
+      console.error("Failed to update donation details:", error);
+    }
+  };
+
+  console.log(userDonations);
   const generateDonationReceipt = (donation, userDonations) => {
     const amount =
       donation.total_amount?.$numberDecimal || donation.total_amount;
@@ -66,6 +97,18 @@ const DonationsList = ({ userDonations }) => {
     <p style="margin: 6px 0;"><span style="color: #555;">Phone:</span> <span style="color: grey;">${
       userDonations?.mobile_number
     }</span></p>
+   ${
+     donation?.issued_80g
+       ? `
+    <p style="margin: 6px 0;"><span style="color: #555;">PAN:</span> <span style="color: grey;">${
+      donation?.pan_number || "N/A"
+    }</span></p>
+    <p style="margin: 6px 0;"><span style="color: #555;">Address:</span> <span style="color: grey;">${
+      donation?.full_address || "N/A"
+    }</span></p>
+  `
+       : ""
+   }
   </div>
 
 </div>
@@ -108,7 +151,7 @@ const DonationsList = ({ userDonations }) => {
   };
 
   return (
-    <div className="w-full max-w-full sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg px-2 sm:px-4 lg:px-2 mx-auto py-2">
+    <div className="w-full max-w-full sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg px-8 sm:px-4 lg:px-2 mx-auto py-2">
       <h2 className="text-2xl font-semibold mb-4 text-center">My Donations</h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -150,24 +193,65 @@ const DonationsList = ({ userDonations }) => {
                 </div>
 
                 {isSuccessful && (
-                  <>
+                  // <div
+                  //   className="flex justify-between items-center mt-4 w-full"
+                  //   style={{ display: "flex", justifyContent: "space-between" }}
+                  // >
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mt-4 w-full">
                     <button
+                      data-tooltip-id={`download-tip-${donation._id}`}
+                      data-tooltip-content={
+                        donation?.issued_80g
+                          ? "Download your receipt with 80G tax benefit"
+                          : "Download your donation receipt"
+                      }
                       onClick={() =>
                         generateDonationReceipt(donation, userDonations)
                       }
-                      className="flex items-center gap-2 mt-4 text-blue-600 hover:underline self-start"
+                      className="flex items-center gap-2 text-blue-600 hover:underline"
                     >
-                      <Download size={16} /> Download Receipt
+                      <Download size={16} />
+                      {donation?.issued_80g
+                        ? "Receipt (80G)"
+                        : "Download Receipt"}
                     </button>
+                    <Tooltip
+                      id={`download-tip-${donation._id}`}
+                      place="top"
+                      event={window.innerWidth < 640 ? "click" : undefined}
+                      className="text-xs px-2 py-1 rounded shadow-md max-w-[180px]"
+                    />
+
                     <button
-                      onClick={() =>
-                        generateDonationReceipt(donation, userDonations)
-                      }
-                      className="flex items-center gap-2 mt-4 text-blue-600 hover:underline self-end"
+                      data-tooltip-id={`apply-tip-${donation._id}`}
+                      data-tooltip-content="Submit your PAN and address to get 80G certificate"
+                      onClick={() => {
+                        setSelectedDonationId(donation._id);
+                        setIsModalOpen(true);
+                      }}
+                      className="flex items-center gap-2 text-blue-600 hover:underline"
                     >
-                      <Download size={16} /> Get 80g
+                      <ClipboardEdit size={16} />
+                      Apply 80G
                     </button>
-                  </>
+                    <Tooltip
+                      id={`apply-tip-${donation._id}`}
+                      place="top"
+                      event={window.innerWidth < 640 ? "click" : undefined}
+                      className="text-xs px-2 py-1 rounded shadow-md max-w-[180px]"
+                    />
+                    {/* </div> */}
+
+                    <PanAddressModal
+                      open={isModalOpen}
+                      onClose={() => {
+                        setSelectedDonationId(null); // 👈 Clear the selected ID when modal closes
+                        setIsModalOpen(false);
+                      }}
+                      onSubmit={handleUpdateDonation} // Pass the function for submission
+                      donationId={selectedDonationId} // 👈 pass the correct donationId here
+                    />
+                  </div>
                 )}
               </div>
             );
@@ -221,8 +305,29 @@ function convertNumberToWords(amount) {
     "Ninety",
   ];
 
-  if (num < 20) return a[num];
-  if (num < 100)
-    return b[Math.floor(num / 10)] + (num % 10 ? " " + a[num % 10] : "");
-  return "Amount in words";
+  const numberToWords = (n) => {
+    if (n < 20) return a[n];
+    if (n < 100) return b[Math.floor(n / 10)] + (n % 10 ? " " + a[n % 10] : "");
+    if (n < 1000)
+      return a[Math.floor(n / 100)] + " Hundred " + numberToWords(n % 100);
+    if (n < 100000)
+      return (
+        numberToWords(Math.floor(n / 1000)) +
+        " Thousand " +
+        numberToWords(n % 1000)
+      );
+    if (n < 10000000)
+      return (
+        numberToWords(Math.floor(n / 100000)) +
+        " Lakh " +
+        numberToWords(n % 100000)
+      );
+    return (
+      numberToWords(Math.floor(n / 10000000)) +
+      " Crore " +
+      numberToWords(n % 10000000)
+    );
+  };
+
+  return numberToWords(num).trim() + " Rupees Only";
 }

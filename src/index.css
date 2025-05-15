@@ -2,8 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-@import '~slick-carousel/slick/slick.css';
-@import '~slick-carousel/slick/slick-theme.css';
+@import "~slick-carousel/slick/slick.css";
+@import "~slick-carousel/slick/slick-theme.css";
 
 /* 
 @layer utilities {
@@ -352,7 +352,6 @@ a:hover {
   }
 }
 
-
 /* src/swiper-custom.css */
 .custom-swiper-pagination {
   display: flex;
@@ -378,14 +377,13 @@ a:hover {
 
 .sticky-donation-card {
   position: sticky;
-  top:60px ;
-
+  top: 60px;
 }
-.visibleButton{
+.visibleButton {
   display: block !important;
 }
 @media (max-width: 768px) {
-  .visibleButton{
+  .visibleButton {
     display: none !important;
   }
   .sticky-donation-card {
@@ -394,10 +392,6 @@ a:hover {
   }
 }
 
-
-
-
- 
 .vertical-scroller::-webkit-scrollbar {
   width: 3px; /* Width of the scrollbar */
 }
@@ -415,9 +409,7 @@ a:hover {
   background: #ffa115; /* Background of the scrollbar thumb on hover */
 }
 
-
-
- .pd-left_progressbar {
+.pd-left_progressbar {
   height: 6px;
   border-radius: 12px !important;
   background-color: #ece9e9;
@@ -426,7 +418,9 @@ a:hover {
 .howtodnt {
   padding: 17px 23px;
   height: 160px;
-  background: transparent linear-gradient(180deg,rgba(252,249,181,0),#fcf9b5) 0 0 no-repeat padding-box;
+  background: transparent
+    linear-gradient(180deg, rgba(252, 249, 181, 0), #fcf9b5) 0 0 no-repeat
+    padding-box;
   border-radius: 12px;
 }
 
@@ -440,9 +434,6 @@ a:hover {
   border-top: 2px dashed #ccc;
   right: -50%;
 }
-
-
-
 
 .custom-scrollbar::-webkit-scrollbar {
   width: 2px;
