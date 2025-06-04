@@ -1,7 +1,6 @@
 // utils/apiBase.js
-const isLocal = window.location.hostname === 'localhost';
-
+const isLocal = window.location.hostname === "localhost";
 
 export const IMAGE_BASE_URL = isLocal
-  ? 'http://localhost:5001'
-  : 'http://88.222.214.214/api';
+  ? "http://localhost:5001"
+  : "https://88.222.214.214/api";
