@@ -49,7 +49,7 @@ const HeroSection = () => {
                 <img
                   className="w-full h-full object-cover"
                   src={`${IMAGE_BASE_URL}${images?.banners[0]}`}
-                  alt="1"
+                  alt=""
                 />
               </div>
             </div>
