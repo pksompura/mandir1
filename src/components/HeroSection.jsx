@@ -7,11 +7,11 @@ import {
   useGetBannerImagesQuery,
   useGetSettingsQuery,
 } from "../redux/services/campaignApi";
+import { IMAGE_BASE_URL } from "../utils/imageUrl"; // correct import path
 
 const HeroSection = () => {
   const { data: images } = useGetBannerImagesQuery();
   const { data: settings } = useGetSettingsQuery();
-  console.log(images);
   return (
     <section className="relative bg-white mt-[60px] lg:w-[1200px] w-full mx-auto">
       <div className=" mx-auto">
@@ -48,7 +48,7 @@ const HeroSection = () => {
               <div className="w-[500px] h-[280px] sm:h-[330px] sm:w-1/2 overflow-hidden">
                 <img
                   className="w-full h-full object-cover"
-                  src={images?.banners[0]}
+                  src={`${IMAGE_BASE_URL}${images?.banners[0]}`}
                   alt=""
                 />
               </div>
