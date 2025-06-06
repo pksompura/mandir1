@@ -6,7 +6,9 @@ const axiosInstance = axios.create({
   // http://localhost:5001
   // baseURL: `http://localhost:5001/api`,
   // baseURL: `http://88.222.214.214:3001/api`,
-  baseURL: `https://88.222.214.214/api/api`,
+  // baseURL: `https://88.222.214.214/api/api`,
+  baseURL: "https://giveaze.com/api",
+
   headers: {
     accept: `application/json`,
   },
