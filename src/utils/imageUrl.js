@@ -3,4 +3,4 @@ const isLocal = window.location.hostname === "localhost";
 
 export const IMAGE_BASE_URL = isLocal
   ? "http://localhost:5001"
-  : "https://giveaze.com/api";
+  : "https://88.222.214.214/api";
