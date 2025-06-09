@@ -378,19 +378,22 @@ const DonationForm = ({
       message.error("Please enter a valid 6-digit OTP.");
     }
   };
+
   const initiatePayment = async () => {
     try {
       const orderResponse = await createOrder({
         user_id: donationuser?._id,
-        donation_campaign_id: donation_campaign_id, // Replace this dynamically
-        amount: calculateTotal(), // payment_method: "upi",
-        is_anonymous: isAnonymous, // ← add this
+        donation_campaign_id, // Already a variable
+        amount: calculateTotal(), // In INR (your backend should multiply by 100 for paise)
+        is_anonymous: isAnonymous,
       }).unwrap();
-      await triggerRazorpay(orderResponse.data, orderResponse.donation_id);
 
-      // Redirect to Razorpay payment or show payment UI here
+      const { data: razorpayOrder, donation_id } = orderResponse;
+
+      await triggerRazorpay(razorpayOrder, donation_id);
     } catch (error) {
-      message.error(error.data?.error || "Error creating order.");
+      console.error("Create Order Error:", error);
+      message.error(error?.data?.error || "Error creating payment order.");
     }
   };
 
@@ -563,23 +566,22 @@ const DonationForm = ({
   // };
   const triggerRazorpay = (orderData, donationId) => {
     const options = {
-      key: "rzp_live_qMGIKf7WORiiuM", // Your Razorpay key
-      amount: calculateTotal() * 100, // Amount in paise
+      key: "rzp_live_qMGIKf7WORiiuM", // Razorpay Key ID (✅ use ENV in production)
+      amount: orderData.amount, // Already in paise from backend
       currency: "INR",
       name: "Giveaze",
       description: "Donation Payment",
-      order_id: orderData.id, // Razorpay Order ID
+      order_id: orderData.id,
 
       handler: async function (response) {
         setShowLoader(true);
+
         try {
           const verifyResponse = await verifyPayment({
-            razorpay_order_id: response.razorpay_order_id, // Razorpay order ID
-            razorpay_payment_id: response.razorpay_payment_id, // Payment ID
-            razorpay_signature: response.razorpay_signature, // Signature
-
-            // These below are optional extras (your API may or may not use them)
-            donation_id: donationId, // optional if backend uses Razorpay order ID for lookup
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            donation_id: donationId, // 🔑 Use donation_id for accurate lookup
           }).unwrap();
 
           if (verifyResponse.status) {
@@ -594,16 +596,20 @@ const DonationForm = ({
             setIsDonationModalVisible(false);
           }
         } catch (error) {
+          console.error("Verification Error:", error);
           setShowLoader(false);
-          message.error(error.data?.error || "Payment verification failed.");
+          message.error(
+            error?.data?.error || "Something went wrong during verification."
+          );
         }
       },
 
       prefill: {
-        name: donationuser.full_name,
-        email: donationuser.email,
-        contact: donationuser.mobile_number,
+        name: donationuser?.full_name,
+        email: donationuser?.email,
+        contact: donationuser?.mobile_number,
       },
+
       theme: {
         color: "#3399cc",
       },
