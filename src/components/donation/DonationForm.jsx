@@ -507,35 +507,85 @@ const DonationForm = ({
     setShowThankYouModal(false);
   };
 
+  // const triggerRazorpay = (orderData, donationId) => {
+  //   const options = {
+  //     key: "rzp_live_qMGIKf7WORiiuM", // Add your Razorpay Key ID
+  //     amount: calculateTotal(),
+  //     currency: "INR",
+  //     name: "Giveaze",
+  //     description: "Donation Payment",
+  //     order_id: orderData.id, // Razorpay Order ID
+  //     handler: async function (response) {
+  //       setShowLoader(true); // 🔄 Show loader while verifying
+  //       try {
+  //         // 3️⃣ Verify payment with backend
+  //         const verifyResponse = await verifyPayment({
+  //           transaction_id: response.razorpay_order_id,
+  //           razorpay_payment_id: response.razorpay_payment_id,
+  //           razorpay_signature: response.razorpay_signature,
+  //           donation_campaign_id: donation_campaign_id,
+  //           user_id: donationuser._id,
+  //           amount: calculateTotal(),
+  //           donorName: donationuser.full_name,
+  //           email: donationuser.email,
+  //         }).unwrap();
+  //         if (verifyResponse.status) {
+  //           setTimeout(() => {
+  //             setShowLoader(false);
+  //             setIsDonationModalVisible(false);
+  //             // message.success(
+  //             //   "Payment successful! Thank you for your donation."
+  //             // );
+  //           }, 3000);
+  //           setShowThankYouModal(true);
+  //         } else {
+  //           setShowLoader(false);
+  //           message.error("Payment verification failed.");
+  //           setIsDonationModalVisible(false);
+  //         }
+  //       } catch (error) {
+  //         setShowLoader(false);
+  //         message.error(error.data?.error || "Payment verification failed.");
+  //       }
+  //     },
+  //     prefill: {
+  //       name: donationuser.full_name,
+  //       email: donationuser.email,
+  //       contact: donationuser.mobile_number,
+  //     },
+  //     theme: {
+  //       color: "#3399cc",
+  //     },
+  //   };
+  //   const razorpayInstance = new window.Razorpay(options);
+
+  //   razorpayInstance.open();
+  // };
   const triggerRazorpay = (orderData, donationId) => {
     const options = {
-      key: "rzp_live_qMGIKf7WORiiuM", // Add your Razorpay Key ID
-      amount: calculateTotal(),
+      key: "rzp_live_qMGIKf7WORiiuM", // Your Razorpay key
+      amount: calculateTotal() * 100, // Amount in paise
       currency: "INR",
       name: "Giveaze",
       description: "Donation Payment",
       order_id: orderData.id, // Razorpay Order ID
+
       handler: async function (response) {
-        setShowLoader(true); // 🔄 Show loader while verifying
+        setShowLoader(true);
         try {
-          // 3️⃣ Verify payment with backend
           const verifyResponse = await verifyPayment({
-            transaction_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature,
-            donation_campaign_id: donation_campaign_id,
-            user_id: donationuser._id,
-            amount: calculateTotal(),
-            donorName: donationuser.full_name,
-            email: donationuser.email,
+            razorpay_order_id: response.razorpay_order_id, // Razorpay order ID
+            razorpay_payment_id: response.razorpay_payment_id, // Payment ID
+            razorpay_signature: response.razorpay_signature, // Signature
+
+            // These below are optional extras (your API may or may not use them)
+            donation_id: donationId, // optional if backend uses Razorpay order ID for lookup
           }).unwrap();
+
           if (verifyResponse.status) {
             setTimeout(() => {
               setShowLoader(false);
               setIsDonationModalVisible(false);
-              // message.success(
-              //   "Payment successful! Thank you for your donation."
-              // );
             }, 3000);
             setShowThankYouModal(true);
           } else {
@@ -548,6 +598,7 @@ const DonationForm = ({
           message.error(error.data?.error || "Payment verification failed.");
         }
       },
+
       prefill: {
         name: donationuser.full_name,
         email: donationuser.email,
@@ -557,8 +608,8 @@ const DonationForm = ({
         color: "#3399cc",
       },
     };
-    const razorpayInstance = new window.Razorpay(options);
 
+    const razorpayInstance = new window.Razorpay(options);
     razorpayInstance.open();
   };
 
