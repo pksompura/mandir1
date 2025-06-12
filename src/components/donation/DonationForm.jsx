@@ -301,6 +301,7 @@ const DonationForm = ({
       });
     }
   }, [donationuser]);
+
   const handleDonateNow = async () => {
     const errors = {};
 
@@ -506,9 +507,9 @@ const DonationForm = ({
   //   }
   // };
 
-  const handleCloseThankYouModal = () => {
-    setShowThankYouModal(false);
-  };
+  // const handleCloseThankYouModal = () => {
+  //   setShowThankYouModal(false);
+  // };
 
   // const triggerRazorpay = (orderData, donationId) => {
   //   const options = {
@@ -564,6 +565,7 @@ const DonationForm = ({
 
   //   razorpayInstance.open();
   // };
+
   const triggerRazorpay = (orderData, donationId) => {
     const options = {
       key: "rzp_live_qMGIKf7WORiiuM", // Razorpay Key ID (✅ use ENV in production)
