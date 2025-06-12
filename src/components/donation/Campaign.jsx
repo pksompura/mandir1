@@ -63,9 +63,14 @@ const CampaignPage = () => {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const {
     data: donationData,
+    refetch: refetchDonations,
     error: donationError,
     isLoading: donationLoading,
   } = useGetDonationsByCampaignQuery(campaign?._id);
+
+  setTimeout(() => {
+    refetchDonations();
+  }, 500); // wait a little for DB to update
 
   useEffect(() => {
     // Listen for profile dropdown changes
@@ -148,29 +153,17 @@ const CampaignPage = () => {
   const firstDonation = sortedByDate[sortedByDate.length - 1];
   const topDonation = sortedByAmount[0];
 
-  const seen = new Set();
-  const labeledDonations = [];
-
-  // const uniqueDonations = [
-  //   { donor: recentDonation, label: "Recent Donation" },
-  //   { donor: firstDonation, label: "First Donation" },
-  //   { donor: topDonation, label: "Top Donation" },
-  // ].filter(
-  //   (item, index, self) =>
-  //     self.findIndex(
-  //       (i) => i.donor?.id === item.donor?.id && i.label !== item.label
-  //     ) === index
-  // );
-
-  [
+  const uniqueDonations = [
     { donor: recentDonation, label: "Recent Donation" },
     { donor: firstDonation, label: "First Donation" },
     { donor: topDonation, label: "Top Donation" },
-  ].forEach(({ donor, label }) => {
-    if (!donor || seen.has(donor.id)) return;
-    seen.add(donor.id);
-    labeledDonations.push({ donor, label });
-  });
+  ].filter(
+    (item, index, self) =>
+      self.findIndex(
+        (i) => i.donor?.id === item.donor?.id && i.label !== item.label
+      ) === index
+  );
+
   // const sortedDonations = [...mockDonations].sort((a, b) =>
   //   dayjs(b.date).diff(dayjs(a.date))
   // );
@@ -811,12 +804,11 @@ const CampaignPage = () => {
             </h3>
             <hr className="my-3" />
             <ul className="space-y-6">
-              {/* {[
+              {[
                 { donor: recentDonation, label: "Recent Donation" },
                 { donor: firstDonation, label: "First Donation" },
                 { donor: topDonation, label: "Top Donation" },
-              ].map(({ donor, label }) => ( */}
-              {labeledDonations.map(({ donor, label }) => (
+              ].map(({ donor, label }) => (
                 <li
                   key={donor?.id || label}
                   className="flex items-center space-x-3"
