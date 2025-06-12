@@ -507,9 +507,9 @@ const DonationForm = ({
   //   }
   // };
 
-  // const handleCloseThankYouModal = () => {
-  //   setShowThankYouModal(false);
-  // };
+  const handleCloseThankYouModal = () => {
+    setShowThankYouModal(false);
+  };
 
   // const triggerRazorpay = (orderData, donationId) => {
   //   const options = {
