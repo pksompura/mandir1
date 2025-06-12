@@ -68,10 +68,6 @@ const CampaignPage = () => {
     isLoading: donationLoading,
   } = useGetDonationsByCampaignQuery(campaign?._id);
 
-  setTimeout(() => {
-    refetchDonations();
-  }, 500); // wait a little for DB to update
-
   useEffect(() => {
     // Listen for profile dropdown changes
     const handleProfileDropdownChange = (event) => {
@@ -183,10 +179,19 @@ const CampaignPage = () => {
     setIsSidebarOpen((prev) => !prev);
   };
 
-  const closeDonationModal = () => {
+  // const closeDonationModal = () => {
+  //   setIsDonationModalVisible(false);
+  //   setIsDonation(false);
+  //   // window.location.reload();
+  // };
+  const closeDonationModal = async () => {
     setIsDonationModalVisible(false);
     setIsDonation(false);
-    // window.location.reload();
+
+    // Add a small delay to wait for backend to update
+    setTimeout(() => {
+      refetchDonations();
+    }, 1000); // wait 1 second before refetching
   };
 
   // Handle scroll to show nav after user scrolls down
