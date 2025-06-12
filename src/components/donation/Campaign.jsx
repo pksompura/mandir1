@@ -63,14 +63,9 @@ const CampaignPage = () => {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const {
     data: donationData,
-    refetch: refetchDonations,
     error: donationError,
     isLoading: donationLoading,
   } = useGetDonationsByCampaignQuery(campaign?._id);
-
-  setTimeout(() => {
-    refetchDonations();
-  }, 500); // wait a little for DB to update
 
   useEffect(() => {
     // Listen for profile dropdown changes
