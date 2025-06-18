@@ -58,12 +58,11 @@ const CampaignPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("top");
 
-  const [visibleDonations, setVisibleDonations] = useState(10);
+  const [visibleDonations, setVisibleDonations] = useState(50);
 
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const {
     data: donationData,
-    refetch: refetchDonations,
     error: donationError,
     isLoading: donationLoading,
   } = useGetDonationsByCampaignQuery(campaign?._id);
@@ -145,20 +144,43 @@ const CampaignPage = () => {
   );
   const sortedByAmount = [...donations].sort((a, b) => b.amount - a.amount);
 
-  const recentDonation = sortedByDate[0];
-  const firstDonation = sortedByDate[sortedByDate.length - 1];
-  const topDonation = sortedByAmount[0];
+  const labelCandidates = [
+    { donor: sortedByDate[0], label: "Recent Donation" },
+    { donor: sortedByAmount[0], label: "Top Donation" },
+    { donor: sortedByDate[sortedByDate.length - 1], label: "First Donation" },
+  ];
 
-  const uniqueDonations = [
-    { donor: recentDonation, label: "Recent Donation" },
-    { donor: firstDonation, label: "First Donation" },
-    { donor: topDonation, label: "Top Donation" },
-  ].filter(
-    (item, index, self) =>
-      self.findIndex(
-        (i) => i.donor?.id === item.donor?.id && i.label !== item.label
-      ) === index
-  );
+  const seenDonorIds = new Set();
+  const uniqueDonations = [];
+
+  for (const { donor, label } of labelCandidates) {
+    if (donor && !seenDonorIds.has(donor.id)) {
+      seenDonorIds.add(donor.id);
+      uniqueDonations.push({ donor, label });
+    }
+  }
+
+  // Ensure 3 cards always by filling with other donors (if needed)
+  if (uniqueDonations.length < 3) {
+    const remaining = donations.filter((d) => !seenDonorIds.has(d.id));
+    for (let i = 0; i < remaining.length && uniqueDonations.length < 3; i++) {
+      uniqueDonations.push({
+        donor: remaining[i],
+        label: `First Donation`, // or "Supporter", etc.
+      });
+    }
+  }
+
+  // const uniqueDonations = [
+  //   { donor: recentDonation, label: "Recent Donation" },
+  //   { donor: firstDonation, label: "First Donation" },
+  //   { donor: topDonation, label: "Top Donation" },
+  // ].filter(
+  //   (item, index, self) =>
+  //     self.findIndex(
+  //       (i) => i.donor?.id === item.donor?.id && i.label !== item.label
+  //     ) === index
+  // );
 
   // const sortedDonations = [...mockDonations].sort((a, b) =>
   //   dayjs(b.date).diff(dayjs(a.date))
@@ -179,19 +201,10 @@ const CampaignPage = () => {
     setIsSidebarOpen((prev) => !prev);
   };
 
-  // const closeDonationModal = () => {
-  //   setIsDonationModalVisible(false);
-  //   setIsDonation(false);
-  //   // window.location.reload();
-  // };
-  const closeDonationModal = async () => {
+  const closeDonationModal = () => {
     setIsDonationModalVisible(false);
     setIsDonation(false);
-
-    // Add a small delay to wait for backend to update
-    setTimeout(() => {
-      refetchDonations();
-    }, 1000); // wait 1 second before refetching
+    // window.location.reload();
   };
 
   // Handle scroll to show nav after user scrolls down
@@ -809,11 +822,7 @@ const CampaignPage = () => {
             </h3>
             <hr className="my-3" />
             <ul className="space-y-6">
-              {[
-                { donor: recentDonation, label: "Recent Donation" },
-                { donor: firstDonation, label: "First Donation" },
-                { donor: topDonation, label: "Top Donation" },
-              ].map(({ donor, label }) => (
+              {uniqueDonations.map(({ donor, label }) => (
                 <li
                   key={donor?.id || label}
                   className="flex items-center space-x-3"
@@ -1079,11 +1088,7 @@ const CampaignPage = () => {
             </h3>
             <hr className="my-3" />
             <ul className="space-y-6">
-              {[
-                { donor: recentDonation, label: "Recent Donation" },
-                { donor: firstDonation, label: "First Donation" },
-                { donor: topDonation, label: "Top Donation" },
-              ].map(({ donor, label }) => (
+              {uniqueDonations.map(({ donor, label }) => (
                 <li
                   key={donor?.id || label}
                   className="flex items-center space-x-3"

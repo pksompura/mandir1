@@ -1,6 +1,8 @@
 import { Modal } from "antd";
 import React, { useState, useEffect } from "react";
 import { CiUser } from "react-icons/ci";
+import { IoClose } from "react-icons/io5";
+
 import { motion, AnimatePresence } from "framer-motion";
 
 const DonorModal = ({
@@ -53,11 +55,18 @@ const DonorModal = ({
             className="p-2 sm:p-4"
           >
             {/* Close Button */}
-            <button
+            {/* <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-2 right-2 text-gray-600 hover:text-black text-lg"
             >
               ✖
+            </button> */}
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-2 right-2 text-gray-600 hover:text-black text-2xl transition-transform transform hover:scale-125"
+              aria-label="Close Modal"
+            >
+              <IoClose />
             </button>
 
             {/* Tabs */}
