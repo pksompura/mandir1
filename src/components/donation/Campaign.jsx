@@ -144,32 +144,34 @@ const CampaignPage = () => {
   );
   const sortedByAmount = [...donations].sort((a, b) => b.amount - a.amount);
 
+  const labelMap = new Map();
+
   const labelCandidates = [
     { donor: sortedByDate[0], label: "Recent Donation" },
     { donor: sortedByAmount[0], label: "Top Donation" },
     { donor: sortedByDate[sortedByDate.length - 1], label: "First Donation" },
   ];
+  // const seenDonorIds = new Set();
+  // const uniqueDonations = [];
 
-  const seenDonorIds = new Set();
-  const uniqueDonations = [];
+  // for (const { donor, label } of labelCandidates) {
+  //   if (donor && !seenDonorIds.has(donor.id)) {
+  //     seenDonorIds.add(donor.id);
+  //     uniqueDonations.push({ donor, label });
+  //   }
+  // }
 
-  for (const { donor, label } of labelCandidates) {
-    if (donor && !seenDonorIds.has(donor.id)) {
-      seenDonorIds.add(donor.id);
-      uniqueDonations.push({ donor, label });
-    }
-  }
-
-  // Ensure 3 cards always by filling with other donors (if needed)
-  if (uniqueDonations.length < 3) {
-    const remaining = donations.filter((d) => !seenDonorIds.has(d.id));
-    for (let i = 0; i < remaining.length && uniqueDonations.length < 3; i++) {
-      uniqueDonations.push({
-        donor: remaining[i],
-        label: `First Donation`, // or "Supporter", etc.
-      });
-    }
-  }
+  // // Ensure 3 cards always by filling with other donors (if needed)
+  // if (uniqueDonations.length < 3) {
+  //   const remaining = donations.filter((d) => !seenDonorIds.has(d.id));
+  //   for (let i = 0; i < remaining.length && uniqueDonations.length < 3; i++) {
+  //     uniqueDonations.push({
+  //       donor: remaining[i],
+  //       label: `Top Donation`, // or "Supporter", etc.
+  //     });
+  //   }
+  // }
+  // console.log(uniqueDonations);
 
   // const uniqueDonations = [
   //   { donor: recentDonation, label: "Recent Donation" },
@@ -822,7 +824,7 @@ const CampaignPage = () => {
             </h3>
             <hr className="my-3" />
             <ul className="space-y-6">
-              {uniqueDonations.map(({ donor, label }) => (
+              {labelCandidates.map(({ donor, label }) => (
                 <li
                   key={donor?.id || label}
                   className="flex items-center space-x-3"
@@ -1088,7 +1090,7 @@ const CampaignPage = () => {
             </h3>
             <hr className="my-3" />
             <ul className="space-y-6">
-              {uniqueDonations.map(({ donor, label }) => (
+              {labelCandidates.map(({ donor, label }) => (
                 <li
                   key={donor?.id || label}
                   className="flex items-center space-x-3"
