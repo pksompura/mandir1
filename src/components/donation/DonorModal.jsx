@@ -2,6 +2,7 @@ import { Modal } from "antd";
 import React, { useState, useEffect } from "react";
 import { CiUser } from "react-icons/ci";
 import { IoClose } from "react-icons/io5";
+import letterColorMap from "../../utils/lettersColor";
 
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -94,7 +95,7 @@ const DonorModal = ({
             </div>
 
             {/* Donation List */}
-            <ul className="space-y-3 max-h-64 overflow-y-auto px-1 sm:px-2">
+            {/* <ul className="space-y-3 max-h-64 overflow-y-auto px-1 sm:px-2">
               {displayedDonations.map((donation) => (
                 <motion.li
                   key={donation.id}
@@ -123,6 +124,55 @@ const DonorModal = ({
                   </div>
                 </motion.li>
               ))}
+            </ul> */}
+            <ul className="space-y-3 max-h-64 overflow-y-auto px-1 sm:px-2">
+              {displayedDonations.map((donation) => {
+                const name = donation.name || "Anonymous";
+                const firstLetter = name.charAt(0).toUpperCase();
+                const colors = letterColorMap[firstLetter] || {
+                  bgColor: "#E0E0E0",
+                  textColor: "#424242",
+                };
+
+                return (
+                  <motion.li
+                    key={donation.id}
+                    className="flex items-center space-x-3 p-2 sm:p-3 bg-gray-50 rounded-md shadow-sm border"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <div
+                      className="w-10 h-10 flex justify-center items-center rounded-full shadow-md overflow-hidden flex-shrink-0"
+                      style={{ backgroundColor: colors.bgColor }}
+                    >
+                      {donation.avatar ? (
+                        <img
+                          src={donation.avatar}
+                          className="w-full h-full object-cover"
+                          alt="avatar"
+                        />
+                      ) : (
+                        <span
+                          style={{ color: colors.textColor }}
+                          className="font-bold text-lg uppercase"
+                        >
+                          {firstLetter}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-sm sm:text-base">
+                      <span className="font-semibold">{name}</span>{" "}
+                      <span className="text-gray-700">
+                        - ₹{donation.amount}
+                      </span>
+                      <p className="text-xs text-gray-500">
+                        {new Date(donation.date).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </motion.li>
+                );
+              })}
             </ul>
 
             {/* View More */}

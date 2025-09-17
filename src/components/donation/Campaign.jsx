@@ -25,6 +25,7 @@ import { FaUser, FaUserCircle } from "react-icons/fa";
 import dayjs from "dayjs";
 import { CiUser } from "react-icons/ci";
 import { IMAGE_BASE_URL } from "../../utils/imageUrl";
+import letterColorMap from "../../utils/lettersColor";
 
 // Label Colors
 const labelStyles = {
@@ -96,7 +97,7 @@ const CampaignPage = () => {
   const handleViewMore = () => {
     setVisibleDonations((prev) => prev + 10); // Load 10 more each time
   };
-  //  / console.log(donationCampaign);
+
   const user = useSelector((state) => state.user.userData);
   const dispatch = useDispatch();
 
@@ -108,7 +109,6 @@ const CampaignPage = () => {
   const [filter, setFilter] = useState("all");
   // Sorting logic
   const [donations, setDonations] = useState([]);
-
   useEffect(() => {
     if (!donationData || !Array.isArray(donationData)) return;
 
@@ -121,16 +121,19 @@ const CampaignPage = () => {
       const name = isAnonymous
         ? "Anonymous"
         : d.user_id?.full_name || "Anonymous";
-      const avatar = isAnonymous
-        ? `https://ui-avatars.com/api/?name=A&color=ffffff&background=888`
-        : `https://ui-avatars.com/api/?name=${encodeURIComponent(
-            name
-          )}&color=ffffff&background=0D8ABC&bold=true`;
+
+      const firstLetter = name.charAt(0).toUpperCase();
+      const colors = letterColorMap[firstLetter] || {
+        bgColor: "#E0E0E0",
+        textColor: "#424242",
+      };
 
       return {
         id: d._id,
         name,
-        avatar,
+        firstLetter,
+        bgColor: colors.bgColor,
+        textColor: colors.textColor,
         date: d.donated_date,
         amount: parseFloat(d.total_amount?.$numberDecimal || "0"),
       };
@@ -138,7 +141,6 @@ const CampaignPage = () => {
 
     setDonations(transformed);
   }, [donationData]);
-
   const sortedByDate = [...donations].sort((a, b) =>
     dayjs(b.date).diff(dayjs(a.date))
   );
@@ -824,42 +826,52 @@ const CampaignPage = () => {
             </h3>
             <hr className="my-3" />
             <ul className="space-y-6">
-              {labelCandidates.map(({ donor, label }) => (
-                <li
-                  key={donor?.id || label}
-                  className="flex items-center space-x-3"
-                >
-                  {/* Avatar & Name */}
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-gray-300 text-white w-12 h-12 flex justify-center items-center rounded-full shadow-md overflow-hidden">
-                      {donor?.avatar ? (
-                        <img
-                          src={donor.avatar}
-                          alt={donor.name}
-                          className="w-full h-full object-cover rounded-full"
-                        />
-                      ) : (
-                        <CiUser className="text-gray-600 w-8 h-8" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-gray-900 font-semibold capitalize">
-                        {donor?.name || "Anonymous"}
-                      </p>
-                      <div className="flex items-center gap-4">
-                        <p className="text-sm font-semibold text-[#d8573e] w-[100px] text-left">
-                          ₹{donor?.amount || 0}
-                        </p>
+              {labelCandidates.map(({ donor, label }) => {
+                const name = donor?.name || "Anonymous";
+                const firstLetter = name.charAt(0).toUpperCase();
+                const colors = letterColorMap[firstLetter] || {
+                  bgColor: "#E0E0E0",
+                  textColor: "#424242",
+                };
+
+                return (
+                  <li
+                    key={donor?.id || label}
+                    className="flex items-center space-x-3"
+                  >
+                    <div className="flex items-center space-x-3">
+                      {/* Avatar */}
+                      <div
+                        className="w-12 h-12 flex justify-center items-center rounded-full shadow-md overflow-hidden"
+                        style={{ backgroundColor: colors.bgColor }}
+                      >
                         <span
-                          className={`text-xs px-1 rounded ${labelStyles[label]}`}
+                          style={{ color: colors.textColor }}
+                          className="font-bold text-lg uppercase"
                         >
-                          {label}
+                          {firstLetter}
                         </span>
                       </div>
+                      {/* Name and Donation Info */}
+                      <div>
+                        <p className="text-gray-900 font-semibold capitalize">
+                          {name}
+                        </p>
+                        <div className="flex items-center gap-4">
+                          <p className="text-sm font-semibold text-[#d8573e] w-[100px] text-left">
+                            ₹{donor?.amount || 0}
+                          </p>
+                          <span
+                            className={`text-xs px-1 rounded ${labelStyles[label]}`}
+                          >
+                            {label}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
 
             {/* Buttons */}
@@ -1090,42 +1102,52 @@ const CampaignPage = () => {
             </h3>
             <hr className="my-3" />
             <ul className="space-y-6">
-              {labelCandidates.map(({ donor, label }) => (
-                <li
-                  key={donor?.id || label}
-                  className="flex items-center space-x-3"
-                >
-                  {/* Avatar & Name */}
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-gray-300 text-white w-12 h-12 flex justify-center items-center rounded-full shadow-md overflow-hidden">
-                      {donor?.avatar ? (
-                        <img
-                          src={donor.avatar}
-                          alt={donor.name}
-                          className="w-full h-full object-cover rounded-full"
-                        />
-                      ) : (
-                        <CiUser className="text-gray-600 w-8 h-8" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-gray-900 font-semibold capitalize">
-                        {donor?.name || "Anonymous"}
-                      </p>
-                      <div className="flex items-center gap-4">
-                        <p className="text-sm font-semibold text-[#d8573e] w-[100px] text-left">
-                          ₹{donor?.amount || 0}
-                        </p>
+              {labelCandidates.map(({ donor, label }) => {
+                const name = donor?.name || "Anonymous";
+                const firstLetter = name.charAt(0).toUpperCase();
+                const colors = letterColorMap[firstLetter] || {
+                  bgColor: "#E0E0E0",
+                  textColor: "#424242",
+                };
+
+                return (
+                  <li
+                    key={donor?.id || label}
+                    className="flex items-center space-x-3"
+                  >
+                    <div className="flex items-center space-x-3">
+                      {/* Avatar */}
+                      <div
+                        className="w-12 h-12 flex justify-center items-center rounded-full shadow-md overflow-hidden"
+                        style={{ backgroundColor: colors.bgColor }}
+                      >
                         <span
-                          className={`text-xs px-1 rounded ${labelStyles[label]}`}
+                          style={{ color: colors.textColor }}
+                          className="font-bold text-lg uppercase"
                         >
-                          {label}
+                          {firstLetter}
                         </span>
                       </div>
+                      {/* Name and Donation Info */}
+                      <div>
+                        <p className="text-gray-900 font-semibold capitalize">
+                          {name}
+                        </p>
+                        <div className="flex items-center gap-4">
+                          <p className="text-sm font-semibold text-[#d8573e] w-[100px] text-left">
+                            ₹{donor?.amount || 0}
+                          </p>
+                          <span
+                            className={`text-xs px-1 rounded ${labelStyles[label]}`}
+                          >
+                            {label}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
 
             {/* Buttons */}
