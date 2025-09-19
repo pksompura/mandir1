@@ -37,7 +37,10 @@ const CampaignPage = () => {
   // const [currentSlide, setCurrentSlide] = useState(1);
   const [donationuser, setDonationuser] = useState();
   const { id } = useParams();
-  const [get, { data, error, isLoading }] = useLazyGetCampaignQuery();
+  const [error, setError] = useState("");
+
+  const [get, { data, error: campaignError, isLoading }] =
+    useLazyGetCampaignQuery();
 
   // const [donationCampaign, setDonationCampaign] =
   //   useGetCampaignDonationsQuery();
@@ -55,6 +58,8 @@ const CampaignPage = () => {
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
   const [shouldTriggerDonation, setShouldTriggerDonation] = useState(false);
   const [isDonation, setIsDonation] = useState(true);
+  const [customAmount, setCustomAmount] = useState("");
+  const [donationAmount, setDonationAmount] = useState(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("top");
@@ -67,6 +72,66 @@ const CampaignPage = () => {
     error: donationError,
     isLoading: donationLoading,
   } = useGetDonationsByCampaignQuery(campaign?._id);
+  // Processed donation amounts
+  const processedAmounts = (campaign?.donation_amounts || [])
+    .map((item) => {
+      if (typeof item === "object" && item?.$numberDecimal) {
+        return parseFloat(item.$numberDecimal);
+      }
+      return parseFloat(item); // handles number or string directly
+    })
+    .filter((num) => !isNaN(num) && num > 0);
+
+  const uniqueSortedAmounts = [...new Set(processedAmounts)].sort(
+    (a, b) => a - b
+  );
+
+  const fallbackAmounts = [500, 1500, 3000];
+  const displayAmounts =
+    uniqueSortedAmounts.length > 0 ? uniqueSortedAmounts : fallbackAmounts;
+
+  // Pick the "popular" (middle) amount
+  const popularAmount =
+    displayAmounts.length >= 3
+      ? displayAmounts[Math.floor(displayAmounts.length / 2)]
+      : displayAmounts[0];
+
+  // 🔥 Ensure donationAmount is always synced with popular when campaign changes
+  useEffect(() => {
+    if (popularAmount) {
+      setDonationAmount(popularAmount);
+      setCustomAmount("");
+    }
+  }, [popularAmount]);
+
+  // Handlers
+  const handlePresetClick = (amount) => {
+    setDonationAmount(amount);
+    setCustomAmount("");
+  };
+
+  const handleOtherClick = () => {
+    setDonationAmount("other");
+    setCustomAmount("");
+  };
+
+  const handleCustomAmount = (e) => {
+    const onlyNums = e.target.value.replace(/\D/g, ""); // allow only numbers
+    setCustomAmount(onlyNums);
+
+    const val = parseInt(onlyNums, 10);
+
+    if (!isNaN(val) && val > 0) {
+      setDonationAmount("other"); // keep it as "other" while typing
+    } else {
+      setDonationAmount("other");
+    }
+  };
+
+  const finalDonation =
+    donationAmount === "other"
+      ? parseInt(customAmount, 10) || ""
+      : donationAmount || popularAmount;
 
   useEffect(() => {
     // Listen for profile dropdown changes
@@ -106,6 +171,11 @@ const CampaignPage = () => {
   };
   const openShareModal = () => setIsShareModalVisible(true);
   const closeShareModal = () => setIsShareModalVisible(false);
+  const minAmount = parseInt(
+    campaign?.minimum_amount?.$numberDecimal || 100,
+    10
+  );
+
   const [filter, setFilter] = useState("all");
   // Sorting logic
   const [donations, setDonations] = useState([]);
@@ -319,12 +389,16 @@ const CampaignPage = () => {
 
   // const images =   [campaign?.main_picture , ...campaign?.other_pictures]
   // const [isDonationModalVisible, setIsDonationModalVisible] = useState(false);
+  // const openDonationModal = () => {
+  //   if (user?.mobile_number) {
+  //     setIsDonationModalVisible(true);
+  //   } else {
+  //     setIsLoginModalVisible(true);
+  //   }
+  // };
   const openDonationModal = () => {
-    if (user?.mobile_number) {
-      setIsDonationModalVisible(true);
-    } else {
-      setIsLoginModalVisible(true);
-    }
+    // Directly open the donation modal without login check
+    setIsDonationModalVisible(true);
   };
 
   // const closeDonationModal = () => {
@@ -540,6 +614,79 @@ const CampaignPage = () => {
                 </div>
               </div>
             </div>
+            {/* Donation Amounts */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6 mb-4">
+              {displayAmounts.map((amount) => (
+                <div key={amount} className="relative">
+                  {popularAmount === amount && (
+                    <span className="absolute -top-5 left-1/2 transform -translate-x-1/2 text-black text-[10px] font-semibold bg-[#ffdd04] px-2 py-0.5 rounded">
+                      Popular
+                    </span>
+                  )}
+                  <button
+                    className={`p-2 rounded-lg text-sm w-full font-medium transition ${
+                      donationAmount === amount
+                        ? "bg-[#ffdd04] text-black shadow-md"
+                        : popularAmount === amount
+                        ? "border border-[#ffdd04] text-[#d97706]"
+                        : "border border-gray-400 text-gray-700"
+                    }`}
+                    onClick={() => handlePresetClick(amount)}
+                  >
+                    ₹ {amount}
+                  </button>
+                </div>
+              ))}
+
+              {/* Other Option */}
+              <div className="relative w-full">
+                <button
+                  className={`p-2 rounded-lg text-sm w-full font-medium transition ${
+                    donationAmount === "other"
+                      ? "bg-[#ffdd04] text-black shadow-md"
+                      : "border border-gray-400 text-gray-700"
+                  }`}
+                  onClick={handleOtherClick}
+                >
+                  Other
+                </button>
+
+                {donationAmount === "other" && (
+                  <div className="mt-2">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder={`Min ₹${minAmount}`}
+                      className={`w-full border rounded-lg p-2 text-sm focus:outline-none focus:ring-2 ${
+                        error
+                          ? "border-red-500 focus:ring-red-400"
+                          : "focus:ring-[#ffdd04]"
+                      }`}
+                      value={customAmount}
+                      onChange={(e) => {
+                        const onlyNums = e.target.value.replace(/\D/g, ""); // allow only numbers
+                        setCustomAmount(onlyNums);
+
+                        // don't set donationAmount to number yet, keep it "other" while typing
+                        if (onlyNums === "") {
+                          setError("");
+                        } else if (parseInt(onlyNums, 10) < minAmount) {
+                          setError(
+                            `Minimum donation amount is INR ${minAmount}`
+                          );
+                        } else {
+                          setError("");
+                        }
+                      }}
+                    />
+                    {error && (
+                      <p className="text-xs text-red-500 mt-1">{error}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Donate Button */}
             {/* <div className="mt-6">
               <button
@@ -1037,16 +1184,99 @@ const CampaignPage = () => {
           </div> */}
               {/* </div> */}
             </div>
+            {/* Donation Amounts */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6 mb-4">
+              {displayAmounts.map((amount) => (
+                <div key={amount} className="relative">
+                  {popularAmount === amount && (
+                    <span className="absolute -top-5 left-1/2 transform -translate-x-1/2 text-black text-[10px] font-semibold bg-yellow-300 px-2 py-0.5 rounded">
+                      Popular
+                    </span>
+                  )}
+                  <button
+                    className={`p-2 rounded-lg text-sm w-full font-medium transition ${
+                      donationAmount === amount
+                        ? "bg-[#ffdd04] text-black shadow-md"
+                        : popularAmount === amount
+                        ? "border border-[#ffdd04] text-[#d97706]"
+                        : "border border-gray-400 text-gray-700"
+                    }`}
+                    onClick={() => handlePresetClick(amount)}
+                  >
+                    ₹ {amount}
+                  </button>
+                </div>
+              ))}
+              {/* Other Option */}
+              <div className="relative w-full">
+                <button
+                  className={`p-2 rounded-lg text-sm w-full font-medium transition ${
+                    donationAmount === "other"
+                      ? "bg-[#ffdd04] text-black shadow-md"
+                      : "border border-gray-400 text-gray-700"
+                  }`}
+                  onClick={handleOtherClick}
+                >
+                  Other
+                </button>
+
+                {donationAmount === "other" && (
+                  <div className="mt-2">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder={`Min ₹${minAmount}`}
+                      className={`w-full border rounded-lg p-2 text-sm focus:outline-none focus:ring-2 ${
+                        error
+                          ? "border-red-500 focus:ring-red-400"
+                          : "focus:ring-[#ffdd04]"
+                      }`}
+                      value={customAmount}
+                      onChange={(e) => {
+                        const onlyNums = e.target.value.replace(/\D/g, ""); // allow only numbers
+                        setCustomAmount(onlyNums);
+
+                        // don't set donationAmount to number yet, keep it "other" while typing
+                        if (onlyNums === "") {
+                          setError("");
+                        } else if (parseInt(onlyNums, 10) < minAmount) {
+                          setError(
+                            `Minimum donation amount is INR ${minAmount}`
+                          );
+                        } else {
+                          setError("");
+                        }
+                      }}
+                    />
+                    {error && (
+                      <p className="text-xs text-red-500 mt-1">{error}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* Donate Button */}
             {campaign?.is_approved === true && (
               <div className="mt-8 flex justify-center">
                 <button
-                  onClick={openDonationModal}
+                  onClick={() => {
+                    if (donationAmount === "other") {
+                      const val = parseInt(customAmount, 10);
+                      if (isNaN(val) || val < minAmount) {
+                        // ✅ Auto-reset to min amount
+                        setCustomAmount(minAmount.toString());
+                        setDonationAmount(minAmount);
+                        setError("");
+                      }
+                    }
+                    openDonationModal();
+                  }}
+                  disabled={!finalDonation || finalDonation <= 0}
                   className="bg-[#d8573e] text-white font-bold text-sm px-20 py-3 rounded-full transition duration-300 transform hover:scale-110 hover:bg-[#c85139] focus:outline-none focus:ring-2 focus:ring-[#d8573e] group animate-bounce"
                 >
                   <span className="group-hover:text-white transition duration-300">
-                    DONATE NOW
+                    DONATE ₹{finalDonation || popularAmount}
                   </span>
                 </button>
               </div>
@@ -1214,7 +1444,7 @@ const CampaignPage = () => {
           handleClose={closeDonationModal}
           setIsDonationModalVisible={setIsDonationModalVisible}
           donation_campaign_id={id}
-          donation_amounts={campaign?.donation_amounts}
+          donation_amounts={finalDonation}
           campaign_title={campaign?.campaign_title}
           minimum_amount={campaign?.minimum_amount}
           target_amount={campaign?.target_amount}
@@ -1224,10 +1454,24 @@ const CampaignPage = () => {
       {campaign?.is_approved === true && (
         <div className="visible md:hidden fixed bottom-0 left-1/2 -translate-x-1/2 w-full border-t flex justify-center py-2 bg-white z-50">
           <button
-            onClick={openDonationModal}
+            onClick={() => {
+              if (donationAmount === "other") {
+                const val = parseInt(customAmount, 10);
+                if (isNaN(val) || val < minAmount) {
+                  setCustomAmount(minAmount.toString());
+                  setError("");
+                  openDonationModal(minAmount);
+                  return;
+                }
+                openDonationModal(val);
+              } else {
+                openDonationModal(finalDonation);
+              }
+            }}
+            disabled={!finalDonation || finalDonation <= 0}
             className="bg-[#d8573e] w-[90vw] text-white font-bold text-lg px-1 py-2 rounded-full shadow-md transition duration-300 transform hover:scale-110 hover:bg-[#d8573e] focus:outline-none focus:ring-2 focus:ring-[#d8573e]"
           >
-            DONATE NOW
+            DONATE ₹{finalDonation || popularAmount}
           </button>
         </div>
       )}

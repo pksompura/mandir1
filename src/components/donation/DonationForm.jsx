@@ -39,7 +39,6 @@ const DonationForm = ({
   const target = Number(target_amount?.$numberDecimal);
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  // const [donationAmount, setDonationAmount] = useState('');
   const [otpModalVisible, setOtpModalVisible] = useState(false); // OTP modal visibility
   const [otp, setOtp] = useState(""); // OTP input
   const [total, setTotal] = useState();
@@ -55,9 +54,7 @@ const DonationForm = ({
   const trackRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [percent, setPercent] = useState((minAmount / target) * 100);
-  // const [donationAmount, setDonationAmount] = useState(1500);
   const [error, setError] = useState("");
-  console.log(donationuser);
   // const [infoErrors, setInfoErrors] = useState({
   //   full_name: "",
   //   email: "",
@@ -72,27 +69,28 @@ const DonationForm = ({
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
   const [showThankYouModal, setShowThankYouModal] = useState(false);
+  const [donorName, setDonorName] = useState("");
 
-  const processedAmounts = (donation_amounts || [])
-    .map((item) => parseFloat(item?.$numberDecimal || 0))
-    .filter((num) => !isNaN(num) && num > 0);
+  // const processedAmounts = (donation_amounts || [])
+  //   .map((item) => parseFloat(item?.$numberDecimal || 0))
+  //   .filter((num) => !isNaN(num) && num > 0);
 
-  const uniqueSortedAmounts = [...new Set(processedAmounts)].sort(
-    (a, b) => a - b
-  );
-  const fallbackAmounts = [500, 1500, 3000];
-  const displayAmounts =
-    uniqueSortedAmounts.length > 0 ? uniqueSortedAmounts : fallbackAmounts;
+  // const uniqueSortedAmounts = [...new Set(processedAmounts)].sort(
+  //   (a, b) => a - b
+  // );
+  // const fallbackAmounts = [500, 1500, 3000];
+  // const displayAmounts =
+  //   uniqueSortedAmounts.length > 0 ? uniqueSortedAmounts : fallbackAmounts;
 
-  const popularAmount =
-    displayAmounts.length >= 3
-      ? displayAmounts[Math.floor(displayAmounts.length / 2)]
-      : null;
+  // const popularAmount =
+  //   displayAmounts.length >= 3
+  //     ? displayAmounts[Math.floor(displayAmounts.length / 2)]
+  //     : null;
 
-  const defaultAmount =
-    popularAmount || displayAmounts[displayAmounts.length - 1]; // Highest if less than 3
+  // const defaultAmount =
+  //   popularAmount || displayAmounts[displayAmounts.length - 1]; // Highest if less than 3
 
-  const [donationAmount, setDonationAmount] = useState(defaultAmount);
+  const [donationAmount, setDonationAmount] = useState(donation_amounts);
 
   // Calculate tip amount
 
@@ -293,18 +291,96 @@ const DonationForm = ({
     return true;
   };
 
+  // useEffect(() => {
+  //   if (donationuser) {
+  //     setUserData1({
+  //       full_name: donationuser.full_name || "",
+  //       email: donationuser.email || "",
+  //     });
+  //   }
+  // }, [donationuser]);
   useEffect(() => {
     if (donationuser) {
       setUserData1({
-        full_name: donationuser.full_name || "",
-        email: donationuser.email || "",
+        full_name: donationuser.full_name,
+        email: donationuser.email,
+        mobile: donationuser.mobile_number,
       });
     }
   }, [donationuser]);
 
+  // const handleDonateNow = async () => {
+  //   const errors = {};
+
+  //   if (!isChecked) {
+  //     message.error(
+  //       "You must agree to the terms & conditions before proceeding."
+  //     );
+  //     return;
+  //   }
+
+  //   // Validate donation amount
+  //   if (donationAmount < minAmount) {
+  //     message.error(`Minimum donation amount is INR ${minAmount}`);
+  //     return;
+  //   }
+
+  //   // Validate input fields
+  //   if (!userData.full_name) errors.full_name = "Full Name is required";
+  //   if (!userData.email) errors.email = "Email is required";
+
+  //   // Check Citizenship
+  //   if (citizenStatus !== "yes") {
+  //     setShowError(true);
+  //     message.error("Only Indian citizens are allowed to donate.");
+  //     return;
+  //   }
+
+  //   if (Object.keys(errors).length > 0) {
+  //     setInfoErrors(errors);
+  //     return;
+  //   }
+
+  //   try {
+  //     // ✅ If user is new, update details before proceeding
+  //     await updateUser({
+  //       mobile: donationuser?.mobile,
+  //       full_name: userData.full_name,
+  //       email: userData.email,
+  //     });
+
+  //     // ✅ Proceed with payment
+  //     await initiatePayment();
+  //   } catch (error) {
+  //     message.error(error.data?.error || "Something went wrong.");
+  //   }
+  // };
+
+  // helper: build payload for createOrder
+  const buildOrderPayload = () => {
+    const payload = {
+      donation_campaign_id, // your existing campaign id var
+      amount: calculateTotal(), // keep as INR if backend multiplies by 100
+      is_anonymous: isAnonymous,
+    };
+
+    if (donationuser?._id) {
+      // logged in user
+      payload.user_id = donationuser._id;
+    } else {
+      // guest donor - include identifying fields required for order/receipt
+      payload.full_name = userData.full_name;
+      payload.email = userData.email;
+      payload.mobile_number = userData.mobile; // make sure this is the 10-digit string
+      payload.is_guest = true; // optional flag useful for backend
+    }
+
+    return payload;
+  };
   const handleDonateNow = async () => {
     const errors = {};
 
+    // must accept terms
     if (!isChecked) {
       message.error(
         "You must agree to the terms & conditions before proceeding."
@@ -312,17 +388,37 @@ const DonationForm = ({
       return;
     }
 
-    // Validate donation amount
-    if (donationAmount < minAmount) {
+    // compute numeric donation amount
+    const numericDonation =
+      donationAmount === "other"
+        ? parseInt(customAmount, 10)
+        : Number(donationAmount || popularAmount);
+
+    // minimum amount check
+    if (!numericDonation || numericDonation < minAmount) {
       message.error(`Minimum donation amount is INR ${minAmount}`);
       return;
     }
 
-    // Validate input fields
+    // common validation
     if (!userData.full_name) errors.full_name = "Full Name is required";
     if (!userData.email) errors.email = "Email is required";
 
-    // Check Citizenship
+    // for guest donors, require mobile (10 digits)
+    if (!donationuser) {
+      if (!userData.mobile || userData.mobile.length !== 10) {
+        errors.mobile = "Enter a valid 10-digit mobile number";
+      }
+    } else {
+      // if logged-in user exists but mobile field is editable, still ensure it's present
+      if (
+        !donationuser.mobile_number &&
+        (!userData.mobile || userData.mobile.length !== 10)
+      ) {
+        errors.mobile = "Enter a valid 10-digit mobile number";
+      }
+    }
+
     if (citizenStatus !== "yes") {
       setShowError(true);
       message.error("Only Indian citizens are allowed to donate.");
@@ -335,17 +431,24 @@ const DonationForm = ({
     }
 
     try {
-      // ✅ If user is new, update details before proceeding
-      await updateUser({
-        mobile: donationuser?.mobile,
-        full_name: userData.full_name,
-        email: userData.email,
-      });
+      // If there's a logged-in user, update their profile (optional)
+      if (donationuser?._id) {
+        // adjust call to match your updateUser API signature — below is an example
+        await updateUser({
+          user_id: donationuser._id,
+          full_name: userData.full_name,
+          email: userData.email,
+          mobile_number: userData.mobile || donationuser.mobile_number,
+        }).unwrap?.(); // .unwrap if using RTK Query. remove if not needed
+      }
 
-      // ✅ Proceed with payment
+      // proceed with creating order & launching Razorpay
       await initiatePayment();
-    } catch (error) {
-      message.error(error.data?.error || "Something went wrong.");
+    } catch (err) {
+      console.error("handleDonateNow error:", err);
+      message.error(
+        err?.data?.error || err?.data?.message || "Something went wrong."
+      );
     }
   };
 
@@ -360,7 +463,6 @@ const DonationForm = ({
 
         // OTP verified successfully, log in the user
         message.success(response.data.message);
-        console.log(response);
         localStorage.setItem("authToken", response.data.token);
         setUserData1(response.data.user);
         dispatch(setUserData(response.data.user));
@@ -380,21 +482,55 @@ const DonationForm = ({
     }
   };
 
+  // const initiatePayment = async () => {
+  //   try {
+  //     const orderResponse = await createOrder({
+  //       user_id: donationuser?._id,
+  //       donation_campaign_id, // Already a variable
+  //       amount: calculateTotal(), // In INR (your backend should multiply by 100 for paise)
+  //       is_anonymous: isAnonymous,
+  //     }).unwrap();
+
+  //     const { data: razorpayOrder, donation_id } = orderResponse;
+
+  //     await triggerRazorpay(razorpayOrder, donation_id);
+  //   } catch (error) {
+  //     console.error("Create Order Error:", error);
+  //     message.error(error?.data?.error || "Error creating payment order.");
+  //   }
+  // };
   const initiatePayment = async () => {
     try {
-      const orderResponse = await createOrder({
-        user_id: donationuser?._id,
-        donation_campaign_id, // Already a variable
-        amount: calculateTotal(), // In INR (your backend should multiply by 100 for paise)
-        is_anonymous: isAnonymous,
-      }).unwrap();
+      const payload = buildOrderPayload();
 
-      const { data: razorpayOrder, donation_id } = orderResponse;
+      // call createOrder with full payload (supports guest fields if needed)
+      const orderResponse = await createOrder(payload).unwrap();
 
+      // adjust to your createOrder response shape
+      // commonly backend returns { data: razorpayOrder, donation_id: "..." }
+      const { data: razorpayOrder, donation_id, donor_name } = orderResponse;
+      setDonorName(
+        donor_name ||
+          userData?.full_name ||
+          donationuser?.full_name ||
+          "Anonymous Donor"
+      );
+
+      // launch Razorpay
       await triggerRazorpay(razorpayOrder, donation_id);
-    } catch (error) {
-      console.error("Create Order Error:", error);
-      message.error(error?.data?.error || "Error creating payment order.");
+    } catch (err) {
+      console.error("Create Order Error:", err);
+
+      // show backend error message if available for debugging & UX
+      const backendMessage =
+        err?.data?.message ||
+        err?.data?.error ||
+        err?.message ||
+        "Error creating payment order.";
+      message.error(backendMessage);
+
+      // helpful debug console
+      // console.debug(err); // keep if you need more details
     }
   };
 
@@ -606,10 +742,15 @@ const DonationForm = ({
         }
       },
 
+      // prefill: {
+      //   name: donationuser?.full_name,
+      //   email: donationuser?.email,
+      //   contact: donationuser?.mobile_number,
+      // },
       prefill: {
-        name: donationuser?.full_name,
-        email: donationuser?.email,
-        contact: donationuser?.mobile_number,
+        name: donationuser?.full_name || userData.full_name,
+        email: donationuser?.email || userData.email,
+        contact: donationuser?.mobile_number || userData.mobile,
       },
 
       theme: {
@@ -668,7 +809,7 @@ const DonationForm = ({
       {/* Thank You Modal */}
       {showThankYouModal && (
         <ThankYouModal
-          donorName={donationuser.full_name}
+          donorName={donorName || "Guest Donor"}
           amount={calculateTotal()}
           onClose={handleCloseThankYouModal}
           campaign_title={campaign_title}
@@ -690,6 +831,77 @@ const DonationForm = ({
           >
             <IoClose className="text-2xl" />
           </button>
+          <h3 className="text-base font-semibold text-center mb-3">
+            Support Us
+          </h3>
+          <div className="relative w-full">
+            {/* Main Input Field */}
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="w-full p-2 border rounded-lg text-xs focus:outline-none mb-3 bg-white text-left"
+            >
+              {isOtherSelected ? `₹${manualTip}` : `${supportPercent}%`}
+            </button>
+
+            {/* Dropdown Menu */}
+            {isDropdownOpen && (
+              <ul className="absolute left-0 w-full bg-white border rounded-lg shadow-md p-2 mt-1 z-10">
+                {[5, 10, 20].map((percent) => (
+                  <li
+                    key={percent}
+                    className="p-2 text-xs hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      setSupportPercent(percent);
+                      setIsOtherSelected(false);
+                      setManualTip(0);
+                      setIsDropdownOpen(false);
+                    }}
+                  >
+                    {percent}% - ₹
+                    {((donationAmount * percent) / 100).toFixed(2)}
+                  </li>
+                ))}
+
+                {/* Other Option with Input */}
+                <li className="p-2 text-xs hover:bg-gray-100 cursor-pointer flex items-center">
+                  Other -
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    className="ml-2 border rounded p-1 text-xs w-16"
+                    placeholder="₹0"
+                    value={manualTip}
+                    onChange={(e) => {
+                      setManualTip(Number(e.target.value) || 0);
+                      setSupportPercent("");
+                      setIsOtherSelected(true);
+                    }}
+                    onBlur={() => {
+                      if (manualTip > 0) {
+                        setIsDropdownOpen(false);
+                      } else {
+                        setSupportPercent(5);
+                        setIsOtherSelected(false);
+                      }
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </li>
+              </ul>
+            )}
+
+            {/* Selected Tip Display */}
+            <h3 className="text-base font-semibold mb-3">
+              Selected Tip:{" "}
+              {isOtherSelected ? `₹${manualTip}` : `${supportPercent}%`}
+            </h3>
+
+            {/* Total Donation Display */}
+            <h3 className="text-base font-semibold mb-3">
+              Total Donation: ₹ {calculateTotal()}
+            </h3>
+          </div>
           {!donationuser?.full_name ? (
             <>
               <h2 className="text-xl text-center font-semibold md:mb-6 mb-4">
@@ -728,7 +940,7 @@ const DonationForm = ({
                   >
                     {infoErrors.full_name && !userData.full_name
                       ? infoErrors.full_name
-                      : "Full Name"}
+                      : "Full Name *"}
                   </label>
                 </div>
 
@@ -763,8 +975,76 @@ const DonationForm = ({
                   >
                     {infoErrors.email && !userData.email
                       ? infoErrors.email
-                      : "Email"}
+                      : "Email *"}
                   </label>
+                </div>
+              </div>
+
+              {/* Mobile Number Input */}
+              <div className="w-full md:w-[600px] lg:w-[500px] mb-4">
+                <div className="relative">
+                  <input
+                    type="tel"
+                    id="mobile"
+                    maxLength="10"
+                    inputMode="numeric"
+                    pattern="[0-9]{10}"
+                    className={`peer block w-full px-2 pb-1 pt-3 text-sm text-gray-900 bg-transparent rounded-lg border pl-14
+        ${infoErrors.mobile ? "border-red-500" : "border-[#545454]"} 
+        focus:outline-none focus:ring-0 focus:border-[#7b7a7a]`}
+                    value={userData.mobile}
+                    onChange={(e) => {
+                      const onlyNums = e.target.value.replace(/\D/g, ""); // only numbers
+                      if (onlyNums.length <= 10) {
+                        setUserData1((prev) => ({
+                          ...prev,
+                          mobile: onlyNums,
+                        }));
+
+                        // 🔹 Validation check
+                        if (onlyNums.length > 0 && onlyNums.length < 10) {
+                          setInfoErrors((prev) => ({
+                            ...prev,
+                            mobile: "Enter a valid 10-digit mobile number",
+                          }));
+                        } else {
+                          setInfoErrors((prev) => ({
+                            ...prev,
+                            mobile: "",
+                          }));
+                        }
+                      }
+                    }}
+                  />
+
+                  {/* +91 Prefix */}
+                  <span className="absolute left-2 top-3 text-sm text-gray-600">
+                    +91
+                  </span>
+
+                  <label
+                    htmlFor="mobile"
+                    className={`absolute text-sm transition-all duration-300 left-[2.8rem] px-1 bg-white 
+        ${
+          infoErrors.mobile && !userData.mobile
+            ? "text-red-500 -top-3 scale-75"
+            : userData.mobile
+            ? "-top-3 left-[2.8rem] scale-75 text-[#7b7a7a]"
+            : "top-3 scale-100 text-gray-500"
+        }
+        peer-focus:-top-3 peer-focus:scale-75 peer-focus:text-[#7b7a7a]`}
+                  >
+                    {infoErrors.mobile && !userData.mobile
+                      ? infoErrors.mobile
+                      : "Mobile Number *"}
+                  </label>
+                </div>
+
+                {/* 🔹 Fixed space for error message (prevents modal resizing) */}
+                <div className="min-h-[20px] mt-1">
+                  {infoErrors.mobile && (
+                    <p className="text-xs text-red-500">{infoErrors.mobile}</p>
+                  )}
                 </div>
               </div>
             </>
@@ -796,10 +1076,10 @@ const DonationForm = ({
             ))}
           </div> */}
 
-          <h3 className="text-lg text-center font-semibold mb-6">
+          {/* <h3 className="text-lg text-center font-semibold mb-6">
             Select Donation Amount in INR
-          </h3>
-
+          </h3> */}
+          {/* 
           <div className="grid grid-cols-3 gap-2 mb-4 relative">
             {displayAmounts.map((amount) => (
               <div key={amount} className="relative">
@@ -824,7 +1104,7 @@ const DonationForm = ({
 
           <div className="relative w-full">
             {/* Input Field */}
-            <input
+          {/* <input
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
@@ -834,15 +1114,15 @@ const DonationForm = ({
               placeholder="Other amount - ₹5 & more"
               value={`₹ ${donationAmount || 0}`}
               onChange={handleInputChange}
-            />
+            /> */}
 
-            {/* Error Label (Only Shows When There's an Error) */}
-            {error && (
+          {/* Error Label (Only Shows When There's an Error) */}
+          {/* {error && ( *
               <label className="absolute -top-2 left-2 bg-white text-red-500 text-xs px-1">
                 {error}
               </label>
             )}
-          </div>
+          </div> */}
           {/* <div
             ref={trackRef}
             className="relative w-full h-2 bg-gray-200 rounded-full mt-3 mb-3"
@@ -1083,7 +1363,23 @@ const DonationForm = ({
                 ? "bg-[#d8573e] hover:bg-[#a84430] hover:shadow-lg cursor-pointer"
                 : "bg-[#d8573e] cursor-not-allowed opacity-50"
             }`}
-            onClick={handleDonateNow}
+            //   onClick={handleDonateNow}
+            // >
+            //   Proceed to Pay ₹ {calculateTotal()}
+            // </button>
+            onClick={() => {
+              if (!donationuser?.email) {
+                // Guest Checkout → Only ask for minimal info
+                if (!userData.email) {
+                  setInfoErrors((prev) => ({
+                    ...prev,
+                    email: "Email is required for receipt",
+                  }));
+                  return;
+                }
+              }
+              handleDonateNow();
+            }}
           >
             Proceed to Pay ₹ {calculateTotal()}
           </button>

@@ -44,27 +44,24 @@ const HeroSlider = () => {
         <div className="min-h-96 px-2 w-full md:w-[80%] mx-auto">
           <Swiper
             slidesPerView={1}
+            spaceBetween={20} // ✅ default gap for all devices
             navigation={true}
             pagination={{
               clickable: true,
               el: ".swiper-pagination",
             }}
             breakpoints={{
-              480: {
-                slidesPerView: 1,
-                spaceBetween: 20,
-              },
               640: {
                 slidesPerView: 2,
-                spaceBetween: 20,
+                spaceBetween: 24, // tablet gap
               },
               768: {
                 slidesPerView: 2,
-                spaceBetween: 40,
+                spaceBetween: 32, // medium gap
               },
               1024: {
                 slidesPerView: 3,
-                spaceBetween: 50,
+                spaceBetween: 20, // desktop gap
               },
             }}
             autoplay={{
@@ -81,21 +78,23 @@ const HeroSlider = () => {
                   ?.filter((data) => !data.hidden)
                   .map((data, i) => (
                     <SwiperSlide
-                      className="flex items-center w-full justify-center mb-6"
-                      key={i + "1"}
+                      // className="flex items-center w-full justify-center mb-6"
+                      className="mb-6"
+                      key={i}
                     >
                       <Link to={`/campaign/${data?._id}`}>
-                        <div className="bg-white rounded-lg cursor-pointer shadow-md overflow-hidden border-2 p-2 h-[470px] w-[330px] md:h-[480px] md:w-[350px] lg:h-[480px] lg:w-[350px] mx-auto flex flex-col">
+                        {/* <div className="bg-white rounded-lg cursor-pointer shadow-md overflow-hidden border-2 p-2 h-[470px] w-[330px] md:h-[480px] md:w-[350px] lg:h-[480px] lg:w-[350px] mx-auto flex flex-col"> */}
+                        <div className="bg-white rounded-lg cursor-pointer shadow-md overflow-hidden border-2 p-2 h-[470px] md:h-[480px] flex flex-col w-full">
                           <div className="relative">
                             <img
-  src={
-    data?.main_picture?.startsWith("/images/")
-      ? `${IMAGE_BASE_URL}${data.main_picture}`
-      : data?.main_picture
-  }
-  alt={data?.campaign_title}
-  className="w-full h-48 object-cover rounded"
-/>
+                              src={
+                                data?.main_picture?.startsWith("/images/")
+                                  ? `${IMAGE_BASE_URL}${data.main_picture}`
+                                  : data?.main_picture
+                              }
+                              alt={data?.campaign_title}
+                              className="w-full h-48 object-cover rounded"
+                            />
                             {data?.is_tax && (
                               <img
                                 alt=""
