@@ -5,6 +5,7 @@ import {
   useLoginUserMutation,
   useVerifyOtpMutation,
   useUpdateUserMutation,
+  useGuestLoginMutation,
 } from "../../redux/services/campaignApi";
 import { useDispatch, useSelector } from "react-redux";
 import { IoClose } from "react-icons/io5";
@@ -43,6 +44,8 @@ const DonationForm = ({
   const [otp, setOtp] = useState(""); // OTP input
   const [total, setTotal] = useState();
   const [createOrder] = useCreateOrderMutation();
+  const [guest, setGuest] = useState(null); // ✅ add this
+
   const [userData, setUserData1] = useState({
     full_name: donationuser?.full_name || "",
     email: donationuser?.email || "",
@@ -355,6 +358,44 @@ const DonationForm = ({
   //     message.error(error.data?.error || "Something went wrong.");
   //   }
   // };
+  // const [guestLogin] = useGuestLoginMutation();
+
+  // const ensureGuestSession = async (guestData) => {
+  //   const token = localStorage.getItem("authToken");
+
+  //   // only try guest login if not already logged in
+  //   if (!token) {
+  //     try {
+  //       const response = await guestLogin(guestData).unwrap();
+
+  //       if (response?.success) {
+  //         // store token
+  //         localStorage.setItem("authToken", response.token);
+
+  //         // store in context / redux
+  //         if (response.user.is_guest) {
+  //           setGuest(response.user); // 👈 mark guest user in local state
+  //         } else {
+  //           setUserData(response.user); // 👈 for normal users
+  //         }
+  //       }
+  //     } catch (err) {
+  //       console.error("Guest login failed:", err);
+  //       throw new Error(err?.data?.message || "Guest login failed");
+  //     }
+  //   } else {
+  //     // Optional: decode token and check guest flag
+  //     try {
+  //       const decoded = JSON.parse(atob(token.split(".")[1]));
+  //       if (decoded.is_guest) {
+  //         console.log("Already in guest session");
+  //       }
+  //     } catch (e) {
+  //       console.warn("Invalid token found in localStorage:", e);
+  //       localStorage.removeItem("authToken");
+  //     }
+  //   }
+  // };
 
   // helper: build payload for createOrder
   const buildOrderPayload = () => {
@@ -377,6 +418,7 @@ const DonationForm = ({
 
     return payload;
   };
+
   const handleDonateNow = async () => {
     const errors = {};
 
@@ -452,6 +494,87 @@ const DonationForm = ({
     }
   };
 
+  // const handleDonateNow = async () => {
+  //   const errors = {};
+
+  //   // must accept terms
+  //   if (!isChecked) {
+  //     message.error(
+  //       "You must agree to the terms & conditions before proceeding."
+  //     );
+  //     return;
+  //   }
+
+  //   // compute numeric donation amount
+  //   const numericDonation =
+  //     donationAmount === "other"
+  //       ? parseInt(customAmount, 10)
+  //       : Number(donationAmount || popularAmount);
+
+  //   // minimum amount check
+  //   if (!numericDonation || numericDonation < minAmount) {
+  //     message.error(`Minimum donation amount is INR ${minAmount}`);
+  //     return;
+  //   }
+
+  //   // common validation
+  //   if (!userData.full_name) errors.full_name = "Full Name is required";
+  //   if (!userData.email) errors.email = "Email is required";
+
+  //   if (!donationuser) {
+  //     // guest donors require mobile
+  //     if (!userData.mobile || userData.mobile.length !== 10) {
+  //       errors.mobile = "Enter a valid 10-digit mobile number";
+  //     }
+  //   } else {
+  //     // logged-in user but mobile missing
+  //     if (
+  //       !donationuser.mobile_number &&
+  //       (!userData.mobile || userData.mobile.length !== 10)
+  //     ) {
+  //       errors.mobile = "Enter a valid 10-digit mobile number";
+  //     }
+  //   }
+
+  //   if (citizenStatus !== "yes") {
+  //     setShowError(true);
+  //     message.error("Only Indian citizens are allowed to donate.");
+  //     return;
+  //   }
+
+  //   if (Object.keys(errors).length > 0) {
+  //     setInfoErrors(errors);
+  //     return;
+  //   }
+
+  //   try {
+  //     // ✅ Step 1: Ensure guest session OR update existing user
+  //     if (!donationuser?._id) {
+  //       // await ensureGuestSession({
+  //       //   full_name: userData.full_name,
+  //       //   email: userData.email,
+  //       //   mobile_number: userData.mobile,
+  //       // });
+  //       // } else {
+  //       // update profile for logged-in user
+  //       await updateUser({
+  //         user_id: donationuser._id,
+  //         full_name: userData.full_name,
+  //         email: userData.email,
+  //         mobile_number: userData.mobile || donationuser.mobile_number,
+  //       }).unwrap?.();
+  //     }
+
+  //     // ✅ Step 2: Start payment
+  //     await initiatePayment();
+  //   } catch (err) {
+  //     console.error("handleDonateNow error:", err);
+  //     message.error(
+  //       err?.data?.error || err?.data?.message || "Something went wrong."
+  //     );
+  //   }
+  // };
+
   const handleOtpSubmit = async () => {
     if (otp.length === 6) {
       // Call the verify OTP API
@@ -499,16 +622,63 @@ const DonationForm = ({
   //     message.error(error?.data?.error || "Error creating payment order.");
   //   }
   // };
+  // const initiatePayment = async () => {
+  //   try {
+  //     const payload = buildOrderPayload();
+
+  //     // call createOrder with full payload (supports guest fields if needed)
+  //     const orderResponse = await createOrder(payload).unwrap();
+
+  //     // adjust to your createOrder response shape
+  //     // commonly backend returns { data: razorpayOrder, donation_id: "..." }
+  //     const { data: razorpayOrder, donation_id, donor_name } = orderResponse;
+  //     setDonorName(
+  //       donor_name ||
+  //         userData?.full_name ||
+  //         donationuser?.full_name ||
+  //         "Anonymous Donor"
+  //     );
+
+  //     // launch Razorpay
+  //     await triggerRazorpay(razorpayOrder, donation_id);
+  //   } catch (err) {
+  //     console.error("Create Order Error:", err);
+
+  //     // show backend error message if available for debugging & UX
+  //     const backendMessage =
+  //       err?.data?.message ||
+  //       err?.data?.error ||
+  //       err?.message ||
+  //       "Error creating payment order.";
+  //     message.error(backendMessage);
+
+  //     // helpful debug console
+  //     // console.debug(err); // keep if you need more details
+  //   }
+  // };
   const initiatePayment = async () => {
     try {
       const payload = buildOrderPayload();
 
+      // ensure donation amount is valid
+      if (!payload.amount || isNaN(payload.amount) || payload.amount <= 0) {
+        message.error("Invalid donation amount.");
+        return;
+      }
+
       // call createOrder with full payload (supports guest fields if needed)
       const orderResponse = await createOrder(payload).unwrap();
 
-      // adjust to your createOrder response shape
-      // commonly backend returns { data: razorpayOrder, donation_id: "..." }
-      const { data: razorpayOrder, donation_id, donor_name } = orderResponse;
+      // backend returns: { success, data: razorpayOrder, donation_id, donor_name, commission_amount, linked_account }
+      const {
+        data: razorpayOrder,
+        donation_id,
+        donor_name,
+        commission_amount,
+        linked_account,
+      } = orderResponse;
+
+      // set donor name for receipts/thank you page
       setDonorName(
         donor_name ||
           userData?.full_name ||
@@ -516,21 +686,30 @@ const DonationForm = ({
           "Anonymous Donor"
       );
 
-      // launch Razorpay
-      await triggerRazorpay(razorpayOrder, donation_id);
+      // show commission info in UI (optional)
+      if (commission_amount && linked_account) {
+        const commissionInRupees = (commission_amount / 100).toFixed(2);
+        message.info(
+          `1% of your donation (${commissionInRupees} ₹) will go to linked account.`
+        );
+      }
+
+      // launch Razorpay checkout
+      await triggerRazorpay(
+        razorpayOrder,
+        donation_id,
+        commission_amount,
+        linked_account
+      );
     } catch (err) {
       console.error("Create Order Error:", err);
 
-      // show backend error message if available for debugging & UX
       const backendMessage =
         err?.data?.message ||
         err?.data?.error ||
         err?.message ||
-        "Error creating payment order.";
+        "Something went wrong while creating the payment order.";
       message.error(backendMessage);
-
-      // helpful debug console
-      // console.debug(err); // keep if you need more details
     }
   };
 
@@ -701,25 +880,27 @@ const DonationForm = ({
 
   //   razorpayInstance.open();
   // };
-
-  const triggerRazorpay = (orderData, donationId) => {
+  const triggerRazorpay = (
+    orderData,
+    donationId,
+    commissionAmount,
+    linkedAccount
+  ) => {
     const options = {
-      key: "rzp_live_qMGIKf7WORiiuM", // Razorpay Key ID (✅ use ENV in production)
+      key: "rzp_live_qMGIKf7WORiiuM", // Razorpay Key ID (use ENV in production)
       amount: orderData.amount, // Already in paise from backend
       currency: "INR",
       name: "Giveaze",
       description: "Donation Payment",
       order_id: orderData.id,
-
       handler: async function (response) {
         setShowLoader(true);
-
         try {
           const verifyResponse = await verifyPayment({
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
-            donation_id: donationId, // 🔑 Use donation_id for accurate lookup
+            donation_id: donationId,
           }).unwrap();
 
           if (verifyResponse.status) {
@@ -741,18 +922,11 @@ const DonationForm = ({
           );
         }
       },
-
-      // prefill: {
-      //   name: donationuser?.full_name,
-      //   email: donationuser?.email,
-      //   contact: donationuser?.mobile_number,
-      // },
       prefill: {
         name: donationuser?.full_name || userData.full_name,
         email: donationuser?.email || userData.email,
         contact: donationuser?.mobile_number || userData.mobile,
       },
-
       theme: {
         color: "#3399cc",
       },

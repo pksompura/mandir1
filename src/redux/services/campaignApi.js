@@ -176,6 +176,16 @@ export const campaignApi = createApi({
         providesTags: [],
       }),
     }),
+
+    // ✅ New: Guest login
+    guestLogin: builder.mutation({
+      query: (guestData) => ({
+        url: "/users/guest-login",
+        method: "POST",
+        body: guestData,
+      }),
+      invalidatesTags: ["user"],
+    }),
   }),
 });
 
@@ -201,4 +211,5 @@ export const {
   useGetCampaignDonationsQuery,
   useUpdateDonationDetailsMutation,
   useLazyGetDonationReceiptQuery,
+  useGuestLoginMutation,
 } = campaignApi;
