@@ -337,11 +337,6 @@ const CampaignPage = () => {
   useEffect(() => {
     if (campaign) {
       setImages(campaign.other_pictures);
-      console.log(
-        campaign.other_pictures?.map((data) => {
-          console.log(data);
-        })
-      );
     }
   }, [campaign]);
   useEffect(() => {

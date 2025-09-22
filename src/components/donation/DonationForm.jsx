@@ -16,6 +16,7 @@ import {
 } from "../../redux/services/transactionApi";
 import { Spin } from "antd";
 import ThankYouModal from "./ThankYouModel";
+import LoginModel from "../LoginModel";
 import { flushSync } from "react-dom";
 
 const DonationForm = ({
@@ -24,6 +25,7 @@ const DonationForm = ({
   setIsDonationModalVisible,
   donation_campaign_id,
   donationuser,
+  setDonationuser,
   donation_amounts,
   campaign_title,
   minimum_amount,
@@ -38,6 +40,8 @@ const DonationForm = ({
   const [isChecked, setIsChecked] = useState(false);
   const minAmount = Number(minimum_amount?.$numberDecimal);
   const target = Number(target_amount?.$numberDecimal);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [donationMobile, setDonationMobile] = useState(""); // mobile to pass
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [otpModalVisible, setOtpModalVisible] = useState(false); // OTP modal visibility
@@ -471,20 +475,25 @@ const DonationForm = ({
       setInfoErrors(errors);
       return;
     }
-
     try {
-      // If there's a logged-in user, update their profile (optional)
+      // ✅ Update existing user if logged in
       if (donationuser?._id) {
-        // adjust call to match your updateUser API signature — below is an example
         await updateUser({
           user_id: donationuser._id,
           full_name: userData.full_name,
           email: userData.email,
-          mobile_number: userData.mobile || donationuser.mobile_number,
-        }).unwrap?.(); // .unwrap if using RTK Query. remove if not needed
+          mobile_number: userData.mobile,
+        }).unwrap?.();
       }
 
-      // proceed with creating order & launching Razorpay
+      // ✅ If no user / guest, open LoginModel with prefilled mobile
+      if (!donationuser) {
+        setDonationMobile(userData.mobile); // Pass mobile to modal
+        setShowOtpModal(true);
+        return;
+      }
+
+      // ✅ If user is already logged in, proceed to payment immediately
       await initiatePayment();
     } catch (err) {
       console.error("handleDonateNow error:", err);
@@ -687,12 +696,12 @@ const DonationForm = ({
       );
 
       // show commission info in UI (optional)
-      if (commission_amount && linked_account) {
-        const commissionInRupees = (commission_amount / 100).toFixed(2);
-        message.info(
-          `1% of your donation (${commissionInRupees} ₹) will go to linked account.`
-        );
-      }
+      // if (commission_amount && linked_account) {
+      //   const commissionInRupees = (commission_amount / 100).toFixed(2);
+      //   message.info(
+      //     `1% of your donation (${commissionInRupees} ₹) will go to linked account.`
+      //   );
+      // }
 
       // launch Razorpay checkout
       await triggerRazorpay(
@@ -880,27 +889,25 @@ const DonationForm = ({
 
   //   razorpayInstance.open();
   // };
-  const triggerRazorpay = (
-    orderData,
-    donationId,
-    commissionAmount,
-    linkedAccount
-  ) => {
+
+  const triggerRazorpay = (orderData, donationId) => {
     const options = {
-      key: "rzp_live_qMGIKf7WORiiuM", // Razorpay Key ID (use ENV in production)
+      key: "rzp_live_qMGIKf7WORiiuM", // Razorpay Key ID (✅ use ENV in production)
       amount: orderData.amount, // Already in paise from backend
       currency: "INR",
       name: "Giveaze",
       description: "Donation Payment",
       order_id: orderData.id,
+
       handler: async function (response) {
         setShowLoader(true);
+
         try {
           const verifyResponse = await verifyPayment({
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
-            donation_id: donationId,
+            donation_id: donationId, // 🔑 Use donation_id for accurate lookup
           }).unwrap();
 
           if (verifyResponse.status) {
@@ -922,11 +929,18 @@ const DonationForm = ({
           );
         }
       },
+
+      // prefill: {
+      //   name: donationuser?.full_name,
+      //   email: donationuser?.email,
+      //   contact: donationuser?.mobile_number,
+      // },
       prefill: {
         name: donationuser?.full_name || userData.full_name,
         email: donationuser?.email || userData.email,
         contact: donationuser?.mobile_number || userData.mobile,
       },
+
       theme: {
         color: "#3399cc",
       },
@@ -1559,6 +1573,16 @@ const DonationForm = ({
           </button>
         </div>
       </Modal>
+      <LoginModel
+        open={showOtpModal}
+        onClose={() => setShowOtpModal(false)}
+        prefilledMobile={donationMobile}
+        setDonationuser={setDonationuser}
+        onOtpVerified={(user) => {
+          dispatch(setUserData(user));
+          initiatePayment();
+        }}
+      />
 
       {/* OTP Modal */}
       <Modal

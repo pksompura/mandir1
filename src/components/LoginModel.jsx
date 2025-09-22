@@ -22,6 +22,8 @@ const LoginModel = ({
   isDonation,
   setDonationuser,
   setIsDonationModalVisible,
+  prefilledMobile,
+  onOtpVerified,
 }) => {
   const [stepCount, setStepCount] = useState(null);
   const [sendOtp, { isLoading: sendOtpLoading, isSuccess, reset }] =
@@ -29,7 +31,7 @@ const LoginModel = ({
   const [sendOtpInSeconds, setSendOtpInSeconds] = useState(60); // 60 seconds resend
   const [otpValidDuration, setOtpValidDuration] = useState(300); // 5 minutes OTP validity
   const [timerActive, setTimerActive] = useState(false);
-
+  // console.log(prefilledMobile);
   const [
     verifyOtp,
     {
@@ -65,13 +67,29 @@ const LoginModel = ({
     return () => clearInterval(resendTimer);
   }, [timerActive, sendOtpInSeconds]);
 
+  // const handleResendOtp = async () => {
+  //   const phoneNumber = removeCountryCode(phoneForm.values.mobile_number);
+  //   if (phoneNumber.length === 10) {
+  //     await sendOtp({ mobile_number: phoneNumber }); // Resend OTP API Call
+  //     setSendOtpInSeconds(60); // Reset countdown timer to 60s
+  //     setOtpValidDuration(300); // Reset OTP validity to 5 mins
+  //     setTimerActive(true); // Restart the timer
+  //   }
+  // };
   const handleResendOtp = async () => {
-    const phoneNumber = removeCountryCode(phoneForm.values.mobile_number);
+    // Use prefilledMobile if passed (donation flow), otherwise fallback to phoneForm input
+    const mobile = prefilledMobile || phoneForm.values.mobile_number;
+
+    // Remove country code if exists
+    const phoneNumber = removeCountryCode(mobile);
+
     if (phoneNumber.length === 10) {
-      await sendOtp({ mobile_number: phoneNumber }); // Resend OTP API Call
-      setSendOtpInSeconds(60); // Reset countdown timer to 60s
-      setOtpValidDuration(300); // Reset OTP validity to 5 mins
-      setTimerActive(true); // Restart the timer
+      await sendOtp({ mobile_number: phoneNumber }); // API call to resend OTP
+      setSendOtpInSeconds(60); // Reset resend countdown
+      setOtpValidDuration(300); // Reset OTP validity to 5 minutes
+      setTimerActive(true); // Restart timer
+    } else {
+      console.warn("Cannot resend OTP: invalid mobile number", mobile);
     }
   };
 
@@ -87,41 +105,86 @@ const LoginModel = ({
     return () => clearInterval(otpTimer);
   }, [otpValidDuration]);
 
+  // OTP verification success
   useEffect(() => {
     if (verifyOtpSuccess) {
       if (typeof window !== "undefined") {
         localStorage.setItem("authToken", data?.token);
-        if (!isDonation) {
-          window.location.reload();
-        } else {
-          setDonationuser(data?.user);
-          setIsDonationModalVisible(true);
-        }
+        setDonationuser?.(data?.user); // mark donation user if provided
+        onOtpVerified?.(data?.user); // trigger only once
       }
-      onClose();
+      handleClose(); // close modal
     }
-  }, [verifyOtpSuccess, data?.token, onClose]);
+  }, [verifyOtpSuccess, data?.token, onOtpVerified]);
 
+  // const phoneForm = useFormik({
+  //   initialValues: { mobile_number: "" },
+  //   validate: (values) => {
+  //     const errors = {};
+  //     const phoneNumber = removeCountryCode(values.mobile_number);
+  //     if (!phoneNumber) {
+  //       errors.mobile_number = "Enter 10 digit phone number to login";
+  //     } else if (phoneNumber.length !== 10) {
+  //       errors.mobile_number = "Enter 10 digit phone number to login";
+  //     }
+  //     return errors;
+  //   },
+  //   onSubmit: async (values) => {
+  //     const phoneNumber = removeCountryCode(values.mobile_number);
+  //     if (phoneNumber.length === 10) {
+  //       await sendOtp({ mobile_number: phoneNumber });
+  //     }
+  //   },
+  // });
   const phoneForm = useFormik({
     initialValues: { mobile_number: "" },
     validate: (values) => {
       const errors = {};
-      const phoneNumber = removeCountryCode(values.mobile_number);
-      if (!phoneNumber) {
-        errors.mobile_number = "Enter 10 digit phone number to login";
-      } else if (phoneNumber.length !== 10) {
-        errors.mobile_number = "Enter 10 digit phone number to login";
-      }
+      const phone = values.mobile_number;
+      if (!phone) errors.mobile_number = "Enter 10 digit phone number";
+      else if (phone.length !== 10)
+        errors.mobile_number = "Enter 10 digit phone number";
       return errors;
     },
     onSubmit: async (values) => {
-      const phoneNumber = removeCountryCode(values.mobile_number);
-      if (phoneNumber.length === 10) {
-        await sendOtp({ mobile_number: phoneNumber });
-      }
+      await sendOtp({ mobile_number: values.mobile_number });
+      setStepCount(1); // show OTP step after sending OTP
+      setSendOtpInSeconds(60);
+      setOtpValidDuration(300);
+      setTimerActive(true);
     },
   });
 
+  // On modal open: if prefilledMobile exists, skip phone input
+  useEffect(() => {
+    if (open) {
+      if (prefilledMobile) {
+        setStepCount(1); // OTP step directly
+        sendOtp({ mobile_number: prefilledMobile });
+        setSendOtpInSeconds(60);
+        setOtpValidDuration(300);
+        setTimerActive(true);
+      } else {
+        setStepCount(null); // normal phone input step
+      }
+    }
+  }, [open, prefilledMobile]);
+
+  // const otpForm = useFormik({
+  //   initialValues: { otp: "" },
+  //   validate: (values) => {
+  //     const errors = {};
+  //     if (!values.otp) errors.otp = "OTP is required";
+  //     else if (values.otp.length < 6) errors.otp = "OTP must be 6 digits";
+  //     return errors;
+  //   },
+  //   onSubmit: async (values) => {
+  //     await verifyOtp({
+  //       otp: values.otp,
+  //       mobile_number: removeCountryCode(phoneForm.values.mobile_number),
+  //     });
+  //   },
+  // });
   const otpForm = useFormik({
     initialValues: { otp: "" },
     validate: (values) => {
@@ -131,10 +194,8 @@ const LoginModel = ({
       return errors;
     },
     onSubmit: async (values) => {
-      await verifyOtp({
-        otp: values.otp,
-        mobile_number: removeCountryCode(phoneForm.values.mobile_number),
-      });
+      const mobile = prefilledMobile || phoneForm.values.mobile_number;
+      await verifyOtp({ otp: values.otp, mobile_number: mobile });
     },
   });
 

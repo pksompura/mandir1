@@ -25,6 +25,7 @@ const PublicHeader = () => {
   const [isCampaignModalOpen, setIsCampaignModalOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   const [token, setToken] = useState(null);
   const [fetchData, { data }] = useLazyGetUserProfileQuery();
   const user = useSelector((state) => state.user.userData);
@@ -32,18 +33,41 @@ const PublicHeader = () => {
   const dropdownRef = useRef(null); // Reference for dropdown
   const [logout] = useLogoutMutation();
 
+  // const toggleDropdown = (event) => {
+  //   event.stopPropagation(); // Prevents immediate closing after opening
+  //   setIsProfileDropdownOpen((prev) => {
+  //     const newState = !prev;
+
+  //     // Dispatch event to notify CampaignPage
+  //     window.dispatchEvent(
+  //       new CustomEvent("profileDropdownChange", { detail: newState })
+  //     );
+
+  //     return newState;
+  //   });
+  // };
+
+  // // Close dropdown when clicking outside
+  // useEffect(() => {
+  //   const handleClickOutside = (event) => {
+  //     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+  //       setIsProfileDropdownOpen(false);
+  //       window.dispatchEvent(
+  //         new CustomEvent("profileDropdownChange", { detail: false })
+  //       );
+  //     }
+  //   };
+
+  //   document.addEventListener("click", handleClickOutside);
+  //   return () => {
+  //     document.removeEventListener("click", handleClickOutside);
+  //   };
+  // }, []);
+
+  // Toggle profile dropdown
   const toggleDropdown = (event) => {
-    event.stopPropagation(); // Prevents immediate closing after opening
-    setIsProfileDropdownOpen((prev) => {
-      const newState = !prev;
-
-      // Dispatch event to notify CampaignPage
-      window.dispatchEvent(
-        new CustomEvent("profileDropdownChange", { detail: newState })
-      );
-
-      return newState;
-    });
+    event.stopPropagation();
+    setIsProfileDropdownOpen((prev) => !prev);
   };
 
   // Close dropdown when clicking outside
@@ -51,59 +75,79 @@ const PublicHeader = () => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsProfileDropdownOpen(false);
-        window.dispatchEvent(
-          new CustomEvent("profileDropdownChange", { detail: false })
-        );
       }
     };
-
     document.addEventListener("click", handleClickOutside);
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-    };
+    return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
+  // useEffect(() => {
+  //   if (localStorage.getItem("authToken")) {
+  //     const call = async () => {
+  //       try {
+  //         const res = await fetchData();
+  //         if (res?.data?.status) {
+  //           dispatch(
+  //             setUserData({
+  //               ...res?.data?.data,
+  //               donations: res?.data?.donations,
+  //             })
+  //           );
+  //         } else {
+  //           localStorage.removeItem("authToken");
+  //           window.location.reload();
+  //         }
+  //       } catch (error) {
+  //         localStorage.removeItem("authToken");
+  //         window.location.reload();
+  //       }
+  //     };
+  //     call();
+  //   }
+  //   if (typeof window !== "undefined") {
+  //     setToken(localStorage?.getItem("authToken"));
+  //   }
+  // }, []);
+  // Fetch user profile on load if token exists
   useEffect(() => {
-    if (localStorage.getItem("authToken")) {
-      const call = async () => {
-        try {
-          const res = await fetchData();
-          if (res?.data?.status) {
-            dispatch(
-              setUserData({
-                ...res?.data?.data,
-                donations: res?.data?.donations,
-              })
-            );
-          } else {
-            localStorage.removeItem("authToken");
-            window.location.reload();
-          }
-        } catch (error) {
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      fetchData().then((res) => {
+        if (res?.data?.status) {
+          dispatch(setUserData(res.data.data));
+        } else {
           localStorage.removeItem("authToken");
-          window.location.reload();
         }
-      };
-      call();
-    }
-    if (typeof window !== "undefined") {
-      setToken(localStorage?.getItem("authToken"));
+      });
     }
   }, []);
+  // const handleLogout = async () => {
+  //   try {
+  //     await logout(token).unwrap();
+  //     if (typeof window !== "undefined") {
+  //       localStorage.removeItem("authToken");
+  //     }
+  //     setIsProfileDropdownOpen(false);
+  //     setToken(null);
+  //     navigate("/");
+  //   } catch (error) {
+  //     console.error("Logout failed:", error);
+  //   }
+  // };
 
+  // Logout function
   const handleLogout = async () => {
     try {
-      await logout(token).unwrap();
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("authToken");
-      }
+      await logout(localStorage.getItem("authToken")).unwrap();
+      localStorage.removeItem("authToken");
+      dispatch(setUserData(null)); // clear user from Redux
       setIsProfileDropdownOpen(false);
-      setToken(null);
       navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);
     }
   };
+
   // const handleLogout = async () => {
   //   try {
   //     await axios.post(
@@ -128,9 +172,7 @@ const PublicHeader = () => {
   // };
 
   const navigationLinks = [
-    // { name: "How it works?", path: "/" },
     { name: "Explore Campaign", path: "/explore-campaign" },
-    // { name: "Featured Campaign", path: "/campaigns" },
     { name: "FAQ", path: "/faq" },
   ];
 
@@ -171,7 +213,7 @@ const PublicHeader = () => {
                   </a>
                 ))}
               </div>
-              {token ? (
+              {user ? (
                 <div
                   className="relative  "
                   onMouseLeave={() => {
@@ -347,7 +389,17 @@ const PublicHeader = () => {
       <LoginModel
         open={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
+        onOtpVerified={(user) => {
+          // Update header immediately
+
+          // Update Redux store
+          dispatch(setUserData(user));
+
+          // Close login modal
+          setIsLoginModalOpen(false);
+        }}
       />
+
       <FormModal
         open={isCampaignModalOpen}
         onClose={() => setIsCampaignModalOpen(false)}
