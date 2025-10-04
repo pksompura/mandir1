@@ -301,7 +301,7 @@ const ProfilePage = () => {
               <Typography variant="h6">My Fundraisers</Typography>
               <Button
                 type="primary"
-                onClick={() => setActiveTab("StartFundraiser")}
+                onClick={() => navigate(`/fundraiser/setup`)}
               >
                 + Start New Fundraiser
               </Button>
