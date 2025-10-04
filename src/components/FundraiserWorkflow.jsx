@@ -4,12 +4,14 @@ import { useSelector, useDispatch } from "react-redux";
 import { setUserData } from "../redux/slices/userSlice";
 import FundraiserModal from "./FundraiserModal";
 import LoginModel from "./LoginModel";
+import { useNavigate } from "react-router-dom";
 
 const FundraiserWorkflow = () => {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [loginMobile, setLoginMobile] = useState("");
   const [mounted, setMounted] = useState(false);
+  const navigate = useNavigate();
 
   const user = useSelector((state) => state.user.userData);
   const dispatch = useDispatch();
@@ -21,7 +23,7 @@ const FundraiserWorkflow = () => {
   const openRegister = () => {
     if (user) {
       // ✅ Already logged in → go directly to fundraiser setup
-      window.location.href = "/fundraiser";
+      navigate("/fundraiser/setup");
       return;
     }
     setIsRegisterOpen(true);
@@ -35,10 +37,10 @@ const FundraiserWorkflow = () => {
   };
 
   const handleSuccess = (userData) => {
-    // ✅ store token + user immediately
     localStorage.setItem("authToken", userData.token);
     dispatch(setUserData(userData.user));
-    window.location.href = "/fundraiser";
+    setLoginMobile(""); // ✅ clear mobile after success
+    navigate("/fundraiser/setup");
   };
 
   if (!mounted) return null;
