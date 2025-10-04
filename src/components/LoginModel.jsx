@@ -31,7 +31,6 @@ const LoginModel = ({
   const [sendOtpInSeconds, setSendOtpInSeconds] = useState(60); // 60 seconds resend
   const [otpValidDuration, setOtpValidDuration] = useState(300); // 5 minutes OTP validity
   const [timerActive, setTimerActive] = useState(false);
-  // console.log(prefilledMobile);
   const [
     verifyOtp,
     {
@@ -110,12 +109,17 @@ const LoginModel = ({
     if (verifyOtpSuccess) {
       if (typeof window !== "undefined") {
         localStorage.setItem("authToken", data?.token);
-        setDonationuser?.(data?.user); // mark donation user if provided
-        onOtpVerified?.(data?.user); // trigger only once
+        setDonationuser?.(data?.user);
+        onOtpVerified?.({
+          token: data?.token,
+          user: data?.user,
+        });
       }
-      handleClose(); // close modal
+
+      handleClose(); // close modal safely
+      verifyOtpReset(); // ✅ reset mutation state to avoid infinite loop
     }
-  }, [verifyOtpSuccess, data?.token, onOtpVerified]);
+  }, [verifyOtpSuccess]); // keep deps minimal
 
   // const phoneForm = useFormik({
   //   initialValues: { mobile_number: "" },
@@ -160,7 +164,7 @@ const LoginModel = ({
     if (open) {
       if (prefilledMobile) {
         setStepCount(1); // OTP step directly
-        sendOtp({ mobile_number: prefilledMobile });
+        phoneForm.setFieldValue("mobile_number", prefilledMobile);
         setSendOtpInSeconds(60);
         setOtpValidDuration(300);
         setTimerActive(true);
@@ -185,6 +189,7 @@ const LoginModel = ({
   //     });
   //   },
   // });
+
   const otpForm = useFormik({
     initialValues: { otp: "" },
     validate: (values) => {
@@ -198,13 +203,13 @@ const LoginModel = ({
       await verifyOtp({ otp: values.otp, mobile_number: mobile });
     },
   });
-
   const handleClose = () => {
-    phoneForm.resetForm(); // Reset phone input form completely
-    otpForm.resetForm(); // Reset OTP input form completely
-    verifyOtpReset(); // Reset backend errors
-    setStepCount(null); // Go back to phone input step
-    onClose(); // Close the modal
+    phoneForm.resetForm();
+    otpForm.resetForm();
+    verifyOtpReset(); // ✅ clear mutation state here too
+    setStepCount(null);
+    setTimerActive(false); // ✅ stop timers when modal closes
+    onClose();
   };
 
   useEffect(() => {
@@ -418,10 +423,13 @@ const CapturePhoneNumber = ({ form }) => {
         {/* Phone Number Input */}
         <input
           type="tel"
-          value={form.values?.mobile_number}
+          value={form.values?.mobile_number || ""}
           onChange={(e) => {
-            const inputValue = e.target.value.replace(/\D/g, ""); // Remove non-numeric characters
-            if (inputValue.length <= 10) {
+            const inputValue = e.target.value.replace(/\D/g, ""); // only numbers
+            if (
+              inputValue.length <= 10 &&
+              inputValue !== form.values.mobile_number // ✅ prevent same-value updates
+            ) {
               form.setFieldValue("mobile_number", inputValue);
             }
           }}

@@ -5,7 +5,7 @@ export const publicRoutes = [
     path: "/login",
     exact: true,
     element: lazy(() => import("./pages/auth/Login.jsx")),
-  }
+  },
 ];
 
 export const protectedRoutes = [
@@ -43,18 +43,35 @@ export const protectedRoutes = [
     path: "/terms",
     exact: true,
     element: lazy(() => import("./pages/terms/page.jsx")),
-  },{
+  },
+  {
     path: "/checkout",
     exact: true,
     element: lazy(() => import("./components/Checkout.jsx")),
-  },{
+  },
+  {
     path: "/explore-campaign",
     exact: true,
     element: lazy(() => import("./pages/explore/Explore.jsx")),
-  },{
+  },
+  {
     path: "/faq",
     exact: true,
     element: lazy(() => import("./pages/faq/Page.jsx")),
   },
- 
+  {
+    path: "/fundraiser/setup",
+    exact: true,
+    element: lazy(() => import("./pages/fundraiser/fundraiserSetup.jsx")),
+  },
+  {
+    path: "/fundraiser/setup/:id",
+    exact: true,
+    element: lazy(() => import("./pages/fundraiser/fundraiserSetup.jsx")),
+  },
+  {
+    path: "/fundraiser/dashboard/:campaignId",
+    exact: true,
+    element: lazy(() => import("./pages/fundraiser/fundraiserDash.jsx")),
+  },
 ];

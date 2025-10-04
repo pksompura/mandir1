@@ -50,6 +50,12 @@ export const campaignApi = createApi({
       }),
       providesTags: ["campaign"],
     }),
+    getCampaign: builder.query({
+      query: (id) => ({
+        url: `donation_campaign/get-by-id/${id}`,
+      }),
+      providesTags: ["campaign"],
+    }),
     getDonationCampaignsByUser: builder.query({
       query: () => ({
         url: "/donation_campaign/user/campaigns", // Assuming this endpoint gets all campaigns for the authenticated user
@@ -196,6 +202,7 @@ export const {
   useGetDonationCampaignsByUserQuery,
   useUpdateCampaignByUserMutation,
   useLazyGetUserCampaignByIdQuery,
+  useGetCampaignQuery,
   useLazyGetUserProfileQuery,
   useCreateCampaignMutation,
   useUpdateCampaignMutation,

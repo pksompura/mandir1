@@ -1,7 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import { Link } from "react-router-dom";
+import { IMAGE_BASE_URL } from "../../utils/imageUrl";
 
 import {
   Avatar,
@@ -23,6 +26,7 @@ import {
   MdLocationOn,
   MdLogout,
   MdEdit,
+  MdOutlineCampaign,
 } from "react-icons/md";
 import styled from "styled-components";
 import {
@@ -35,7 +39,7 @@ import { toast } from "react-toastify"; // Import react-toastify
 import "react-toastify/dist/ReactToastify.css";
 import { useDispatch, useSelector } from "react-redux";
 import CampaignForm from "../../components/donation/UserCreateDonation"; // Assuming CampaignForm is set up correctly
-import { CiHeart } from "react-icons/ci";
+import { CiHeart, CiMapPin } from "react-icons/ci";
 import { setUserData } from "../../redux/slices/userSlice";
 import Swal from "sweetalert2";
 import DonationsList from "./DonationsList";
@@ -62,6 +66,8 @@ const HiddenInput = styled.input`
 
 const ProfilePage = () => {
   const user = useSelector((data) => data?.user?.userData); // Get user data from Redux
+  const navigate = useNavigate();
+
   const [activeTab, setActiveTab] = useState("Profile");
   const [editMode, setEditMode] = useState(false); // Track if user is editing
   const [loading, setLoading] = useState(false); // Track if save is in progress
@@ -75,6 +81,7 @@ const ProfilePage = () => {
     profile_pic: user?.profile_pic || "",
     pan_number: user?.pan_number || "",
   });
+
   const [selectedFile, setSelectedFile] = useState(null); // For image file upload
   const {
     data: campaignsData,
@@ -287,6 +294,64 @@ const ProfilePage = () => {
         );
       case "Donations":
         return <DonationsList userDonations={userDonation} />;
+      case "Fundraisers":
+        return (
+          <>
+            <div className="flex justify-between items-center mb-6">
+              <Typography variant="h6">My Fundraisers</Typography>
+              <Button
+                type="primary"
+                onClick={() => setActiveTab("StartFundraiser")}
+              >
+                + Start New Fundraiser
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {campaignsData?.data?.map((campaign, i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition"
+                  onClick={() =>
+                    navigate(`/fundraiser/dashboard/${campaign._id}`)
+                  } // 👈 redirect
+                >
+                  <img
+                    src={
+                      campaign?.main_picture?.startsWith("/images/")
+                        ? `${IMAGE_BASE_URL}${campaign.main_picture}`
+                        : campaign?.main_picture
+                    }
+                    alt={campaign?.campaign_title}
+                    className="w-full h-40 object-cover"
+                  />
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg">
+                      {campaign?.campaign_title}
+                    </h3>
+                    <p className="text-gray-600">
+                      {campaign?.story?.slice(0, 100)}...
+                    </p>
+                    <div className="flex justify-between mt-3">
+                      <span className="text-sm font-semibold text-red-500">
+                        {campaign?.is_approved ? "Approved" : "Pending"}
+                      </span>
+                      <Button
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation(); // prevent parent redirect
+                          navigate(`/fundraiser/setup/${campaign._id}`);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        );
+
       case "Campaigns":
         return (
           <>
@@ -462,6 +527,18 @@ const ProfilePage = () => {
             </ListItemIcon>
             <ListItemText primary="Donations" />
           </ListItem>
+
+          <ListItem
+            button
+            selected={activeTab === "Fundraisers"}
+            onClick={() => setActiveTab("Fundraisers")}
+          >
+            <ListItemIcon>
+              <MdOutlineCampaign className="text-orange-500" />
+            </ListItemIcon>
+            <ListItemText primary="My Fundraisers" />
+          </ListItem>
+
           {/* <a href={"https://tally.so/r/w4Lgjb"} target="_blank">
           <ListItem
             button
