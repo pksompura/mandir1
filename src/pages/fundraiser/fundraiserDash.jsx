@@ -15,7 +15,7 @@ export default function FundraiserDashboardPage() {
     const storedUser = localStorage.getItem("authUser"); // stored on login
     if (!storedUser) {
       // Redirect to home/login if not logged in
-      navigate("/login");
+      navigate("/");
       return;
     }
     setUser(JSON.parse(storedUser));
