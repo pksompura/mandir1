@@ -157,13 +157,13 @@ const FundraiserSetup = ({ user }) => {
           message.success("Fundraiser updated successfully!");
 
           // redirect to that campaign's dashboard
-          navigate(`/fundraiser/dashboard/${id}`);
+          navigate(`/fundraiser-dashboard/${id}`);
         } else {
           const newCampaign = await createCampaign(filteredValues).unwrap();
           message.success("Fundraiser submitted for review!");
 
           // redirect to new campaign dashboard
-          navigate(`/fundraiser/dashboard/${newCampaign.data._id}`);
+          navigate(`/fundraiser-dashboard/${newCampaign.data._id}`);
         }
       } catch (err) {
         message.error("Error creating fundraiser");

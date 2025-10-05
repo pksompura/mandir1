@@ -60,17 +60,17 @@ export const protectedRoutes = [
     element: lazy(() => import("./pages/faq/Page.jsx")),
   },
   {
-    path: "/fundraiser/setup",
+    path: "/fundraiser-setup",
     exact: true,
     element: lazy(() => import("./pages/fundraiser/fundraiserSetup.jsx")),
   },
   {
-    path: "/fundraiser/setup/:id",
+    path: "/fundraiser-setup/:id",
     exact: true,
     element: lazy(() => import("./pages/fundraiser/fundraiserSetup.jsx")),
   },
   {
-    path: "/fundraiser/dashboard/:campaignId",
+    path: "/fundraiser-dashboard/:campaignId",
     exact: true,
     element: lazy(() => import("./pages/fundraiser/fundraiserDash.jsx")),
   },

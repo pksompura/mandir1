@@ -301,7 +301,7 @@ const ProfilePage = () => {
               <Typography variant="h6">My Fundraisers</Typography>
               <Button
                 type="primary"
-                onClick={() => navigate(`/fundraiser/setup`)}
+                onClick={() => navigate(`/fundraiser-setup`)}
               >
                 + Start New Fundraiser
               </Button>
@@ -312,7 +312,7 @@ const ProfilePage = () => {
                   key={i}
                   className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition"
                   onClick={() =>
-                    navigate(`/fundraiser/dashboard/${campaign._id}`)
+                    navigate(`/fundraiser-dashboard/${campaign._id}`)
                   } // 👈 redirect
                 >
                   <img
@@ -339,7 +339,7 @@ const ProfilePage = () => {
                         size="small"
                         onClick={(e) => {
                           e.stopPropagation(); // prevent parent redirect
-                          navigate(`/fundraiser/setup/${campaign._id}`);
+                          navigate(`/fundraiser-setup/${campaign._id}`);
                         }}
                       >
                         Edit

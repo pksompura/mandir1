@@ -23,7 +23,7 @@ const FundraiserWorkflow = () => {
   const openRegister = () => {
     if (user) {
       // ✅ Already logged in → go directly to fundraiser setup
-      navigate("/fundraiser/setup");
+      navigate("/fundraiser-setup");
       return;
     }
     setIsRegisterOpen(true);
@@ -40,7 +40,7 @@ const FundraiserWorkflow = () => {
     localStorage.setItem("authToken", userData.token);
     dispatch(setUserData(userData.user));
     setLoginMobile(""); // ✅ clear mobile after success
-    navigate("/fundraiser/setup");
+    navigate("/fundraiser-setup");
   };
 
   if (!mounted) return null;
