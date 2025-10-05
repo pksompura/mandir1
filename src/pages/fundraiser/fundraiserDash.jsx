@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import FundraiserDashboard from "../../components/FundraiserDashboard";
 import { Spin } from "antd";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
 export default function FundraiserDashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -10,29 +9,17 @@ export default function FundraiserDashboardPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
+    const storedUser = localStorage.getItem("authUser");
+    console.log(storedUser);
 
-    if (!token) {
-      navigate("/"); // redirect to home if not logged in
+    if (!storedUser) {
+      // If no user → go home
+      navigate("/");
       return;
     }
 
-    const fetchUser = async () => {
-      try {
-        const res = await axios.get("/api/users/get-user-profile", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUser(res.data.data);
-      } catch (err) {
-        console.error("Auth failed:", err);
-        localStorage.removeItem("authToken");
-        navigate("/"); // send home if token invalid
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUser();
+    setUser(JSON.parse(storedUser));
+    setLoading(false);
   }, [navigate]);
 
   if (loading) {

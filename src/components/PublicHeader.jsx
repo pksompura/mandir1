@@ -380,7 +380,7 @@ const PublicHeader = () => {
                     </button>
 
                     {/* Start Fundraiser at the very end */}
-                    <button
+                    {/* <button
                       onClick={() => {
                         setIsCampaignModalOpen(true);
                         setIsMobileMenuOpen(false);
@@ -388,7 +388,8 @@ const PublicHeader = () => {
                       className="border border-yellow-400 text-black px-4 py-[6px] rounded-full text-sm font-semibold hover:bg-yellow-400 mt-2"
                     >
                       Start Fundraiser
-                    </button>
+                    </button> */}
+                    <FundraiserWorkflow />
                   </>
                 )}
               </nav>
