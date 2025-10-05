@@ -392,7 +392,7 @@ function DashboardContent({ campaign }) {
               backgroundColor: "#d6573d",
               "&:hover": { backgroundColor: "#b84c32" },
             }}
-            onClick={() => navigate(`/fundraiser/setup/${campaign?._id}`)}
+            onClick={() => navigate(`/fundraiser-setup/${campaign?._id}`)}
           >
             Edit Fundraiser
           </Button>
@@ -795,7 +795,7 @@ function DashboardContent({ campaign }) {
   );
 }
 
-function ReachAndShareContent() {
+function ReachAndShareContent(campaign) {
   const fundraiserLink = "https://giveaze.com/fundraiser/12345";
   const shareText = `Help me reach my fundraising goal! Every contribution helps. Donate here: ${fundraiserLink}`;
 
