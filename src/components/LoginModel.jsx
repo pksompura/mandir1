@@ -108,18 +108,26 @@ const LoginModel = ({
   useEffect(() => {
     if (verifyOtpSuccess) {
       if (typeof window !== "undefined") {
+        // Save token
         localStorage.setItem("authToken", data?.token);
+
+        // ✅ Save user object too
+        localStorage.setItem("authUser", JSON.stringify(data?.user));
+
+        // donation flow
         setDonationuser?.(data?.user);
+
+        // notify parent (FundraiserWorkflow)
         onOtpVerified?.({
           token: data?.token,
           user: data?.user,
         });
       }
 
-      handleClose(); // close modal safely
-      verifyOtpReset(); // ✅ reset mutation state to avoid infinite loop
+      handleClose();
+      verifyOtpReset();
     }
-  }, [verifyOtpSuccess]); // keep deps minimal
+  }, [verifyOtpSuccess]);
 
   // const phoneForm = useFormik({
   //   initialValues: { mobile_number: "" },
