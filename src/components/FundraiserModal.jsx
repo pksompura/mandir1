@@ -46,7 +46,7 @@ export default function FundraiserModal({ open, onClose, openLogin }) {
 
       // ✅ Close register → open login modal at OTP step
       handleClose();
-      openLogin(formData.mobile); // pass raw 10 digit number
+      openLogin(formData.mobile, true); // pass raw 10 digit number
     } catch (err) {
       console.error("OTP error:", err);
       setError(err?.data?.error || "Failed to send OTP");
@@ -120,7 +120,7 @@ export default function FundraiserModal({ open, onClose, openLogin }) {
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"
           />
         </label>
-
+        {/* 
         <label className="block">
           <span>Create a Password *</span>
           <input
@@ -131,7 +131,7 @@ export default function FundraiserModal({ open, onClose, openLogin }) {
             required
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"
           />
-        </label>
+        </label> */}
 
         {/* ✅ Mobile input with +91 prefix */}
         <label className="block">
@@ -197,6 +197,16 @@ export default function FundraiserModal({ open, onClose, openLogin }) {
           {sendOtpLoading ? "Sending OTP..." : "Start Fundraising"}
         </button>
       </form>
+
+      <p className="text-center mt-4 text-sm">
+        Are you an NGO?{" "}
+        <a
+          href="/ngo-apply"
+          className="text-blue-600 underline hover:text-blue-800"
+        >
+          Apply here
+        </a>
+      </p>
     </Modal>
   );
 }

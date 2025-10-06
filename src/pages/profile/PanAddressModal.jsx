@@ -14,7 +14,6 @@ import Select from "react-select";
 import indianStates from "../data/indianStates.json"; // adjust path based on your structure
 
 const PanAddressModal = ({ open, onClose, onSubmit, donationId }) => {
-  console.log(donationId);
   const [pan, setPan] = useState("");
   const [address1, setAddress1] = useState("");
   const [address2, setAddress2] = useState("");

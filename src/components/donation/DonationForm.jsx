@@ -37,6 +37,7 @@ const DonationForm = ({
   const [verifyPayment] = useVerifyPaymentMutation(); // OTP verification mutation
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user.userData);
+  const donationUser = user.user || donationuser;
   const [isChecked, setIsChecked] = useState(false);
   const minAmount = Number(minimum_amount?.$numberDecimal);
   const target = Number(target_amount?.$numberDecimal);
@@ -51,8 +52,8 @@ const DonationForm = ({
   const [guest, setGuest] = useState(null); // ✅ add this
 
   const [userData, setUserData1] = useState({
-    full_name: donationuser?.full_name || "",
-    email: donationuser?.email || "",
+    full_name: donationUser?.full_name || "",
+    email: donationUser?.email || "",
   });
   const [timer, setTimer] = useState(0);
   const [citizenStatus, setCitizenStatus] = useState("yes");
@@ -299,22 +300,22 @@ const DonationForm = ({
   };
 
   // useEffect(() => {
-  //   if (donationuser) {
+  //   if (donationUser) {
   //     setUserData1({
-  //       full_name: donationuser.full_name || "",
-  //       email: donationuser.email || "",
+  //       full_name: donationUser.full_name || "",
+  //       email: donationUser.email || "",
   //     });
   //   }
-  // }, [donationuser]);
+  // }, [donationUser]);
   useEffect(() => {
-    if (donationuser) {
+    if (donationUser) {
       setUserData1({
-        full_name: donationuser.full_name,
-        email: donationuser.email,
-        mobile: donationuser.mobile_number,
+        full_name: donationUser.full_name,
+        email: donationUser.email,
+        mobile: donationUser.mobile_number,
       });
     }
-  }, [donationuser]);
+  }, [donationUser]);
 
   // const handleDonateNow = async () => {
   //   const errors = {};
@@ -351,7 +352,7 @@ const DonationForm = ({
   //   try {
   //     // ✅ If user is new, update details before proceeding
   //     await updateUser({
-  //       mobile: donationuser?.mobile,
+  //       mobile: donationUser?.mobile,
   //       full_name: userData.full_name,
   //       email: userData.email,
   //     });
@@ -409,9 +410,9 @@ const DonationForm = ({
       is_anonymous: isAnonymous,
     };
 
-    if (donationuser?._id) {
+    if (donationUser?._id) {
       // logged in user
-      payload.user_id = donationuser._id;
+      payload.user_id = donationUser._id;
     } else {
       // guest donor - include identifying fields required for order/receipt
       payload.full_name = userData.full_name;
@@ -451,14 +452,14 @@ const DonationForm = ({
     if (!userData.email) errors.email = "Email is required";
 
     // for guest donors, require mobile (10 digits)
-    if (!donationuser) {
+    if (!donationUser) {
       if (!userData.mobile || userData.mobile.length !== 10) {
         errors.mobile = "Enter a valid 10-digit mobile number";
       }
     } else {
       // if logged-in user exists but mobile field is editable, still ensure it's present
       if (
-        !donationuser.mobile_number &&
+        !donationUser.mobile_number &&
         (!userData.mobile || userData.mobile.length !== 10)
       ) {
         errors.mobile = "Enter a valid 10-digit mobile number";
@@ -477,9 +478,9 @@ const DonationForm = ({
     }
     try {
       // ✅ Update existing user if logged in
-      if (donationuser?._id) {
+      if (donationUser?._id) {
         await updateUser({
-          user_id: donationuser._id,
+          user_id: donationUser._id,
           full_name: userData.full_name,
           email: userData.email,
           mobile_number: userData.mobile,
@@ -487,7 +488,7 @@ const DonationForm = ({
       }
 
       // ✅ If no user / guest, open LoginModel with prefilled mobile
-      if (!donationuser) {
+      if (!donationUser) {
         setDonationMobile(userData.mobile); // Pass mobile to modal
         setShowOtpModal(true);
         return;
@@ -530,7 +531,7 @@ const DonationForm = ({
   //   if (!userData.full_name) errors.full_name = "Full Name is required";
   //   if (!userData.email) errors.email = "Email is required";
 
-  //   if (!donationuser) {
+  //   if (!donationUser) {
   //     // guest donors require mobile
   //     if (!userData.mobile || userData.mobile.length !== 10) {
   //       errors.mobile = "Enter a valid 10-digit mobile number";
@@ -538,7 +539,7 @@ const DonationForm = ({
   //   } else {
   //     // logged-in user but mobile missing
   //     if (
-  //       !donationuser.mobile_number &&
+  //       !donationUser.mobile_number &&
   //       (!userData.mobile || userData.mobile.length !== 10)
   //     ) {
   //       errors.mobile = "Enter a valid 10-digit mobile number";
@@ -558,7 +559,7 @@ const DonationForm = ({
 
   //   try {
   //     // ✅ Step 1: Ensure guest session OR update existing user
-  //     if (!donationuser?._id) {
+  //     if (!donationUser?._id) {
   //       // await ensureGuestSession({
   //       //   full_name: userData.full_name,
   //       //   email: userData.email,
@@ -567,10 +568,10 @@ const DonationForm = ({
   //       // } else {
   //       // update profile for logged-in user
   //       await updateUser({
-  //         user_id: donationuser._id,
+  //         user_id: donationUser._id,
   //         full_name: userData.full_name,
   //         email: userData.email,
-  //         mobile_number: userData.mobile || donationuser.mobile_number,
+  //         mobile_number: userData.mobile || donationUser.mobile_number,
   //       }).unwrap?.();
   //     }
 
@@ -589,7 +590,7 @@ const DonationForm = ({
       // Call the verify OTP API
       try {
         const response = await verifyOtp({
-          mobile_number: donationuser.mobile_number,
+          mobile_number: donationUser.mobile_number,
           otp: otp,
         });
 
@@ -617,7 +618,7 @@ const DonationForm = ({
   // const initiatePayment = async () => {
   //   try {
   //     const orderResponse = await createOrder({
-  //       user_id: donationuser?._id,
+  //       user_id: donationUser?._id,
   //       donation_campaign_id, // Already a variable
   //       amount: calculateTotal(), // In INR (your backend should multiply by 100 for paise)
   //       is_anonymous: isAnonymous,
@@ -644,7 +645,7 @@ const DonationForm = ({
   //     setDonorName(
   //       donor_name ||
   //         userData?.full_name ||
-  //         donationuser?.full_name ||
+  //         donationUser?.full_name ||
   //         "Anonymous Donor"
   //     );
 
@@ -691,7 +692,7 @@ const DonationForm = ({
       setDonorName(
         donor_name ||
           userData?.full_name ||
-          donationuser?.full_name ||
+          donationUser?.full_name ||
           "Anonymous Donor"
       );
 
@@ -852,10 +853,10 @@ const DonationForm = ({
   //           razorpay_payment_id: response.razorpay_payment_id,
   //           razorpay_signature: response.razorpay_signature,
   //           donation_campaign_id: donation_campaign_id,
-  //           user_id: donationuser._id,
+  //           user_id: donationUser._id,
   //           amount: calculateTotal(),
-  //           donorName: donationuser.full_name,
-  //           email: donationuser.email,
+  //           donorName: donationUser.full_name,
+  //           email: donationUser.email,
   //         }).unwrap();
   //         if (verifyResponse.status) {
   //           setTimeout(() => {
@@ -877,9 +878,9 @@ const DonationForm = ({
   //       }
   //     },
   //     prefill: {
-  //       name: donationuser.full_name,
-  //       email: donationuser.email,
-  //       contact: donationuser.mobile_number,
+  //       name: donationUser.full_name,
+  //       email: donationUser.email,
+  //       contact: donationUser.mobile_number,
   //     },
   //     theme: {
   //       color: "#3399cc",
@@ -931,14 +932,14 @@ const DonationForm = ({
       },
 
       // prefill: {
-      //   name: donationuser?.full_name,
-      //   email: donationuser?.email,
-      //   contact: donationuser?.mobile_number,
+      //   name: donationUser?.full_name,
+      //   email: donationUser?.email,
+      //   contact: donationUser?.mobile_number,
       // },
       prefill: {
-        name: donationuser?.full_name || userData.full_name,
-        email: donationuser?.email || userData.email,
-        contact: donationuser?.mobile_number || userData.mobile,
+        name: donationUser?.full_name || userData.full_name,
+        email: donationUser?.email || userData.email,
+        contact: donationUser?.mobile_number || userData.mobile,
       },
 
       theme: {
@@ -1090,7 +1091,7 @@ const DonationForm = ({
               Total Donation: ₹ {calculateTotal()}
             </h3>
           </div>
-          {!donationuser?.full_name ? (
+          {!donationUser?.full_name ? (
             <>
               <h2 className="text-xl text-center font-semibold md:mb-6 mb-4">
                 Your Information
@@ -1556,7 +1557,7 @@ const DonationForm = ({
             //   Proceed to Pay ₹ {calculateTotal()}
             // </button>
             onClick={() => {
-              if (!donationuser?.email) {
+              if (!donationUser?.email) {
                 // Guest Checkout → Only ask for minimal info
                 if (!userData.email) {
                   setInfoErrors((prev) => ({

@@ -36,6 +36,12 @@ const PublicHeader = () => {
   const dropdownRef = useRef(null); // Reference for dropdown
   const [logout] = useLogoutMutation();
 
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent("mobileMenuToggle", { detail: isMobileMenuOpen })
+    );
+  }, [isMobileMenuOpen]);
+
   // const toggleDropdown = (event) => {
   //   event.stopPropagation(); // Prevents immediate closing after opening
   //   setIsProfileDropdownOpen((prev) => {
@@ -399,6 +405,14 @@ const PublicHeader = () => {
       </header>
 
       {/* Modals */}
+      {/* <LoginModel
+        open={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onOtpVerified={(user) => {
+          dispatch(setUserData(user));
+          setIsLoginModalOpen(false);
+        }}
+      /> */}
       <LoginModel
         open={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
@@ -406,7 +420,9 @@ const PublicHeader = () => {
           dispatch(setUserData(user));
           setIsLoginModalOpen(false);
         }}
+        fromFundraiser={false} // ✅ normal login flow
       />
+
       {/* Fundraiser Modal */}
       <FundraiserModal
         open={isFundraiserModalOpen}

@@ -311,6 +311,14 @@ const CampaignPage = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isProfileDropdownOpen]);
+
+  // In CampaignPage
+  useEffect(() => {
+    const handler = (e) => setShowNav(!e.detail); // hide tab if menu open
+    window.addEventListener("mobileMenuToggle", handler);
+    return () => window.removeEventListener("mobileMenuToggle", handler);
+  }, []);
+
   const scrollToSection = (ref) => {
     if (ref.current) {
       setShowNav(true); // Ensure nav is visible

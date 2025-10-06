@@ -12,6 +12,7 @@ const FundraiserWorkflow = () => {
   const [loginMobile, setLoginMobile] = useState("");
   const [mounted, setMounted] = useState(false);
   const navigate = useNavigate();
+  const [isFromFundraiser, setFromFundraiser] = useState(false);
 
   const user = useSelector((state) => state.user.userData);
   const dispatch = useDispatch();
@@ -28,12 +29,14 @@ const FundraiserWorkflow = () => {
     }
     setIsRegisterOpen(true);
     setIsLoginOpen(false);
+    setFromFundraiser(true); // ✅ mark flow as fundraisers
   };
 
   const openLogin = (mobile) => {
     setLoginMobile(mobile || "");
     setIsRegisterOpen(false);
     setIsLoginOpen(true);
+    setFromFundraiser(isFromFundraiser); // track flow
   };
 
   const handleSuccess = (userData) => {
@@ -61,12 +64,20 @@ const FundraiserWorkflow = () => {
         onSuccess={handleSuccess}
         openLogin={openLogin}
       />
-
+      {/* 
       <LoginModel
         open={isLoginOpen}
         onClose={() => setIsLoginOpen(false)}
         prefilledMobile={loginMobile}
         onOtpVerified={handleSuccess}
+      /> */}
+      <LoginModel
+        open={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
+        prefilledMobile={loginMobile}
+        onOtpVerified={handleSuccess}
+        fromFundraiser={isFromFundraiser} // dynamic
+        reopenFundraiser={() => setIsRegisterOpen(true)}
       />
     </>
   );

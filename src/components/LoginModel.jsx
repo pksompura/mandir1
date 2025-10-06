@@ -15,7 +15,6 @@ import {
   useSentOtpMutation,
   useVerifyOtpMutation,
 } from "../redux/services/campaignApi";
-
 const LoginModel = ({
   open,
   onClose,
@@ -24,6 +23,8 @@ const LoginModel = ({
   setIsDonationModalVisible,
   prefilledMobile,
   onOtpVerified,
+  fromFundraiser = false, // ✅ NEW
+  reopenFundraiser = () => {}, // ✅ NEW
 }) => {
   const [stepCount, setStepCount] = useState(null);
   const [sendOtp, { isLoading: sendOtpLoading, isSuccess, reset }] =
@@ -253,14 +254,34 @@ const LoginModel = ({
             <>
               Verify OTP
               <br />
-              <p className="text-sm font-thin pt-2">
+              {/* <p className="text-sm font-thin pt-2">
                 Sent to {phoneForm.values?.mobile_number}{" "}
                 <span
                   className="text-blue-500 cursor-pointer underline"
                   onClick={() => {
                     otpForm.resetForm(); // Reset the OTP form
                     verifyOtpReset(); // Clear backend error
+
                     setStepCount(null); // Go back to phone number input
+                  }}
+                >
+                  Change
+                </span>
+              </p> */}
+              <p className="text-sm font-thin pt-2">
+                Sent to {phoneForm.values?.mobile_number}{" "}
+                <span
+                  className="text-blue-500 cursor-pointer underline"
+                  onClick={() => {
+                    otpForm.resetForm();
+                    verifyOtpReset();
+
+                    if (fromFundraiser) {
+                      handleClose(); // close Login modal
+                      reopenFundraiser?.(); // reopen Fundraiser modal
+                    } else {
+                      setStepCount(null); // normal login → just reset
+                    }
                   }}
                 >
                   Change

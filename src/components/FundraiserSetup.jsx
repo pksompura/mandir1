@@ -151,9 +151,7 @@ const FundraiserSetup = ({ user }) => {
           is_live: false,
         };
         if (isEditMode) {
-          await updateCampaign({
-            body: { id, ...filteredValues }, // send id in body
-          }).unwrap();
+          await updateCampaign({ id, ...filteredValues }).unwrap();
           message.success("Fundraiser updated successfully!");
 
           // redirect to that campaign's dashboard
