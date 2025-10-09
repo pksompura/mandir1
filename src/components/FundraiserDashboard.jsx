@@ -23,11 +23,13 @@ import {
   TableCell,
   TableBody,
   ListItemAvatar,
+  Avatar,
   LinearProgress,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
+  Chip,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
@@ -51,7 +53,7 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import FingerprintIcon from "@mui/icons-material/Fingerprint";
 import PhoneIphoneIcon from "@mui/icons-material/PhoneIphone";
 import CloseIcon from "@mui/icons-material/Close";
-
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
 import MailIcon from "@mui/icons-material/Mail";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
@@ -69,9 +71,15 @@ import CurrencyExchangeIcon from "@mui/icons-material/CurrencyExchange";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import { useParams, useNavigate } from "react-router-dom";
-import { useGetCampaignQuery } from "../redux/services/campaignApi";
+import {
+  useGetCampaignQuery,
+  useGetBankQuery,
+  useSaveBankMutation,
+  useRequestWithdrawalMutation,
+  useGetWithdrawalsQuery,
+} from "../redux/services/campaignApi";
 
-import { Avatar, Table } from "antd";
+import { message, Table } from "antd";
 
 const getAvatarColor = (name = "U") => {
   const colors = [
@@ -94,6 +102,9 @@ export default function FundraiserDashboard() {
   const [activeTab, setActiveTab] = useState("Dashboard");
   const { campaignId } = useParams();
   const { data, isLoading } = useGetCampaignQuery(campaignId);
+  // const { data: withdrawals, isLoading1 } = useGetWithdrawalsQuery(campaignId);
+  // const [saveBank] = useSaveBankMutation();
+  // const [requestWithdrawal] = useRequestWithdrawalMutation();
 
   const campaign = data?.data?.campaign || null;
   const donors = data?.data?.donors || [];
@@ -354,12 +365,16 @@ function DashboardContent({ campaign }) {
             component="div"
             sx={{
               mt: 2,
+              maxWidth: "100%", // ✅ Prevent expanding card width
+              wordWrap: "break-word", // ✅ Break long words
+              overflowWrap: "break-word",
+              whiteSpace: "pre-line",
               "& img": {
-                maxWidth: "120px",
+                maxWidth: "100%", // ✅ Images won’t overflow
                 height: "auto",
                 borderRadius: "6px",
                 margin: "6px",
-                display: "inline-block", // 🔹 keeps images side by side
+                display: "inline-block",
               },
               "& p": {
                 marginBottom: "10px",
@@ -369,6 +384,7 @@ function DashboardContent({ campaign }) {
               __html: expanded ? fullHTML : previewHTML,
             }}
           />
+
           {text.length > 500 && (
             <Button
               onClick={() => setExpanded(!expanded)}
@@ -696,16 +712,15 @@ function DashboardContent({ campaign }) {
               <Avatar
                 sx={{
                   bgcolor: avatarColor,
-                  width: 48,
-                  height: 48,
-                  fontSize: "1.2rem",
+                  width: 40,
+                  height: 40,
+                  fontSize: "1rem",
                   fontWeight: 600,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  color: "#fff",
                 }}
               >
-                {avatarLetter || "?"}
+                {/* {(campaign?.beneficiary || "U").charAt(0).toUpperCase()} */}
+                {avatarLetter}
               </Avatar>
 
               {/* Beneficiary Name */}
@@ -734,11 +749,11 @@ function DashboardContent({ campaign }) {
                 boxShadow: "inset 0 1px 3px rgba(0,0,0,0.08)",
               }}
             >
-              {/* Circle same size as Avatar */}
+              {/* Location Circle (same size as Avatar) */}
               <Box
                 sx={{
-                  width: 48,
-                  height: 48,
+                  width: 40,
+                  height: 40,
                   borderRadius: "50%",
                   bgcolor: "#e3f2fd",
                   display: "flex",
@@ -746,7 +761,7 @@ function DashboardContent({ campaign }) {
                   justifyContent: "center",
                 }}
               >
-                <LocationOnIcon sx={{ color: "#1976d2", fontSize: 28 }} />
+                <LocationOnIcon sx={{ color: "#1976d2", fontSize: 22 }} />
               </Box>
 
               {/* Location Text */}
@@ -763,6 +778,7 @@ function DashboardContent({ campaign }) {
               </Box>
             </Box>
           </Box>
+
           <Divider sx={{ my: 2 }} />
 
           <Typography variant="body1" sx={{ fontWeight: 600 }}>
@@ -795,15 +811,22 @@ function DashboardContent({ campaign }) {
   );
 }
 
-function ReachAndShareContent(campaign) {
-  const fundraiserLink = "https://giveaze.com/fundraiser/12345";
-  const shareText = `Help me reach my fundraising goal! Every contribution helps. Donate here: ${fundraiserLink}`;
+function ReachAndShareContent({ campaign }) {
+  const [openUpdateModal, setOpenUpdateModal] = useState(false);
+  const [updateText, setUpdateText] = useState("");
 
+  // ✅ Dynamic fundraiser link based on current browser origin
+  const fundraiserLink = `${window.location.origin}/campaign/${campaign?._id}`;
+
+  const shareText = `🙏 Support my fundraiser: ${campaign?.campaign_title}. Every contribution helps! Donate here: ${fundraiserLink}`;
+
+  // ✅ Share Handlers
   const handleWhatsAppShare = () =>
     window.open(
       `https://wa.me/?text=${encodeURIComponent(shareText)}`,
       "_blank"
     );
+
   const handleFacebookShare = () =>
     window.open(
       `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
@@ -811,17 +834,38 @@ function ReachAndShareContent(campaign) {
       )}`,
       "_blank"
     );
+
   const handleTwitterShare = () =>
     window.open(
       `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`,
       "_blank"
     );
-  const handleInviteFriend = () =>
-    alert("Open Invite Modal or share via Email/WhatsApp!");
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(fundraiserLink);
-    alert("Fundraiser link copied to clipboard!");
+    alert("✅ Fundraiser link copied!");
+  };
+
+  // ✅ Invite Friend via WhatsApp
+  const handleInviteFriend = () =>
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent(
+        `👋 Hey! I’m raising funds for "${campaign?.campaign_title}". Check it out here: ${fundraiserLink}`
+      )}`,
+      "_blank"
+    );
+
+  // ✅ Post New Update Submit
+  const handlePostUpdate = () => {
+    if (!updateText.trim()) {
+      alert("Please write something before posting!");
+      return;
+    }
+    // 🔹 TODO: Call backend API to save fundraiser update
+    console.log("Posting update:", updateText);
+    setUpdateText("");
+    setOpenUpdateModal(false);
+    alert("✅ Update posted successfully!");
   };
 
   return (
@@ -833,8 +877,7 @@ function ReachAndShareContent(campaign) {
             📢 Fundraiser Updates
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            You have not posted any updates yet. Keep your supporters engaged by
-            sharing your journey.
+            Share updates about your campaign to keep your supporters engaged.
           </Typography>
           <Button
             variant="contained"
@@ -845,6 +888,7 @@ function ReachAndShareContent(campaign) {
               bgcolor: "#1976d2",
               ":hover": { bgcolor: "#115293" },
             }}
+            onClick={() => setOpenUpdateModal(true)}
           >
             Post New Update
           </Button>
@@ -858,7 +902,7 @@ function ReachAndShareContent(campaign) {
             🔗 Share Your Fundraiser
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            💡 Fundraisers with frequent shares raise more funds faster!
+            💡 Fundraisers with frequent shares raise funds faster!
           </Typography>
           <Divider sx={{ my: 2 }} />
 
@@ -905,11 +949,7 @@ function ReachAndShareContent(campaign) {
               variant="outlined"
               startIcon={<ContentCopyIcon />}
               onClick={handleCopyLink}
-              sx={{
-                borderRadius: 2,
-                textTransform: "none",
-                mt: 1,
-              }}
+              sx={{ borderRadius: 2, textTransform: "none", mt: 1 }}
             >
               Copy Fundraiser Link
             </Button>
@@ -922,8 +962,7 @@ function ReachAndShareContent(campaign) {
             👥 Invite Friends
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            Spread the word and invite your close circle to contribute and
-            support your cause.
+            Spread the word and invite your close circle to contribute.
           </Typography>
           <Button
             variant="contained"
@@ -937,69 +976,171 @@ function ReachAndShareContent(campaign) {
               ":hover": { bgcolor: "#d97706" },
             }}
           >
-            Invite Now
+            Invite via WhatsApp
           </Button>
         </Paper>
       </div>
+
+      {/* ✅ Post Update Modal */}
+      <Dialog open={openUpdateModal} onClose={() => setOpenUpdateModal(false)}>
+        <DialogTitle>Post Fundraiser Update</DialogTitle>
+        <DialogContent dividers>
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            label="Write your update..."
+            value={updateText}
+            onChange={(e) => setUpdateText(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenUpdateModal(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handlePostUpdate}>
+            Post
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
 
-function PayoutsContent() {
-  // Sample history (replace with API data)
-  const withdrawalHistory = [
-    { date: "2025-09-10", amount: "₹5,000", status: "Completed" },
-    { date: "2025-08-22", amount: "₹2,500", status: "Pending" },
-    { date: "2025-07-15", amount: "₹1,000", status: "Rejected" },
-  ];
+function PayoutsContent({ campaign }) {
+  const campaignId = campaign?._id;
+
+  const { data: bankData, refetch } = useGetBankQuery(campaignId, {
+    skip: !campaignId,
+  });
+  const [saveBank] = useSaveBankMutation();
+  const [requestWithdrawal] = useRequestWithdrawalMutation();
+  const { data: withdrawals = [], isLoading: withdrawalsLoading } =
+    useGetWithdrawalsQuery(campaignId, { skip: !campaignId });
+
+  const [bank, setBank] = useState({
+    bank_name: "",
+    account_holder_name: "",
+    account_number: "",
+    ifsc_code: "",
+  });
+
+  const [editing, setEditing] = useState(false);
+  const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState("");
+
+  // Prefill form when editing
+  useEffect(() => {
+    if (editing && bankData?.bank) {
+      setBank({
+        bank_name: bankData.bank.bank_name || "",
+        account_holder_name: bankData.bank.account_holder_name || "",
+        account_number: bankData.bank.account_number || "",
+        ifsc_code: bankData.bank.ifsc_code || "",
+      });
+    }
+  }, [editing, bankData]);
+
+  // Save Bank Handler
+  const handleSaveBank = async () => {
+    try {
+      await saveBank({ campaignId, body: bank });
+      message.success(
+        editing ? "✅ Bank details updated!" : "✅ Bank details saved!"
+      );
+
+      // Reset form
+      setBank({
+        bank_name: "",
+        account_holder_name: "",
+        account_number: "",
+        ifsc_code: "",
+      });
+      setEditing(false);
+      await refetch();
+    } catch (err) {
+      message.error("❌ Failed to save bank details");
+    }
+  };
+
+  // Withdraw Handler
+  const handleWithdrawSubmit = async () => {
+    try {
+      if (!withdrawAmount) {
+        message.warning("⚠️ Please enter a withdrawal amount");
+        return;
+      }
+      await requestWithdrawal({ campaignId, body: { amount: withdrawAmount } });
+      message.success("💸 Withdrawal requested successfully!");
+
+      // Close dialog and reset amount
+      setWithdrawDialogOpen(false);
+      setWithdrawAmount("");
+    } catch (err) {
+      message.error("❌ Withdrawal request failed");
+    }
+  };
 
   return (
     <Grid container spacing={3}>
-      {/* Left Panel - Fund Summary & Bank Details */}
+      {/* Left Panel */}
       <Grid item xs={12} md={6}>
         <Paper sx={{ p: 3, borderRadius: 3, boxShadow: 3, bgcolor: "white" }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
             Total Raised
           </Typography>
           <Typography
             variant="h4"
-            sx={{ mb: 2, fontWeight: 700, color: "#d6573d" }}
+            sx={{ mb: 3, fontWeight: 700, color: "#d6573d" }}
           >
-            ₹ 0
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Track your collections in the{" "}
-            <strong style={{ color: "#1976d2" }}>Funds Summary</strong>
+            ₹ {campaign?.raised_amount?.$numberDecimal || "0"}
           </Typography>
 
           <Divider sx={{ mb: 2 }} />
 
-          <Typography variant="body2" sx={{ mb: 2, fontWeight: 600 }}>
-            Add Beneficiary Bank Details:
+          {/* Bank Form */}
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+            {editing
+              ? "Update Beneficiary Bank Details"
+              : "Add Beneficiary Bank Details"}
           </Typography>
 
           <TextField
-            label="Account Holder Name"
+            label="Bank Name"
+            value={bank.bank_name}
+            onChange={(e) => setBank({ ...bank, bank_name: e.target.value })}
             fullWidth
             sx={{ mb: 2 }}
-            variant="outlined"
+          />
+          <TextField
+            label="Account Holder Name"
+            value={bank.account_holder_name}
+            onChange={(e) =>
+              setBank({ ...bank, account_holder_name: e.target.value })
+            }
+            fullWidth
+            sx={{ mb: 2 }}
           />
           <TextField
             label="Account Number"
+            value={bank.account_number}
+            onChange={(e) =>
+              setBank({ ...bank, account_number: e.target.value })
+            }
             fullWidth
             sx={{ mb: 2 }}
-            variant="outlined"
           />
           <TextField
             label="IFSC Code"
+            value={bank.ifsc_code}
+            onChange={(e) => setBank({ ...bank, ifsc_code: e.target.value })}
             fullWidth
             sx={{ mb: 2 }}
-            variant="outlined"
           />
 
           <Button
+            fullWidth
             variant="contained"
             startIcon={<AccountBalanceIcon />}
+            onClick={handleSaveBank}
             sx={{
               textTransform: "none",
               mb: 2,
@@ -1009,108 +1150,165 @@ function PayoutsContent() {
               "&:hover": { bgcolor: "#e6c703" },
             }}
           >
-            Save Beneficiary
+            {editing ? "Update Bank Details" : "Save Bank Details"}
           </Button>
 
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Or transfer directly to hospital account:{" "}
-            <strong style={{ color: "#1976d2" }}>support@giveaze.com</strong>
+          {/* Saved Bank Details */}
+          {bankData?.bank && (
+            <Box
+              sx={{
+                p: 2,
+                mt: 2,
+                borderRadius: 2,
+                border: "1px solid #ddd",
+                bgcolor: "#f9f9f9",
+              }}
+            >
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                Current Bank Details
+              </Typography>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                <Typography variant="body1">
+                  <strong>Bank Name:</strong> {bankData.bank.bank_name}
+                </Typography>
+                <Typography variant="body1">
+                  <strong>Account Holder:</strong>{" "}
+                  {bankData.bank.account_holder_name}
+                </Typography>
+                <Typography variant="body1">
+                  <strong>Account Number:</strong>{" "}
+                  {bankData.bank.account_number}
+                </Typography>
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  <strong>IFSC Code:</strong> {bankData.bank.ifsc_code}
+                </Typography>
+              </Box>
+              <Chip
+                label={bankData.bank.verified ? "Approved" : "Pending"}
+                color={bankData.bank.verified ? "success" : "warning"}
+                sx={{ mb: 2 }}
+              />
+
+              <Button
+                variant="outlined"
+                onClick={() => setEditing(true)}
+                startIcon={<EditIcon />}
+                fullWidth
+              >
+                Edit Bank Details
+              </Button>
+            </Box>
+          )}
+
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+            Request Withdrawal
           </Typography>
+          {bankData?.bank ? (
+            <>
+              <Button
+                variant="contained"
+                fullWidth
+                sx={{
+                  bgcolor: "#1976d2",
+                  color: "#fff",
+                  "&:hover": { bgcolor: "#145ea8" },
+                }}
+                onClick={() => setWithdrawDialogOpen(true)}
+              >
+                Request Withdrawal
+              </Button>
+            </>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              Add bank details first to request a withdrawal.
+            </Typography>
+          )}
+          {/* </Paper> */}
+          {/* </Grid> */}
 
-          <Button
-            variant="outlined"
-            startIcon={<PlayCircleOutlineIcon />}
-            sx={{
-              textTransform: "none",
-              color: "#1976d2",
-              borderColor: "#1976d2",
-              "&:hover": { borderColor: "#145ea8", color: "#145ea8" },
-            }}
+          {/* Withdrawal Dialog */}
+          <Dialog
+            open={withdrawDialogOpen}
+            onClose={() => setWithdrawDialogOpen(false)}
           >
-            How to Withdraw Funds (Video)
-          </Button>
+            <DialogTitle>Request Withdrawal</DialogTitle>
+            <DialogContent>
+              <TextField
+                label="Amount"
+                value={withdrawAmount}
+                onChange={(e) => setWithdrawAmount(e.target.value)}
+                type="number"
+                fullWidth
+                sx={{ mt: 2 }}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setWithdrawDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleWithdrawSubmit} variant="contained">
+                Submit
+              </Button>
+            </DialogActions>
+          </Dialog>
         </Paper>
       </Grid>
 
-      {/* Right Panel - Beneficiary Steps */}
+      {/* Right Panel */}
       <Grid item xs={12} md={6}>
-        <Paper sx={{ p: 3, borderRadius: 3, boxShadow: 3, bgcolor: "white" }}>
+        <Paper
+          sx={{
+            p: 3,
+            borderRadius: 3,
+            boxShadow: 3,
+            bgcolor: "white",
+            textAlign: "center",
+          }}
+        >
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
             Fund Withdrawal Steps
           </Typography>
 
-          {/* Step 1 */}
-          <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-            <UploadFileIcon color="primary" sx={{ mr: 2, fontSize: 32 }} />
-            <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                Step 1 - Submit Documents
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Upload PAN, Aadhaar, and Bank proof.
-              </Typography>
-              <Button
-                variant="contained"
-                sx={{
-                  mt: 1,
-                  textTransform: "none",
-                  bgcolor: "#ffdd04",
-                  color: "#000",
-                  "&:hover": { bgcolor: "#e6c703" },
-                }}
-              >
-                Upload Now
-              </Button>
-            </Box>
-          </Box>
-
-          {/* Step 2 */}
-          <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-            <VerifiedUserIcon color="success" sx={{ mr: 2, fontSize: 32 }} />
-            <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                Step 2 - Verification
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Giveaze team verifies your submitted documents.
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* Step 3 */}
-          <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-            <SendIcon color="action" sx={{ mr: 2, fontSize: 32 }} />
-            <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                Step 3 - Request Withdrawal
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Once verified, submit your withdrawal request.
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* Step 4 */}
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <DoneAllIcon sx={{ mr: 2, fontSize: 32, color: "#d6573d" }} />
-            <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                Step 4 - Funds Transferred
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Funds are transferred securely to your beneficiary account.
-              </Typography>
-            </Box>
-          </Box>
-
-          <Divider sx={{ my: 3 }} />
-
-          {/* Support */}
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <MailIcon sx={{ mr: 1, color: "#1976d2" }} />
+          <Box sx={{ mb: 4 }}>
+            <UploadFileIcon color="primary" sx={{ fontSize: 40 }} />
+            <Typography variant="subtitle1" fontWeight={600} sx={{ mt: 1 }}>
+              Step 1 - Submit Documents
+            </Typography>
             <Typography variant="body2" color="text.secondary">
-              For help, email us at{" "}
-              <strong style={{ color: "#1976d2" }}>support@giveaze.com</strong>
+              Upload PAN, Aadhaar, and Bank proof.
+            </Typography>
+            <ArrowDownwardIcon sx={{ mt: 2, color: "#999" }} />
+          </Box>
+
+          <Box sx={{ mb: 4 }}>
+            <VerifiedUserIcon color="success" sx={{ fontSize: 40 }} />
+            <Typography variant="subtitle1" fontWeight={600} sx={{ mt: 1 }}>
+              Step 2 - Verification
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Our team verifies your submitted documents.
+            </Typography>
+            <ArrowDownwardIcon sx={{ mt: 2, color: "#999" }} />
+          </Box>
+
+          <Box sx={{ mb: 4 }}>
+            <SendIcon color="action" sx={{ fontSize: 40 }} />
+            <Typography variant="subtitle1" fontWeight={600} sx={{ mt: 1 }}>
+              Step 3 - Request Withdrawal
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Once verified, submit your withdrawal request.
+            </Typography>
+            <ArrowDownwardIcon sx={{ mt: 2, color: "#999" }} />
+          </Box>
+
+          <Box>
+            <DoneAllIcon sx={{ fontSize: 40, color: "#d6573d" }} />
+            <Typography variant="subtitle1" fontWeight={600} sx={{ mt: 1 }}>
+              Step 4 - Funds Transferred
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Funds are securely sent to your account.
             </Typography>
           </Box>
         </Paper>
@@ -1119,47 +1317,82 @@ function PayoutsContent() {
       {/* Withdrawal History */}
       <Grid item xs={12}>
         <Paper sx={{ p: 3, borderRadius: 3, boxShadow: 3, mt: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+          <Typography variant="h6" fontWeight={600} mb={2}>
             Withdrawal History
           </Typography>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Date</TableCell>
-                  <TableCell>Amount</TableCell>
-                  <TableCell>Status</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {withdrawalHistory.map((row, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{row.date}</TableCell>
-                    <TableCell>{row.amount}</TableCell>
-                    <TableCell
-                      sx={{
-                        color:
-                          row.status === "Completed"
-                            ? "green"
-                            : row.status === "Pending"
-                            ? "orange"
-                            : "red",
-                        fontWeight: 600,
-                      }}
-                    >
-                      {row.status}
-                    </TableCell>
+          {withdrawalsLoading ? (
+            <Typography>Loading...</Typography>
+          ) : withdrawals.length === 0 ? (
+            <Typography>No withdrawals yet.</Typography>
+          ) : (
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Date</TableCell>
+                    <TableCell>Amount</TableCell>
+                    <TableCell>Status</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                </TableHead>
+                <TableBody>
+                  {withdrawals.map((w) => (
+                    <TableRow key={w._id}>
+                      <TableCell>
+                        {new Date(w.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>₹ {Number(w.amount)}</TableCell>
+                      <TableCell
+                        sx={{
+                          color:
+                            w.status === "Completed"
+                              ? "green"
+                              : w.status === "Pending"
+                              ? "orange"
+                              : "red",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {w.status}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
         </Paper>
       </Grid>
+
+      {/* Withdraw Modal */}
+      <Dialog
+        open={withdrawDialogOpen}
+        onClose={() => setWithdrawDialogOpen(false)}
+      >
+        <DialogTitle>Request Withdrawal</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            label="Withdrawal Amount"
+            type="number"
+            value={withdrawAmount}
+            onChange={(e) => setWithdrawAmount(e.target.value)}
+            sx={{ mt: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setWithdrawDialogOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={handleWithdrawSubmit}
+            sx={{ bgcolor: "#1976d2", "&:hover": { bgcolor: "#145ea8" } }}
+          >
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Grid>
   );
 }
-
 function SupportersContent() {
   // Sample data
   const donations = [

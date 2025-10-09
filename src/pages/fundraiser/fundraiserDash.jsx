@@ -10,7 +10,6 @@ export default function FundraiserDashboardPage() {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("authUser");
-    console.log(storedUser);
 
     if (!storedUser) {
       // If no user → go home

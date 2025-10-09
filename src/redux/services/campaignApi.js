@@ -182,6 +182,39 @@ export const campaignApi = createApi({
         providesTags: [],
       }),
     }),
+    getBank: builder.query({
+      query: (campaignId) => ({
+        url: `/donation_campaign/${campaignId}/getbank`,
+        method: "GET",
+      }),
+      providesTags: ["Bank"],
+    }),
+
+    saveBank: builder.mutation({
+      query: ({ campaignId, body }) => ({
+        url: `/donation_campaign/${campaignId}/savebank`,
+        method: "POST",
+        body, // ✅ not "data"
+      }),
+      invalidatesTags: ["Bank"],
+    }),
+
+    requestWithdrawal: builder.mutation({
+      query: ({ campaignId, body }) => ({
+        url: `/donation_campaign/${campaignId}/withdraw`,
+        method: "POST",
+        body, // ✅ not "data"
+      }),
+      invalidatesTags: ["Withdrawal"],
+    }),
+
+    // Get all withdrawals
+    getWithdrawals: builder.query({
+      query: (campaignId) => ({
+        url: `/donation_campaign/${campaignId}/withdrawals`,
+      }),
+      providesTags: ["Withdrawal"],
+    }),
 
     // ✅ New: Guest login
     guestLogin: builder.mutation({
@@ -191,6 +224,13 @@ export const campaignApi = createApi({
         body: guestData,
       }),
       invalidatesTags: ["user"],
+    }),
+    sendDigiAuth: builder.query({
+      query: () => "kyc/init",
+    }),
+
+    fetchKycData: builder.query({
+      query: (token) => `kyc/fetch?token=${token}`,
     }),
   }),
 });
@@ -219,4 +259,10 @@ export const {
   useUpdateDonationDetailsMutation,
   useLazyGetDonationReceiptQuery,
   useGuestLoginMutation,
+  useLazySendDigiAuthQuery,
+  useLazyFetchKycDataQuery,
+  useGetBankQuery,
+  useSaveBankMutation,
+  useRequestWithdrawalMutation,
+  useGetWithdrawalsQuery,
 } = campaignApi;

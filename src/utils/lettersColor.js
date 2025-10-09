@@ -1,5 +1,5 @@
 const letterColorMap = {
-  A: { bgColor: "#FFEB3B", textColor: "#fcfbf7ff" },
+  A: { bgColor: "#FFEB3B", textColor: "#212121" },
   B: { bgColor: "#FFCDD2", textColor: "#C62828" },
   C: { bgColor: "#C8E6C9", textColor: "#2E7D32" },
   D: { bgColor: "#BBDEFB", textColor: "#0D47A1" },
