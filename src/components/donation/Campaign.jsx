@@ -15,6 +15,7 @@ import DonationForm from "./DonationForm";
 import DonorModal from "./DonorModal"; // Import the modal
 import { useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
+
 // import c from "dayjs";
 // import 'swiper/css/navigation';
 import "swiper/css/pagination";
@@ -1279,7 +1280,7 @@ const CampaignPage = () => {
                   className="bg-[#d8573e] text-white font-bold text-sm px-20 py-3 rounded-full transition duration-300 transform hover:scale-110 hover:bg-[#c85139] focus:outline-none focus:ring-2 focus:ring-[#d8573e] group animate-bounce"
                 >
                   <span className="group-hover:text-white transition duration-300">
-                    DONATE ₹{finalDonation || popularAmount}
+                    DONATE ₹ {finalDonation || popularAmount}
                   </span>
                 </button>
               </div>
@@ -1474,7 +1475,7 @@ const CampaignPage = () => {
             disabled={!finalDonation || finalDonation <= 0}
             className="bg-[#d8573e] w-[90vw] text-white font-bold text-lg px-1 py-2 rounded-full shadow-md transition duration-300 transform hover:scale-110 hover:bg-[#d8573e] focus:outline-none focus:ring-2 focus:ring-[#d8573e]"
           >
-            DONATE ₹{finalDonation || popularAmount}
+            DONATE ₹ {finalDonation || popularAmount}
           </button>
         </div>
       )}

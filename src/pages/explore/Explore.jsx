@@ -178,7 +178,6 @@ const CampaignList = () => {
     // Refetch campaigns when category, search term, or page changes
     refetch();
   }, [activeCategory, searchTerm, page]);
-  console.log(campaignData?.data);
   // Handle category filter click
   const handleFilter = (category) => {
     setActiveCategory(category);

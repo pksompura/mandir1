@@ -26,7 +26,6 @@ const HeroSlider = () => {
   const handleClose = () => setOpen(false);
   const paginationRef = useRef(null);
   const { data: campaigns } = useGetAllCampaignQuery();
-
   useEffect(() => {
     if (paginationRef.current) {
       paginationRef.current.classList.add("custom-swiper-pagination");
@@ -93,6 +92,7 @@ const HeroSlider = () => {
                                   : data?.main_picture
                               }
                               alt={data?.campaign_title}
+                              loading="lazy"
                               className="w-full h-48 object-cover rounded"
                             />
                             {data?.is_tax && (

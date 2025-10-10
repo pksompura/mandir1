@@ -168,17 +168,44 @@ const LoginModel = ({
     },
   });
 
-  // On modal open: if prefilledMobile exists, skip phone input
+  // // On modal open: if prefilledMobile exists, skip phone input
+  // useEffect(() => {
+  //   if (open) {
+  //     if (prefilledMobile) {
+  //       setStepCount(1); // OTP step directly
+  //       phoneForm.setFieldValue("mobile_number", prefilledMobile);
+  //       setSendOtpInSeconds(60);
+  //       setOtpValidDuration(300);
+  //       setTimerActive(true);
+  //     } else {
+  //       setStepCount(null); // normal phone input step
+  //     }
+  //   }
+  // }, [open, prefilledMobile]);
   useEffect(() => {
     if (open) {
       if (prefilledMobile) {
-        setStepCount(1); // OTP step directly
+        setStepCount(1); // Go directly to OTP step
         phoneForm.setFieldValue("mobile_number", prefilledMobile);
+
+        // start timers
         setSendOtpInSeconds(60);
         setOtpValidDuration(300);
         setTimerActive(true);
+
+        // ✅ Send OTP automatically
+        const mobile = removeCountryCode(prefilledMobile);
+        if (mobile.length === 10) {
+          sendOtp({ mobile_number: mobile });
+          console.log("✅ Auto OTP sent to:", mobile);
+        } else {
+          console.warn(
+            "Invalid prefilledMobile, OTP not sent:",
+            prefilledMobile
+          );
+        }
       } else {
-        setStepCount(null); // normal phone input step
+        setStepCount(null); // Show normal phone input step
       }
     }
   }, [open, prefilledMobile]);

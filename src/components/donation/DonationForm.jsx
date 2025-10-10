@@ -37,7 +37,7 @@ const DonationForm = ({
   const [verifyPayment] = useVerifyPaymentMutation(); // OTP verification mutation
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user.userData);
-  const donationUser = user.user || donationuser;
+  const donationUser = user?.user || donationuser;
   const [isChecked, setIsChecked] = useState(false);
   const minAmount = Number(minimum_amount?.$numberDecimal);
   const target = Number(target_amount?.$numberDecimal);
