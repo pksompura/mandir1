@@ -98,17 +98,24 @@ const CampaignPage = () => {
       : displayAmounts[0];
 
   // 🔥 Ensure donationAmount is always synced with popular when campaign changes
+  // useEffect(() => {
+  //   if (popularAmount) {
+  //     setDonationAmount(popularAmount);
+  //     setCustomAmount("");
+  //   }
+  // }, [popularAmount]);
+  // 🔥 Ensure donationAmount is always synced with popular when campaign changes
   useEffect(() => {
     if (popularAmount) {
       setDonationAmount(popularAmount);
-      setCustomAmount("");
+      setCustomAmount(popularAmount.toString()); // ✅ Pre-fill input with popular amount
     }
   }, [popularAmount]);
 
   // Handlers
   const handlePresetClick = (amount) => {
     setDonationAmount(amount);
-    setCustomAmount("");
+    setCustomAmount(amount.toString()); // ✅ Autofill input
   };
 
   const handleOtherClick = () => {
@@ -635,15 +642,87 @@ const CampaignPage = () => {
                         ? "border border-[#ffdd04] text-[#d97706]"
                         : "border border-gray-400 text-gray-700"
                     }`}
-                    onClick={() => handlePresetClick(amount)}
+                    onClick={() => {
+                      handlePresetClick(amount);
+                      setCustomAmount(amount.toString()); // ✅ Update input field when preset selected
+                    }}
                   >
                     ₹ {amount}
                   </button>
                 </div>
               ))}
+            </div>
+            {/* Divider */}
+            <div className="w-full flex items-center my-6">
+              <hr className="flex-grow border-t border-gray-300" />
+              <span className="px-3 text-gray-500 text-sm">or</span>
+              <hr className="flex-grow border-t border-gray-300" />
+            </div>
 
-              {/* Other Option */}
-              <div className="relative w-full">
+            {/* Amount Input (Always Visible) */}
+            <div className="w-full flex flex-col items-center mt-4">
+              <label className="text-sm font-medium text-gray-700 mb-1">
+                Amount (INR)
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="Enter the amount"
+                className={`w-2/3 border rounded-lg p-2 text-sm text-center focus:outline-none focus:ring-2 ${
+                  error
+                    ? "border-red-500 focus:ring-red-400"
+                    : "focus:ring-[#ffdd04]"
+                }`}
+                value={customAmount}
+                onChange={(e) => {
+                  const onlyNums = e.target.value.replace(/\D/g, "");
+                  setCustomAmount(onlyNums);
+
+                  if (onlyNums === "") {
+                    setError("");
+                  } else if (parseInt(onlyNums, 10) < minAmount) {
+                    setError(`Minimum amount for donation is INR ${minAmount}`);
+                  } else {
+                    setError("");
+                  }
+
+                  setDonationAmount("other"); // mark as custom when editing
+                }}
+              />
+              {error ? (
+                <p className="text-xs text-red-500 mt-1">{error}</p>
+              ) : (
+                <p className="text-xs text-gray-500 mt-1">
+                  Minimum amount for donation is INR {minAmount}
+                </p>
+              )}
+            </div>
+
+            {/* <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6 mb-4">
+              {displayAmounts.map((amount) => (
+                <div key={amount} className="relative">
+                  {popularAmount === amount && (
+                    <span className="absolute -top-5 left-1/2 transform -translate-x-1/2 text-black text-[10px] font-semibold bg-[#ffdd04] px-2 py-0.5 rounded">
+                      Popular
+                    </span>
+                  )}
+                  <button
+                    className={`p-2 rounded-lg text-sm w-full font-medium transition ${
+                      donationAmount === amount
+                        ? "bg-[#ffdd04] text-black shadow-md"
+                        : popularAmount === amount
+                        ? "border border-[#ffdd04] text-[#d97706]"
+                        : "border border-gray-400 text-gray-700"
+                    }`}
+                    onClick={() => handlePresetClick(amount)}
+                  >
+                    ₹ {amount}
+                  </button>
+                </div>
+              ))} */}
+
+            {/* Other Option */}
+            {/* <div className="relative w-full">
                 <button
                   className={`p-2 rounded-lg text-sm w-full font-medium transition ${
                     donationAmount === "other"
@@ -689,7 +768,7 @@ const CampaignPage = () => {
                   </div>
                 )}
               </div>
-            </div>
+            </div> */}
 
             {/* Donate Button */}
             {/* <div className="mt-6">
@@ -1189,7 +1268,79 @@ const CampaignPage = () => {
               {/* </div> */}
             </div>
             {/* Donation Amounts */}
+            {/* Donation Amounts */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6 mb-4">
+              {displayAmounts.map((amount) => (
+                <div key={amount} className="relative">
+                  {popularAmount === amount && (
+                    <span className="absolute -top-5 left-1/2 transform -translate-x-1/2 text-black text-[10px] font-semibold bg-[#ffdd04] px-2 py-0.5 rounded">
+                      Popular
+                    </span>
+                  )}
+                  <button
+                    className={`p-2 rounded-lg text-sm w-full font-medium transition ${
+                      donationAmount === amount
+                        ? "bg-[#ffdd04] text-black shadow-md"
+                        : popularAmount === amount
+                        ? "border border-[#ffdd04] text-[#d97706]"
+                        : "border border-gray-400 text-gray-700"
+                    }`}
+                    onClick={() => {
+                      handlePresetClick(amount);
+                      setCustomAmount(amount.toString()); // ✅ Update input field when preset selected
+                    }}
+                  >
+                    ₹ {amount}
+                  </button>
+                </div>
+              ))}
+            </div>
+            {/* Divider */}
+            <div className="w-full flex items-center my-6">
+              <hr className="flex-grow border-t border-gray-300" />
+              <span className="px-3 text-gray-500 text-sm">or</span>
+              <hr className="flex-grow border-t border-gray-300" />
+            </div>
+            {/* Amount Input (Always Visible) */}
+            <div className="w-full flex flex-col items-center mt-4">
+              <label className="text-sm font-medium text-gray-700 mb-1">
+                Amount (INR)
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="Enter the amount"
+                className={`w-2/3 border rounded-lg p-2 text-sm text-center focus:outline-none focus:ring-2 ${
+                  error
+                    ? "border-red-500 focus:ring-red-400"
+                    : "focus:ring-[#ffdd04]"
+                }`}
+                value={customAmount}
+                onChange={(e) => {
+                  const onlyNums = e.target.value.replace(/\D/g, "");
+                  setCustomAmount(onlyNums);
+
+                  if (onlyNums === "") {
+                    setError("");
+                  } else if (parseInt(onlyNums, 10) < minAmount) {
+                    setError(`Minimum amount for donation is INR ${minAmount}`);
+                  } else {
+                    setError("");
+                  }
+
+                  setDonationAmount("other"); // mark as custom when editing
+                }}
+              />
+              {error ? (
+                <p className="text-xs text-red-500 mt-1">{error}</p>
+              ) : (
+                <p className="text-xs text-gray-500 mt-1">
+                  Minimum amount for donation is INR {minAmount}
+                </p>
+              )}
+            </div>
+
+            {/* <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6 mb-4">
               {displayAmounts.map((amount) => (
                 <div key={amount} className="relative">
                   {popularAmount === amount && (
@@ -1210,9 +1361,9 @@ const CampaignPage = () => {
                     ₹ {amount}
                   </button>
                 </div>
-              ))}
-              {/* Other Option */}
-              <div className="relative w-full">
+              ))} */}
+            {/* Other Option */}
+            {/* <div className="relative w-full">
                 <button
                   className={`p-2 rounded-lg text-sm w-full font-medium transition ${
                     donationAmount === "other"
@@ -1258,7 +1409,7 @@ const CampaignPage = () => {
                   </div>
                 )}
               </div>
-            </div>
+            </div> */}
 
             {/* Donate Button */}
             {campaign?.is_approved === true && (

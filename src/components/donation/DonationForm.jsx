@@ -102,10 +102,14 @@ const DonationForm = ({
 
   // Calculate tip amount
 
+  // const tipAmount =
+  //   isOtherSelected && manualTip > 0
+  //     ? manualTip
+  //     : (donationAmount * supportPercent) / 100;
   const tipAmount =
-    isOtherSelected && manualTip > 0
-      ? manualTip
-      : (donationAmount * supportPercent) / 100;
+    isOtherSelected && manualTip !== "" && Number(manualTip) > 0
+      ? Number(manualTip)
+      : (Number(donationAmount || 0) * Number(supportPercent || 0)) / 100;
   // Predefined Tip Options
   const tipOptions = [5, 10, 20];
 
@@ -144,11 +148,18 @@ const DonationForm = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Display selected value in input
-  const displayValue =
-    supportPercent === ""
-      ? `₹${manualTip || 0}` // Custom tip shows INR amount
-      : `${supportPercent}%`; // Selected percentage shows only %
+  // Display value in dropdown
+  const displayValue = isOtherSelected
+    ? `₹${manualTip || 0}`
+    : `${supportPercent}% | ₹${(
+        (donationAmount * (supportPercent || 0)) /
+        100
+      ).toFixed(2)}`;
+  // // Display selected value in input
+  // const displayValue =
+  //   supportPercent === ""
+  //     ? `₹${manualTip || 0}` // Custom tip shows INR amount
+  //     : `${supportPercent}%`; // Selected percentage shows only %
 
   // const updatePosition = (e) => {
   //   if (!trackRef.current) return;
@@ -484,6 +495,7 @@ const DonationForm = ({
           full_name: userData.full_name,
           email: userData.email,
           mobile_number: userData.mobile,
+          address: userData.address, // ✅ send address
         }).unwrap?.();
       }
 
@@ -1023,17 +1035,110 @@ const DonationForm = ({
           <h3 className="text-base font-semibold text-center mb-3">
             Support Us
           </h3>
-          <div className="relative w-full">
+          {/* Tip Section */}
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+            {/* <p className="text-sm text-gray-700 mb-3">
+              By tipping{" "}
+              <span className="font-semibold">Giveaze Foundation</span>, you
+              support us to grow our impact and connect with more initiatives.
+              Thank you 🙏.
+            </p> */}
+            {/* <p className="text-sm text-gray-700 mb-3">
+              Your tip helps{" "}
+              <span className="font-semibold">Giveaze Foundation </span>
+              sustain operations and reach more people in need. Every
+              contribution makes a difference 🌍.
+            </p> */}
+            <p className="text-sm text-gray-700 mb-3">
+              By adding a small tip to your donation, you support{" "}
+              <span className="font-semibold">Giveaze Foundation</span> in
+              keeping our platform free and empowering more meaningful causes.
+              Together, we can create bigger change 💖.
+            </p>
+
+            {/* Tip Selection Row */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium">Tip Amount:</p>
+                <p className="text-base font-bold text-gray-900">
+                  ₹{tipAmount.toFixed(2)}
+                </p>
+              </div>
+
+              {/* Dropdown */}
+              <div className="relative w-full sm:w-40" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-left bg-white"
+                >
+                  {isOtherSelected
+                    ? `₹${manualTip || 0}`
+                    : `${supportPercent}% | ₹${(
+                        (donationAmount * supportPercent) /
+                        100
+                      ).toFixed(2)}`}
+                </button>
+
+                {isDropdownOpen && (
+                  <ul className="absolute mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-md z-20">
+                    {tipOptions.map((percent) => (
+                      <li
+                        key={percent}
+                        className="px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+                        onClick={() => {
+                          setSupportPercent(percent);
+                          setIsOtherSelected(false);
+                          setManualTip(0);
+                          setIsDropdownOpen(false);
+                        }}
+                      >
+                        {percent}% | ₹
+                        {((donationAmount * percent) / 100).toFixed(2)}
+                      </li>
+                    ))}
+
+                    {/* Other Option */}
+                    <li className="px-3 py-2 text-sm flex items-center gap-2 hover:bg-gray-100">
+                      Other:
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="Enter ₹"
+                        className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                        value={manualTip}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, "");
+                          setManualTip(val);
+                          setSupportPercent("");
+                          setIsOtherSelected(true);
+                        }}
+                        onBlur={handleCustomBlur}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </li>
+                  </ul>
+                )}
+              </div>
+            </div>
+
+            {/* Total Donation */}
+            <p className="text-sm mt-3 font-semibold">
+              Total Donation:{" "}
+              <span className="text-[#d8573e]">₹{calculateTotal()}</span>
+            </p>
+          </div>
+
+          {/* <div className="relative w-full">
             {/* Main Input Field */}
-            <button
+          {/* <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="w-full p-2 border rounded-lg text-xs focus:outline-none mb-3 bg-white text-left"
             >
               {isOtherSelected ? `₹${manualTip}` : `${supportPercent}%`}
-            </button>
+            </button> */}
 
-            {/* Dropdown Menu */}
-            {isDropdownOpen && (
+          {/* Dropdown Menu */}
+          {/* {isDropdownOpen && (
               <ul className="absolute left-0 w-full bg-white border rounded-lg shadow-md p-2 mt-1 z-10">
                 {[5, 10, 20].map((percent) => (
                   <li
@@ -1049,10 +1154,10 @@ const DonationForm = ({
                     {percent}% - ₹
                     {((donationAmount * percent) / 100).toFixed(2)}
                   </li>
-                ))}
+                ))} */}
 
-                {/* Other Option with Input */}
-                <li className="p-2 text-xs hover:bg-gray-100 cursor-pointer flex items-center">
+          {/* Other Option with Input */}
+          {/* <li className="p-2 text-xs hover:bg-gray-100 cursor-pointer flex items-center">
                   Other -
                   <input
                     type="text"
@@ -1078,19 +1183,19 @@ const DonationForm = ({
                   />
                 </li>
               </ul>
-            )}
+            )} */}
 
-            {/* Selected Tip Display */}
-            <h3 className="text-base font-semibold mb-3">
+          {/* Selected Tip Display */}
+          {/* <h3 className="text-base font-semibold mb-3">
               Selected Tip:{" "}
               {isOtherSelected ? `₹${manualTip}` : `${supportPercent}%`}
-            </h3>
+            </h3> */}
 
-            {/* Total Donation Display */}
-            <h3 className="text-base font-semibold mb-3">
+          {/* Total Donation Display */}
+          {/* <h3 className="text-base font-semibold mb-3">
               Total Donation: ₹ {calculateTotal()}
             </h3>
-          </div>
+          </div> */}
           {!donationUser?.full_name ? (
             <>
               <h2 className="text-xl text-center font-semibold md:mb-6 mb-4">
@@ -1234,6 +1339,35 @@ const DonationForm = ({
                   {infoErrors.mobile && (
                     <p className="text-xs text-red-500">{infoErrors.mobile}</p>
                   )}
+                </div>
+                {/* Address Input (Optional) */}
+                <div className="relative flex-1 mt-1">
+                  <input
+                    type="text"
+                    id="address"
+                    className={`peer block w-full px-2 pb-1 pt-3 text-sm text-gray-900 bg-transparent rounded-lg border 
+      ${infoErrors.address ? "border-red-500" : "border-[#545454]"} 
+      focus:outline-none focus:ring-0 focus:border-[#7b7a7a]`}
+                    value={userData.address || ""}
+                    onChange={(e) =>
+                      setUserData1((prev) => ({
+                        ...prev,
+                        address: e.target.value,
+                      }))
+                    }
+                  />
+                  <label
+                    htmlFor="address"
+                    className={`absolute text-sm transition-all duration-300 left-[0.5rem] px-1 bg-white 
+      ${
+        userData.address
+          ? "-top-3 left-1 scale-75 text-[#7b7a7a]"
+          : "top-3 scale-100 text-gray-500"
+      }
+      peer-focus:-top-3 peer-focus:scale-75 peer-focus:text-[#7b7a7a]`}
+                  >
+                    Address <span className="text-gray-400">ⓞ</span>
+                  </label>
                 </div>
               </div>
             </>
