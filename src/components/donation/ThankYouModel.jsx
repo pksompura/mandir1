@@ -1,5 +1,6 @@
 import React from "react";
 import { X } from "lucide-react";
+import { Player } from "@lottiefiles/react-lottie-player";
 
 const ThankYouModal = ({ donorName, amount, onClose, campaign_title }) => {
   const shareText = `Hey! ${donorName} just donated ₹${amount} to support a good cause via Giveaze Foundation. You can too! ❤️ Visit: https://giveaze.com`;
@@ -20,6 +21,15 @@ const ThankYouModal = ({ donorName, amount, onClose, campaign_title }) => {
         >
           <X size={24} />
         </button>
+        {/* Lottie Animation */}
+        <div className="flex justify-center mb-4">
+          <Player
+            autoplay
+            loop
+            src="/images/Thank you with confetti.json"
+            style={{ height: "240px", width: "240px" }}
+          />
+        </div>
 
         {/* Image */}
         <div className="flex justify-center mb-4">

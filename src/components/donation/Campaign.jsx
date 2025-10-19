@@ -12,6 +12,7 @@ import { useGetDonationsByCampaignQuery } from "../../redux/services/transaction
 import { useParams } from "react-router-dom";
 import "swiper/css";
 import DonationForm from "./DonationForm";
+import DonationConfirmModal from "./DonationConfirmModal";
 import DonorModal from "./DonorModal"; // Import the modal
 import { useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -56,6 +57,9 @@ const CampaignPage = () => {
   const updatesRef = useRef(null);
   const [showNav, setShowNav] = useState(false);
   const [isDonationModalVisible, setIsDonationModalVisible] = useState(false);
+  const [isDonationConfirmVisible, setIsDonationConfirmVisible] =
+    useState(false); // NEW
+
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
   const [shouldTriggerDonation, setShouldTriggerDonation] = useState(false);
   const [isDonation, setIsDonation] = useState(true);
@@ -86,6 +90,10 @@ const CampaignPage = () => {
   const uniqueSortedAmounts = [...new Set(processedAmounts)].sort(
     (a, b) => a - b
   );
+
+  const openConfirmModal = () => {
+    setIsDonationConfirmVisible(true);
+  };
 
   const fallbackAmounts = [500, 1500, 3000];
   const displayAmounts =
@@ -284,6 +292,7 @@ const CampaignPage = () => {
   };
 
   const closeDonationModal = () => {
+    setIsDonationConfirmVisible(true);
     setIsDonationModalVisible(false);
     setIsDonation(false);
     // window.location.reload();
@@ -1310,11 +1319,13 @@ const CampaignPage = () => {
                 type="text"
                 inputMode="numeric"
                 placeholder="Enter the amount"
-                className={`w-2/3 border rounded-lg p-2 text-sm text-center focus:outline-none focus:ring-2 ${
-                  error
-                    ? "border-red-500 focus:ring-red-400"
-                    : "focus:ring-[#ffdd04]"
-                }`}
+                className={`w-2/3 rounded-lg p-2 text-sm text-center text-gray-700 
+    focus:outline-none focus:ring-2
+    ${
+      error
+        ? "border border-red-500 focus:ring-red-400"
+        : "border border-gray-500 focus:border-[#ffdd04] focus:ring-[#ffdd04]"
+    }`}
                 value={customAmount}
                 onChange={(e) => {
                   const onlyNums = e.target.value.replace(/\D/g, "");
@@ -1331,6 +1342,7 @@ const CampaignPage = () => {
                   setDonationAmount("other"); // mark as custom when editing
                 }}
               />
+
               {error ? (
                 <p className="text-xs text-red-500 mt-1">{error}</p>
               ) : (
@@ -1589,6 +1601,14 @@ const CampaignPage = () => {
         isDonation={isDonation}
         setIsDonationModalVisible={setIsDonationModalVisible}
         setDonationuser={setDonationuser}
+      />
+      <DonationConfirmModal
+        open={isDonationConfirmVisible}
+        handleClose={() => setIsDonationConfirmVisible(false)}
+        handleProceed={() => {
+          setIsDonationConfirmVisible(false);
+          setIsDonationModalVisible(true); // open donation form
+        }}
       />
 
       {/* Donation Modal */}
