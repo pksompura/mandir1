@@ -923,12 +923,30 @@ const DonationForm = ({
             donation_id: donationId, // 🔑 Use donation_id for accurate lookup
           }).unwrap();
 
+          // if (verifyResponse.status) {
+          //   setTimeout(() => {
+          //     setShowLoader(false);
+          //     setIsDonationModalVisible(false);
+          //   }, 3000);
+          //   setShowThankYouModal(true);
+          // } else {
+          //   setShowLoader(false);
+          //   message.error("Payment verification failed.");
+          //   setIsDonationModalVisible(false);
+          // }
           if (verifyResponse.status) {
             setTimeout(() => {
               setShowLoader(false);
               setIsDonationModalVisible(false);
+
+              // Show ThankYou modal
+              setShowThankYouModal(true);
+
+              // Auto-close ThankYou modal after 6 sec
+              setTimeout(() => {
+                setShowThankYouModal(false);
+              }, 5000);
             }, 3000);
-            setShowThankYouModal(true);
           } else {
             setShowLoader(false);
             message.error("Payment verification failed.");
