@@ -7,7 +7,11 @@ import {
   Button,
   CircularProgress,
   TextField,
+  IconButton,
 } from "@mui/material";
+
+import CloseIcon from "@mui/icons-material/Close";
+
 import "react-phone-number-input/style.css";
 import PhoneInput from "react-phone-number-input";
 import { useFormik } from "formik";
@@ -318,6 +322,19 @@ const LoginModel = ({
           ) : (
             "Login / Sign up"
           )}
+          {/* Close button */}
+          <IconButton
+            aria-label="close"
+            onClick={handleClose}
+            sx={{
+              position: "absolute",
+              right: 8,
+              top: 8,
+              color: (theme) => theme.palette.grey[500],
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
         </DialogTitle>
 
         <DialogContent sx={{ padding: { xs: "16px", sm: "24px", md: "32px" } }}>
@@ -510,10 +527,10 @@ const CaptureOtp = ({ form, backendError }) => (
     <TextField
       variant="outlined"
       placeholder="Enter OTP"
-      fullWidth
+      // fullWidth
       inputProps={{
         maxLength: 6,
-        style: { padding: "8px 10px", height: "30px" },
+        style: { padding: "6px 8px", height: "30px" },
       }}
       value={form.values.otp}
       onChange={(e) => form.setFieldValue("otp", e.target.value)}
@@ -522,6 +539,7 @@ const CaptureOtp = ({ form, backendError }) => (
       }
       helperText={""} // Disable built-in helper text to avoid shifting
       sx={{
+        width: "200px", // ✅ fixed width
         "& input": {
           textAlign: "center",
           letterSpacing: "0.3em",

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Modal, Button } from "@mui/material";
+import { IoChevronDown } from "react-icons/io5";
+
 import { message } from "antd";
 import {
   useLoginUserMutation,
@@ -63,13 +65,15 @@ const DonationForm = ({
   const [isDragging, setIsDragging] = useState(false);
   const [percent, setPercent] = useState((minAmount / target) * 100);
   const [error, setError] = useState("");
+  const [isCitizen, setIsCitizen] = useState(false); // ✅ add this
+
   // const [infoErrors, setInfoErrors] = useState({
   //   full_name: "",
   //   email: "",
   // });
   const [infoErrors, setInfoErrors] = useState({});
   const [foreignError, setForeignError] = useState(false);
-  const [supportPercent, setSupportPercent] = useState(0); // Default 5%
+  const [supportPercent, setSupportPercent] = useState(10); // Default 5%
   const [manualTip, setManualTip] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isOtherSelected, setIsOtherSelected] = useState(false);
@@ -78,6 +82,7 @@ const DonationForm = ({
   const [showLoader, setShowLoader] = useState(false);
   const [showThankYouModal, setShowThankYouModal] = useState(false);
   const [donorName, setDonorName] = useState("");
+  const [openInfo, setOpenInfo] = useState(false);
 
   // const processedAmounts = (donation_amounts || [])
   //   .map((item) => parseFloat(item?.$numberDecimal || 0))
@@ -297,9 +302,26 @@ const DonationForm = ({
 
   // Calculate total donation
   // const calculateTotal = () => (donationAmount + tipAmount).toFixed(2);
+  // const calculateTotal = () => {
+  //   return (parseFloat(donationAmount) + parseFloat(tipAmount)).toFixed(2);
+  // };
+  // ✅ Ensure this function always returns a Number
   const calculateTotal = () => {
-    return (parseFloat(donationAmount) + parseFloat(tipAmount)).toFixed(2);
+    const donation = Number(donationAmount) || 0;
+    const tip = isOtherSelected
+      ? Number(manualTip) || 0
+      : (donation * (supportPercent || 10)) / 100;
+
+    return donation + tip; // always a number
   };
+
+  // ✅ Currency Formatter (for INR)
+  const formatMoney = (value) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      minimumFractionDigits: 2,
+    }).format(Number(value) || 0);
 
   const validateForm = () => {
     if (!citizenStatus) {
@@ -435,78 +457,81 @@ const DonationForm = ({
     return payload;
   };
 
+  const isValidEmail = (v) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(String(v || "").trim());
+
+  const onlyDigits = (v = "") => String(v).replace(/\D/g, "");
+
   const handleDonateNow = async () => {
+    // clear previous field errors to avoid stale blocks
     const errors = {};
+    setInfoErrors({});
 
-    // must accept terms
-    if (!isChecked) {
-      message.error(
-        "You must agree to the terms & conditions before proceeding."
-      );
-      return;
-    }
-
-    // compute numeric donation amount
+    // compute numeric donation amount safely
     const numericDonation =
       donationAmount === "other"
-        ? parseInt(customAmount, 10)
+        ? Number.parseInt(customAmount, 10)
         : Number(donationAmount || popularAmount);
 
     // minimum amount check
-    if (!numericDonation || numericDonation < minAmount) {
+    if (!Number.isFinite(numericDonation) || numericDonation < minAmount) {
       message.error(`Minimum donation amount is INR ${minAmount}`);
       return;
     }
 
-    // common validation
-    if (!userData.full_name) errors.full_name = "Full Name is required";
-    if (!userData.email) errors.email = "Email is required";
+    // field validations
+    const fullName = (userData.full_name || "").trim();
+    const email = (userData.email || "").trim();
+    const cleanedMobile = onlyDigits(userData.mobile);
 
-    // for guest donors, require mobile (10 digits)
-    if (!donationUser) {
-      if (!userData.mobile || userData.mobile.length !== 10) {
-        errors.mobile = "Enter a valid 10-digit mobile number";
-      }
-    } else {
-      // if logged-in user exists but mobile field is editable, still ensure it's present
-      if (
-        !donationUser.mobile_number &&
-        (!userData.mobile || userData.mobile.length !== 10)
-      ) {
-        errors.mobile = "Enter a valid 10-digit mobile number";
-      }
+    if (!fullName) {
+      errors.full_name = "Full Name is required";
     }
 
-    if (citizenStatus !== "yes") {
-      setShowError(true);
+    if (!email) {
+      errors.email = "Email is required";
+    } else if (!isValidEmail(email)) {
+      errors.email = "Enter a valid email address";
+    }
+
+    // mobile requirement: guest always; logged in only if not already saved
+    const needsMobile = !donationUser || !donationUser.mobile_number;
+    if (needsMobile && (!cleanedMobile || cleanedMobile.length !== 10)) {
+      errors.mobile = "Enter a valid 10-digit mobile number";
+    }
+
+    // single checkbox for Indian citizen
+    if (!isCitizen) {
       message.error("Only Indian citizens are allowed to donate.");
       return;
     }
 
+    // push any errors into UI and stop
     if (Object.keys(errors).length > 0) {
       setInfoErrors(errors);
       return;
     }
+
     try {
-      // ✅ Update existing user if logged in
+      // update user profile if logged in
       if (donationUser?._id) {
         await updateUser({
           user_id: donationUser._id,
-          full_name: userData.full_name,
-          email: userData.email,
-          mobile_number: userData.mobile,
-          address: userData.address, // ✅ send address
+          full_name: fullName,
+          email,
+          mobile_number: cleanedMobile || donationUser.mobile_number,
+          address: userData.address,
         }).unwrap?.();
       }
 
-      // ✅ If no user / guest, open LoginModel with prefilled mobile
+      // guest → OTP flow
       if (!donationUser) {
-        setDonationMobile(userData.mobile); // Pass mobile to modal
+        setDonationMobile(cleanedMobile);
         setShowOtpModal(true);
         return;
       }
 
-      // ✅ If user is already logged in, proceed to payment immediately
+      // logged in → straight to payment
       await initiatePayment();
     } catch (err) {
       console.error("handleDonateNow error:", err);
@@ -515,6 +540,95 @@ const DonationForm = ({
       );
     }
   };
+
+  // const isValidEmail = (v) =>
+  //   /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(String(v || "").trim());
+
+  // const handleDonateNow = async () => {
+  //   const errors = {};
+
+  //   // must accept terms
+  //   // if (!isChecked) {
+  //   //   message.error(
+  //   //     "You must agree to the terms & conditions before proceeding."
+  //   //   );
+  //   //   return;
+  //   // }
+
+  //   // compute numeric donation amount
+  //   const numericDonation =
+  //     donationAmount === "other"
+  //       ? parseInt(customAmount, 10)
+  //       : Number(donationAmount || popularAmount);
+
+  //   // minimum amount check
+  //   if (!numericDonation || numericDonation < minAmount) {
+  //     message.error(`Minimum donation amount is INR ${minAmount}`);
+  //     return;
+  //   }
+
+  //   // common validation
+  //   if (!userData.full_name) errors.full_name = "Full Name is required";
+  //   if (!userData.email || !userData.email.trim()) {
+  //     errors.email = "Email is required";
+  //   } else if (!isValidEmail(userData.email)) {
+  //     errors.email = "Enter a valid email address";
+  //   }
+  //   // if (!userData.email) errors.email = "Email is required";
+
+  //   // for guest donors, require mobile (10 digits)
+  //   if (!donationUser) {
+  //     if (!userData.mobile || userData.mobile.length !== 10) {
+  //       errors.mobile = "Enter a valid 10-digit mobile number";
+  //     }
+  //   } else {
+  //     // if logged-in user exists but mobile field is editable, still ensure it's present
+  //     if (
+  //       !donationUser.mobile_number &&
+  //       (!userData.mobile || userData.mobile.length !== 10)
+  //     ) {
+  //       errors.mobile = "Enter a valid 10-digit mobile number";
+  //     }
+  //   }
+
+  //   if (citizenStatus !== "yes") {
+  //     setShowError(true);
+  //     message.error("Only Indian citizens are allowed to donate.");
+  //     return;
+  //   }
+
+  //   if (Object.keys(errors).length > 0) {
+  //     setInfoErrors(errors);
+  //     return;
+  //   }
+  //   try {
+  //     // ✅ Update existing user if logged in
+  //     if (donationUser?._id) {
+  //       await updateUser({
+  //         user_id: donationUser._id,
+  //         full_name: userData.full_name,
+  //         email: userData.email,
+  //         mobile_number: userData.mobile,
+  //         address: userData.address, // ✅ send address
+  //       }).unwrap?.();
+  //     }
+
+  //     // ✅ If no user / guest, open LoginModel with prefilled mobile
+  //     if (!donationUser) {
+  //       setDonationMobile(userData.mobile); // Pass mobile to modal
+  //       setShowOtpModal(true);
+  //       return;
+  //     }
+
+  //     // ✅ If user is already logged in, proceed to payment immediately
+  //     await initiatePayment();
+  //   } catch (err) {
+  //     console.error("handleDonateNow error:", err);
+  //     message.error(
+  //       err?.data?.error || err?.data?.message || "Something went wrong."
+  //     );
+  //   }
+  // };
 
   // const handleDonateNow = async () => {
   //   const errors = {};
@@ -1022,7 +1136,7 @@ const DonationForm = ({
         open={open}
         onClose={handleClose}
         aria-labelledby="donation-modal"
-        className="flex justify-center sm:items-center items-end"
+        className="flex justify-center sm:items-center items-end overflow-y-auto" // ✅ scroll whole modal
       >
         <div className="relative bg-white w-full sm:w-[400px] md:w-[450px] lg:w-[500px] xl:w-[550px] p-6 rounded-lg shadow-lg flex flex-col justify-between min-h-[250px]">
           {/* Close Button */}
@@ -1049,83 +1163,184 @@ const DonationForm = ({
               sustain operations and reach more people in need. Every
               contribution makes a difference 🌍.
             </p> */}
-            <p className="text-sm text-gray-700 mb-3">
-              By adding a small tip to your donation, you support{" "}
+            {/* <p className="text-sm text-gray-700 mb-3">
+              {/* By adding a small tip to your donation, you support{" "}
               <span className="font-semibold">Giveaze Foundation</span> in
               keeping our platform free and empowering more meaningful causes.
-              Together, we can create bigger change 💖.
+              Together, we can create bigger change 💖. */}
+            {/* Tips directly support our operational costs, platform maintenance,
+              and efforts to enhance user experience.
+            </p> */}
+            <p className="text-sm text-gray-700 mb-3">
+              Tips directly support our operational costs, platform maintenance,
+              and efforts to enhance user experience.{" "}
+              <button
+                onClick={() => setOpenInfo(true)}
+                className="text-xs text-[#d8573e] hover:text-red-600 ml-1"
+              >
+                Know More
+              </button>
             </p>
 
-            {/* Tip Selection Row */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-medium">Tip Amount:</p>
-                <p className="text-base font-bold text-gray-900">
-                  ₹{tipAmount.toFixed(2)}
+            {/* Know More Modal */}
+            {openInfo && (
+              <div
+                className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-end sm:items-center z-50"
+                onClick={() => setOpenInfo(false)} // close when clicking backdrop
+              >
+                <div
+                  onClick={(e) => e.stopPropagation()} // prevent close on content click
+                  className="relative bg-white w-full sm:w-[400px] md:w-[500px] p-6 
+             rounded-t-lg sm:rounded-lg shadow-lg 
+             animate-slideUp"
+                >
+                  {/* Close Button */}
+                  <button
+                    onClick={() => setOpenInfo(false)}
+                    className="absolute top-3 right-3 text-gray-600 hover:text-red-500 transition duration-200"
+                  >
+                    <IoClose className="text-2xl" />
+                  </button>
+
+                  {/* Modal Content */}
+                  <h2 className="text-lg font-semibold text-gray-900 mb-3">
+                    Why We Ask for Tips
+                  </h2>
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    Tips contribute to the platform’s operational sustainability
+                    by supporting essential functions such as technology
+                    maintenance, platform security, and seamless donation
+                    processing. By collecting tips separately, we ensure that
+                    100% of every donation reaches the intended beneficiary
+                    without any deductions.
+                  </p>
+                  <p className="text-sm text-gray-700 leading-relaxed mt-3">
+                    Tipping is entirely voluntary and serves as a gesture of
+                    appreciation for our continued efforts toward transparency,
+                    due diligence, and efficient campaign management.
+                  </p>
+                  <p className="text-sm text-gray-700 leading-relaxed mt-3">
+                    Please note that tips are voluntary contributions and are
+                    not eligible for tax deductions.
+                  </p>
+
+                  {/* Close Action */}
+                  <div className="mt-5 text-right">
+                    <button
+                      onClick={() => setOpenInfo(false)}
+                      className="px-4 py-2 bg-[#d8573e] text-white text-sm font-medium rounded-lg hover:bg-red-600 transition"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {/* Donation Summary */}
+            <div className="space-y-0.5">
+              {/* Row 1: Donation */}
+              <div className="flex justify-between items-center pb-1">
+                <p className="text-sm font-medium text-gray-600">
+                  Donation Amount
+                </p>
+                <p className="text-sm text-gray-900">
+                  ₹{donationAmount.toFixed(2)}
                 </p>
               </div>
 
-              {/* Dropdown */}
-              <div className="relative w-full sm:w-40" ref={dropdownRef}>
-                <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-left bg-white"
-                >
-                  {isOtherSelected
-                    ? `₹${manualTip || 0}`
-                    : `${supportPercent}% | ₹${(
-                        (donationAmount * supportPercent) /
-                        100
-                      ).toFixed(2)}`}
-                </button>
+              {/* Row 2: Tip */}
+              <div className="flex justify-between items-center pb-1">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-gray-600">
+                    Tip Amount
+                  </p>
 
-                {isDropdownOpen && (
-                  <ul className="absolute mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-md z-20">
-                    {tipOptions.map((percent) => (
-                      <li
-                        key={percent}
-                        className="px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer"
-                        onClick={() => {
-                          setSupportPercent(percent);
-                          setIsOtherSelected(false);
-                          setManualTip(0);
-                          setIsDropdownOpen(false);
-                        }}
-                      >
-                        {percent}% | ₹
-                        {((donationAmount * percent) / 100).toFixed(2)}
-                      </li>
-                    ))}
-
-                    {/* Other Option */}
-                    <li className="px-3 py-2 text-sm flex items-center gap-2 hover:bg-gray-100">
-                      Other:
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        placeholder="Enter ₹"
-                        className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
-                        value={manualTip}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/\D/g, "");
-                          setManualTip(val);
-                          setSupportPercent("");
-                          setIsOtherSelected(true);
-                        }}
-                        onBlur={handleCustomBlur}
-                        onClick={(e) => e.stopPropagation()}
+                  {/* Dropdown - beside label */}
+                  <div className="relative w-36 sm:w-40" ref={dropdownRef}>
+                    <button
+                      type="button"
+                      aria-haspopup="listbox"
+                      aria-expanded={isDropdownOpen}
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      className="flex w-full items-center justify-between gap-2 px-2 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-700"
+                    >
+                      <span>
+                        {isOtherSelected
+                          ? `₹${manualTip || 0}`
+                          : `${supportPercent || 10}%`}
+                      </span>
+                      <IoChevronDown
+                        className={`shrink-0 text-gray-500 transition-transform duration-200 ${
+                          isDropdownOpen ? "rotate-180" : "rotate-0"
+                        }`}
+                        aria-hidden="true"
                       />
-                    </li>
-                  </ul>
-                )}
+                    </button>
+
+                    {isDropdownOpen && (
+                      <ul
+                        role="listbox"
+                        tabIndex={-1}
+                        className="absolute mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-md z-20"
+                      >
+                        {tipOptions.map((percent) => (
+                          <li
+                            key={percent}
+                            role="option"
+                            aria-selected={percent === supportPercent}
+                            className="px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer flex justify-between"
+                            onClick={() => {
+                              setSupportPercent(percent);
+                              setIsOtherSelected(false);
+                              setManualTip(0);
+                              setIsDropdownOpen(false);
+                            }}
+                          >
+                            <span>{percent}%</span>
+                            <span>
+                              ₹{((donationAmount * percent) / 100).toFixed(2)}
+                            </span>
+                          </li>
+                        ))}
+
+                        {/* Other Option */}
+                        <li className="px-3 py-2 text-sm flex items-center gap-2 hover:bg-gray-100">
+                          Other:
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="Enter ₹"
+                            className="w-24 px-2 py-1 border border-gray-300 rounded text-sm"
+                            value={manualTip}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/\D/g, "");
+                              setManualTip(val);
+                              setSupportPercent("");
+                              setIsOtherSelected(true);
+                            }}
+                            onBlur={handleCustomBlur}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </li>
+                      </ul>
+                    )}
+                  </div>
+                </div>
+
+                {/* Amount aligned right */}
+                <p className="text-sm text-gray-900">₹{tipAmount.toFixed(2)}</p>
+              </div>
+
+              {/* Row 3: Total */}
+              <div className="flex justify-between items-center">
+                <p className="text-base font-semibold text-[#d8573e]">
+                  Total Amount
+                </p>
+                <p className="text-md text-[#d8573e]">
+                  ₹{calculateTotal().toFixed(2)}
+                </p>
               </div>
             </div>
-
-            {/* Total Donation */}
-            <p className="text-sm mt-3 font-semibold">
-              Total Donation:{" "}
-              <span className="text-[#d8573e]">₹{calculateTotal()}</span>
-            </p>
           </div>
 
           {/* <div className="relative w-full">
@@ -1198,19 +1413,15 @@ const DonationForm = ({
           </div> */}
           {!donationUser?.full_name ? (
             <>
-              <h2 className="text-xl text-center font-semibold md:mb-6 mb-4">
-                Your Information
-              </h2>
-
-              <div className="flex flex-col md:flex-row gap-2 w-full md:w-[600px] lg:w-[500px] mb-4">
+              <div className="flex flex-col gap-3 w-full md:w-[600px] lg:w-[500px] mb-4">
                 {/* Full Name Input */}
-                <div className="relative flex-1">
+                <div className="relative">
                   <input
                     type="text"
                     id="full_name"
-                    className={`peer block w-full px-2 pb-1 pt-3 text-sm text-gray-900 bg-transparent rounded-lg border 
-        ${infoErrors.full_name ? "border-red-500" : "border-[#545454]"} 
-        focus:outline-none focus:ring-0 focus:border-[#7b7a7a]`}
+                    className={`peer block w-full px-3 py-2.5 text-sm text-gray-900 bg-transparent rounded-lg border 
+        ${infoErrors.full_name ? "border-red-500" : "border-gray-400"} 
+        focus:outline-none focus:ring-1 focus:ring-[#d8573e]`}
                     value={userData.full_name}
                     onChange={(e) =>
                       setUserData1((prev) => ({
@@ -1221,16 +1432,15 @@ const DonationForm = ({
                   />
                   <label
                     htmlFor="full_name"
-                    className={`absolute text-sm transition-all duration-300 left-[0.5rem] px-1 bg-white 
+                    className={`absolute text-sm transition-all duration-300 left-3 px-1 bg-white 
         ${
           infoErrors.full_name && !userData.full_name
-            ? "text-red-500 -top-3 scale-75"
+            ? "text-red-500 -top-2 scale-75"
             : userData.full_name
-            ? "-top-3 left-1 scale-75 text-[#7b7a7a]"
-            : "top-3 scale-100 text-gray-500"
+            ? "-top-2 scale-75 text-gray-500"
+            : "top-2.5 text-gray-400"
         }
-        peer-focus:-top-3 peer-focus:scale-75 peer-focus:text-[#7b7a7a]
-      `}
+        peer-focus:-top-2 peer-focus:scale-75 peer-focus:text-[#d8573e]`}
                   >
                     {infoErrors.full_name && !userData.full_name
                       ? infoErrors.full_name
@@ -1238,34 +1448,59 @@ const DonationForm = ({
                   </label>
                 </div>
 
+                {/* Anonymous Donation */}
+                <div className="flex items-center ml-[2px] -mt-1">
+                  <input
+                    type="checkbox"
+                    id="donateAnonymous"
+                    className="w-3.5 h-3.5 text-[#8d7f24] border-gray-300 rounded focus:ring-[#8d7f24] cursor-pointer"
+                    checked={isAnonymous}
+                    onChange={() => setIsAnonymous(!isAnonymous)}
+                  />
+                  <label
+                    htmlFor="donateAnonymous"
+                    className="ml-2 text-xs text-gray-700 cursor-pointer"
+                  >
+                    Donate Anonymously
+                  </label>
+                </div>
+
                 {/* Email Input */}
-                <div className="relative flex-1">
+                <div className="relative">
                   <input
                     type="email"
                     id="email"
-                    className={`peer block w-full px-2 pb-1 pt-3 text-sm text-gray-900 bg-transparent rounded-lg border 
-        ${infoErrors.email ? "border-red-500" : "border-[#545454]"} 
-        focus:outline-none focus:ring-0 focus:border-[#7b7a7a]`}
+                    className={`peer block w-full px-3 py-3 text-sm text-gray-900 bg-transparent rounded-lg border 
+          ${infoErrors.email ? "border-red-500" : "border-gray-400"} 
+          focus:outline-none focus:ring-1 focus:ring-[#d8573e]`}
                     value={userData.email}
-                    onChange={(e) =>
-                      setUserData1((prev) => ({
-                        ...prev,
-                        email: e.target.value,
-                      }))
-                    }
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setUserData1((prev) => ({ ...prev, email: value }));
+
+                      // 🔹 Email validation regex
+                      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                      if (value && !emailRegex.test(value)) {
+                        setInfoErrors((prev) => ({
+                          ...prev,
+                          email: "Enter a valid email address",
+                        }));
+                      } else {
+                        setInfoErrors((prev) => ({ ...prev, email: "" }));
+                      }
+                    }}
                   />
                   <label
                     htmlFor="email"
-                    className={`absolute text-sm transition-all duration-300 left-[0.5rem] px-1 bg-white 
-        ${
-          infoErrors.email && !userData.email
-            ? "text-red-500 -top-3 scale-75"
-            : userData.email
-            ? "-top-3 left-0.5 scale-75 text-[#7b7a7a]"
-            : "top-3 scale-100 text-gray-500"
-        }
-        peer-focus:-top-3 peer-focus:scale-75 peer-focus:text-[#7b7a7a]
-      `}
+                    className={`absolute text-sm transition-all duration-300 left-3 px-1 bg-white 
+          ${
+            infoErrors.email && !userData.email
+              ? "text-red-500 -top-2 scale-75"
+              : userData.email
+              ? "-top-2 scale-75 text-gray-500"
+              : "top-3 text-gray-400"
+          }
+          peer-focus:-top-2 peer-focus:scale-75 peer-focus:text-[#d8573e]`}
                   >
                     {infoErrors.email && !userData.email
                       ? infoErrors.email
@@ -1277,56 +1512,50 @@ const DonationForm = ({
               {/* Mobile Number Input */}
               <div className="w-full md:w-[600px] lg:w-[500px] mb-4">
                 <div className="relative">
+                  {/* +91 Prefix */}
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-600">
+                    +91
+                  </span>
+
                   <input
                     type="tel"
                     id="mobile"
                     maxLength="10"
                     inputMode="numeric"
                     pattern="[0-9]{10}"
-                    className={`peer block w-full px-2 pb-1 pt-3 text-sm text-gray-900 bg-transparent rounded-lg border pl-14
-        ${infoErrors.mobile ? "border-red-500" : "border-[#545454]"} 
-        focus:outline-none focus:ring-0 focus:border-[#7b7a7a]`}
+                    className={`peer block w-full pl-12 px-3 py-3 text-sm text-gray-900 bg-transparent rounded-lg border 
+      ${infoErrors.mobile ? "border-red-500" : "border-gray-400"} 
+      focus:outline-none focus:ring-1 focus:ring-[#d8573e]`}
                     value={userData.mobile}
                     onChange={(e) => {
-                      const onlyNums = e.target.value.replace(/\D/g, ""); // only numbers
+                      const onlyNums = e.target.value.replace(/\D/g, "");
                       if (onlyNums.length <= 10) {
-                        setUserData1((prev) => ({
-                          ...prev,
-                          mobile: onlyNums,
-                        }));
+                        setUserData1((prev) => ({ ...prev, mobile: onlyNums }));
 
-                        // 🔹 Validation check
                         if (onlyNums.length > 0 && onlyNums.length < 10) {
                           setInfoErrors((prev) => ({
                             ...prev,
                             mobile: "Enter a valid 10-digit mobile number",
                           }));
                         } else {
-                          setInfoErrors((prev) => ({
-                            ...prev,
-                            mobile: "",
-                          }));
+                          setInfoErrors((prev) => ({ ...prev, mobile: "" }));
                         }
                       }
                     }}
                   />
 
-                  {/* +91 Prefix */}
-                  <span className="absolute left-2 top-3 text-sm text-gray-600">
-                    +91
-                  </span>
-
+                  {/* Floating Label — perfectly aligned with others */}
                   <label
                     htmlFor="mobile"
-                    className={`absolute text-sm transition-all duration-300 left-[2.8rem] px-1 bg-white 
-        ${
-          infoErrors.mobile && !userData.mobile
-            ? "text-red-500 -top-3 scale-75"
-            : userData.mobile
-            ? "-top-3 left-[2.8rem] scale-75 text-[#7b7a7a]"
-            : "top-3 scale-100 text-gray-500"
-        }
-        peer-focus:-top-3 peer-focus:scale-75 peer-focus:text-[#7b7a7a]`}
+                    className={`absolute text-sm transition-all duration-300 left-3 px-1 bg-white 
+      ${
+        infoErrors.mobile && !userData.mobile
+          ? "text-red-500 -top-2 scale-75"
+          : userData.mobile
+          ? "-top-2 scale-75 text-gray-500"
+          : "top-3 text-gray-400"
+      }
+      peer-focus:-top-2 peer-focus:scale-75 peer-focus:text-[#d8573e]`}
                   >
                     {infoErrors.mobile && !userData.mobile
                       ? infoErrors.mobile
@@ -1334,20 +1563,19 @@ const DonationForm = ({
                   </label>
                 </div>
 
-                {/* 🔹 Fixed space for error message (prevents modal resizing) */}
+                {/* Fixed space for error message */}
                 <div className="min-h-[20px] mt-1">
                   {infoErrors.mobile && (
                     <p className="text-xs text-red-500">{infoErrors.mobile}</p>
                   )}
                 </div>
+
                 {/* Address Input (Optional) */}
-                <div className="relative flex-1 mt-1">
+                <div className="relative">
                   <input
                     type="text"
                     id="address"
-                    className={`peer block w-full px-2 pb-1 pt-3 text-sm text-gray-900 bg-transparent rounded-lg border 
-      ${infoErrors.address ? "border-red-500" : "border-[#545454]"} 
-      focus:outline-none focus:ring-0 focus:border-[#7b7a7a]`}
+                    className="peer block w-full px-3 py-3 text-sm text-gray-900 bg-transparent rounded-lg border border-gray-400 focus:outline-none focus:ring-1 focus:ring-[#d8573e]"
                     value={userData.address || ""}
                     onChange={(e) =>
                       setUserData1((prev) => ({
@@ -1358,20 +1586,37 @@ const DonationForm = ({
                   />
                   <label
                     htmlFor="address"
-                    className={`absolute text-sm transition-all duration-300 left-[0.5rem] px-1 bg-white 
-      ${
-        userData.address
-          ? "-top-3 left-1 scale-75 text-[#7b7a7a]"
-          : "top-3 scale-100 text-gray-500"
-      }
-      peer-focus:-top-3 peer-focus:scale-75 peer-focus:text-[#7b7a7a]`}
+                    className={`absolute text-sm transition-all duration-300 left-3 px-1 bg-white 
+          ${
+            userData.address
+              ? "-top-2 scale-75 text-gray-500"
+              : "top-3 text-gray-400"
+          }
+          peer-focus:-top-2 peer-focus:scale-75 peer-focus:text-[#d8573e]`}
                   >
-                    Address <span className="text-gray-400">ⓞ</span>
+                    Billing Address <span className="text-gray-400"></span>
                   </label>
                 </div>
               </div>
             </>
-          ) : null}
+          ) : (
+            /* Logged-in donor → show only Anonymous Donation */
+            <div className="flex items-center ml-[2px] mb-3">
+              <input
+                type="checkbox"
+                id="donateAnonymous"
+                className="w-3.5 h-3.5 text-[#8d7f24] border-gray-300 rounded focus:ring-[#8d7f24] cursor-pointer"
+                checked={isAnonymous}
+                onChange={() => setIsAnonymous(!isAnonymous)}
+              />
+              <label
+                htmlFor="donateAnonymous"
+                className="ml-2 text-xs text-gray-700 cursor-pointer"
+              >
+                Donate Anonymously
+              </label>
+            </div>
+          )}
 
           {/* <h3 className="text-lg text-center font-semibold mb-6">
             Select Donation Amount in INR
@@ -1588,123 +1833,45 @@ const DonationForm = ({
               Total Donation: ₹ {calculateTotal()}
             </h3>
           </div> */}
-          <div>
-            <p className="text-sm mb-2">
-              Are you an Indian Citizen? <sup>*</sup>
-            </p>
-            <div className="flex space-x-4">
-              <label className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  name="is_indian_national"
-                  value="yes"
-                  checked={citizenStatus === "yes"}
-                  onChange={() => {
-                    setCitizenStatus("yes");
-                    setShowError(false);
-                    setForeignError(false);
-                  }}
-                />
-                <span className="text-sm">Yes</span>
-              </label>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  name="is_indian_national"
-                  value="no"
-                  checked={citizenStatus === "no"}
-                  onChange={() => {
-                    setCitizenStatus("no");
-                    setShowError(false);
-                    setForeignError(true);
-                  }}
-                />
-                <span className="text-sm">No</span>
-              </label>
-            </div>
-          </div>
 
-          {/* Error Message (Prevents Stretching) */}
-          <div className="relative h-0 mb-1">
-            {foreignError && citizenStatus === "no" && (
-              <p className="w-full text-red-500 text-xs text-start">
-                Foreign donations are not allowed for this campaign.
-              </p>
-            )}
-          </div>
-          {/* Anonymous Donation */}
-          <div className="flex items-start mt-4">
+          {/* Indian Citizenship Confirmation */}
+          <div className="flex items-start ml-[2px]">
             <input
               type="checkbox"
-              id="donateAnonymous"
-              className="w-4 h-4 mt-1 text-[#8d7f24] border-gray-300 rounded focus:ring-[#8d7f24] shrink-0"
-              checked={isAnonymous}
-              onChange={() => setIsAnonymous(!isAnonymous)}
+              id="confirmCitizen"
+              className="w-3.5 h-3.5 mt-0.5 text-[#8d7f24] border-gray-300 rounded focus:ring-[#8d7f24] shrink-0 cursor-pointer"
+              checked={isCitizen}
+              onChange={() => setIsCitizen(!isCitizen)}
             />
             <label
-              htmlFor="donateAnonymous"
-              className="ml-2 text-sm text-gray-700 leading-snug"
+              htmlFor="confirmCitizen"
+              className="ml-2 text-[11px] text-gray-700 leading-snug cursor-pointer"
             >
-              Donate Anonymously
-            </label>
-          </div>
-
-          {/* Terms Agreement */}
-          <div className="flex items-start mt-4">
-            <input
-              type="checkbox"
-              id="agreeTerms"
-              className="w-4 h-4 mt-1 text-[#8d7f24] border-gray-300 rounded focus:ring-[#8d7f24] shrink-0"
-              checked={isChecked}
-              onChange={() => setIsChecked(!isChecked)}
-            />
-            <label
-              htmlFor="agreeTerms"
-              className="ml-2 text-[10px] text-gray-700 leading-snug"
-            >
-              By proceeding, you agree to Giveaze Foundation's
-              <a
-                href="/privacy-policy"
-                className="text-[#8d7f24] underline ml-1"
-              >
-                Privacy Policy
+              By continuing, I confirm that I am an{" "}
+              <span className="font-semibold">Indian citizen</span>, agree to
+              the{" "}
+              <a href="/terms" className="text-[#8d7f24] underline">
+                Terms of Use
               </a>{" "}
-              and
-              <a
-                href="/terms-and-conditions"
-                className="text-[#8d7f24] underline ml-1"
-              >
-                Terms & Conditions
+              and{" "}
+              <a href="/privacy-policy" className="text-[#8d7f24] underline">
+                Privacy Policy
               </a>
-              , and receiving SMS/WhatsApp updates.
+              , and consent to receive updates via SMS and WhatsApp.
             </label>
           </div>
 
+          {/* Proceed Button */}
           <button
             className={`w-full py-3 mt-4 text-xl font-semibold text-white rounded-lg shadow-md transition-all duration-300 ${
-              isChecked && citizenStatus == "yes"
+              isCitizen
                 ? "bg-[#d8573e] hover:bg-[#a84430] hover:shadow-lg cursor-pointer"
                 : "bg-[#d8573e] cursor-not-allowed opacity-50"
             }`}
-            //   onClick={handleDonateNow}
-            // >
-            //   Proceed to Pay ₹ {calculateTotal()}
-            // </button>
-            onClick={() => {
-              if (!donationUser?.email) {
-                // Guest Checkout → Only ask for minimal info
-                if (!userData.email) {
-                  setInfoErrors((prev) => ({
-                    ...prev,
-                    email: "Email is required for receipt",
-                  }));
-                  return;
-                }
-              }
-              handleDonateNow();
-            }}
+            onClick={handleDonateNow}
+            disabled={!isCitizen}
           >
-            Proceed to Pay ₹ {calculateTotal()}
+            Continue to pay ₹ {calculateTotal()}
           </button>
         </div>
       </Modal>
