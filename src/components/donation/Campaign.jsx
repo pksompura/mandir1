@@ -476,7 +476,6 @@ const CampaignPage = () => {
     doc.querySelectorAll("img").forEach((img) => img.remove());
     return doc.body.innerHTML;
   };
-
   return (
     <div className="w-full lg:w-[1300px] mx-auto p-4 mt-12 ">
       <div className="text-left hidden md:block">
@@ -484,6 +483,21 @@ const CampaignPage = () => {
           {campaign?.campaign_title || "Campaign Title"}
         </h1>
       </div>
+      {/* Badges Section */}
+      <div className="flex gap-2 mt-2">
+        {campaign?.is_validated && (
+          <span className="inline-flex items-center bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+            ✅ Validated
+          </span>
+        )}
+
+        {campaign?.is_tax && (
+          <span className="inline-flex items-center bg-yellow-100 text-yellow-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+            💰 Tax Benefit
+          </span>
+        )}
+      </div>
+
       {/* Top Title Section */}
       {/* <div className="text-center my-4">
         <h1 className="text-[20px] capitalize md:text-2xl font-bold">

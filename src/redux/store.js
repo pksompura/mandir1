@@ -34,6 +34,7 @@
 // };
 
 // export const store = setUpStore();
+
 import { configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
 
@@ -43,6 +44,7 @@ import { campaignApi } from "./services/campaignApi";
 import { subCampaignApi } from "./services/subCampaignApi";
 import { transactionApi } from "./services/transactionApi";
 import { fundraiserApi } from "./services/fundraiserApi";
+import { ngoApi } from "./services/ngoApi"; // ← NEW
 
 const setUpStore = () => {
   const store = configureStore({
@@ -51,17 +53,17 @@ const setUpStore = () => {
       [subCampaignApi.reducerPath]: subCampaignApi.reducer,
       [transactionApi.reducerPath]: transactionApi.reducer,
       [fundraiserApi.reducerPath]: fundraiserApi.reducer,
+      [ngoApi.reducerPath]: ngoApi.reducer,
       auth: authReducer,
       user: userReducer,
     },
     middleware: (getDM) =>
-      getDM({
-        serializableCheck: false, // ✅ Turn off Blob warning
-      }).concat(
+      getDM({ serializableCheck: false }).concat(
         campaignApi.middleware,
         subCampaignApi.middleware,
         transactionApi.middleware,
-        fundraiserApi.middleware
+        fundraiserApi.middleware,
+        ngoApi.middleware
       ),
   });
 

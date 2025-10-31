@@ -74,4 +74,14 @@ export const protectedRoutes = [
     exact: true,
     element: lazy(() => import("./pages/fundraiser/fundraiserDash.jsx")),
   },
+  {
+    path: "/ngo-apply",
+    exact: true,
+    element: lazy(() => import("./pages/ngo/NGOApply.jsx")),
+  },
+  {
+    path: "/ngo/dashboard/:orgId",
+    exact: true,
+    element: lazy(() => import("./pages/ngo/NGODashboard.jsx")),
+  },
 ];
