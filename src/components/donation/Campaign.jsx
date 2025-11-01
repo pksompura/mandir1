@@ -317,7 +317,7 @@ const CampaignPage = () => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
 
-      // Only show nav if user scrolled past 300px and profile dropdown is closed
+      // ✅ Show nav only if scrolled past 300px and profile dropdown is closed
       if (scrollPosition > 300 && !isProfileDropdownOpen) {
         setShowNav(true);
       } else {
@@ -329,24 +329,47 @@ const CampaignPage = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isProfileDropdownOpen]);
 
-  // In CampaignPage
+  // ✅ Mobile side menu toggle logic (fixed)
   useEffect(() => {
-    const handler = (e) => setShowNav(!e.detail); // hide tab if menu open
-    window.addEventListener("mobileMenuToggle", handler);
-    return () => window.removeEventListener("mobileMenuToggle", handler);
-  }, []);
+    const handleMobileMenuToggle = (e) => {
+      const isMenuOpen = e.detail; // true = open, false = closed
+      const scrollPosition = window.scrollY;
 
+      if (isMenuOpen) {
+        // Always hide nav when menu is open
+        setShowNav(false);
+      } else {
+        // Only show nav again if scrolled past 300px and profile dropdown is closed
+        if (scrollPosition > 300 && !isProfileDropdownOpen) {
+          setShowNav(true);
+        } else {
+          setShowNav(false);
+        }
+      }
+    };
+
+    window.addEventListener("mobileMenuToggle", handleMobileMenuToggle);
+    return () =>
+      window.removeEventListener("mobileMenuToggle", handleMobileMenuToggle);
+  }, [isProfileDropdownOpen]);
+
+  // // In CampaignPage
+  // useEffect(() => {
+  //   const handler = (e) => setShowNav(!e.detail); // hide tab if menu open
+  //   window.addEventListener("mobileMenuToggle", handler);
+  //   return () => window.removeEventListener("mobileMenuToggle", handler);
+  // }, []);
+
+  // ✅ Scroll to section (no change needed)
   const scrollToSection = (ref) => {
     if (ref.current) {
-      setShowNav(true); // Ensure nav is visible
-      const yOffset = -120; // Increased offset to fully show heading
+      setShowNav(true); // Ensure nav visible while navigating
+      const yOffset = -120; // Offset for better heading visibility
       const y =
         ref.current.getBoundingClientRect().top + window.scrollY + yOffset;
-
       window.scrollTo({ top: y, behavior: "smooth" });
     }
   };
-
   useEffect(() => {
     if (id) {
       get(id); // fetch when ID is available
@@ -479,21 +502,31 @@ const CampaignPage = () => {
   return (
     <div className="w-full lg:w-[1300px] mx-auto p-4 mt-12 ">
       <div className="text-left hidden md:block">
-        <h1 className="text-lg md:text-2xl lg:text-3xl font-bold break-words text-gray-900 mb-6 px-4">
+        <h1 className="text-lg md:text-2xl lg:text-3xl font-bold break-words text-gray-900 mb-4 px-4">
           {campaign?.campaign_title || "Campaign Title"}
         </h1>
       </div>
       {/* Badges Section */}
-      <div className="flex gap-2 mt-2">
+      <div className="hidden md:flex flex-wrap items-center gap-2 mt-1 ml-4 mb-2">
         {campaign?.is_validated && (
-          <span className="inline-flex items-center bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full">
-            ✅ Validated
+          <span
+            className="inline-flex items-center gap-1.5 bg-gradient-to-r from-green-100 to-green-50 
+      text-green-800 text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm border border-green-200
+      transition-all duration-300 hover:scale-105 hover:shadow-md hover:from-green-200 hover:to-green-100"
+          >
+            <span className="text-base animate-pulse">✅</span>
+            <span>Validated</span>
           </span>
         )}
 
         {campaign?.is_tax && (
-          <span className="inline-flex items-center bg-yellow-100 text-yellow-700 text-xs font-semibold px-2.5 py-1 rounded-full">
-            💰 Tax Benefit
+          <span
+            className="inline-flex items-center gap-1.5 bg-gradient-to-r from-yellow-100 to-yellow-50 
+      text-yellow-800 text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm border border-yellow-200
+      transition-all duration-300 hover:scale-105 hover:shadow-md hover:from-yellow-200 hover:to-yellow-100"
+          >
+            <span className="text-base animate-pulse">💰</span>
+            <span>Tax Benefit</span>
           </span>
         )}
       </div>
@@ -600,6 +633,30 @@ const CampaignPage = () => {
           </div>
 
           <div className="w-full  bg-white backdrop-blur-md px-0.5 p-2 rounded-lg text-center md:hidden">
+            {/* ✅ Tax & Validation Badges */}
+            <div className="flex justify-left gap-3 mt-2 mb-2">
+              {campaign?.is_validated && (
+                <span
+                  className="inline-flex items-center gap-1.5 bg-gradient-to-r from-green-100 to-green-50 
+      text-green-800 text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm border border-green-200
+      transition-all duration-300 hover:scale-105 hover:shadow-md hover:from-green-200 hover:to-green-100"
+                >
+                  <span className="text-base animate-pulse">✅</span>
+                  <span>Validated</span>
+                </span>
+              )}
+
+              {campaign?.is_tax && (
+                <span
+                  className="inline-flex items-center gap-1.5 bg-gradient-to-r from-yellow-100 to-yellow-50 
+      text-yellow-800 text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm border border-yellow-200
+      transition-all duration-300 hover:scale-105 hover:shadow-md hover:from-yellow-200 hover:to-yellow-100"
+                >
+                  <span className="text-base animate-pulse">💰</span>
+                  <span>Tax Benefit</span>
+                </span>
+              )}
+            </div>
             {/* Mobile-only Title */}
             <div className="text-left mt-2 mb-2">
               <h1 className="text-xl font-bold text-gray-900">

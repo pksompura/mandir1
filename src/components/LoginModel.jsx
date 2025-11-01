@@ -404,7 +404,7 @@ const LoginModel = ({
                   backgroundColor: "#ffdd04",
                   color: "#000",
                   "&:hover": { backgroundColor: "#e6c703" },
-                  marginTop: "-8px",
+                  marginTop: "-16px",
                 }}
               >
                 {verifyOtpLoading ? (
@@ -446,7 +446,7 @@ const LoginModel = ({
                 color: "#fff",
                 fontWeight: "bold", // Makes text bold
                 "&:hover": { backgroundColor: "#b84c32" },
-                // marginTop: "-2px",
+                marginTop: "-10px",
               }}
             >
               {sendOtpLoading ? (
@@ -514,7 +514,7 @@ const CapturePhoneNumber = ({ form }) => {
 
       {/* Error Message Below */}
       {form.errors.mobile_number && (
-        <div className="absolute text-red-500 text-xs mt-1">
+        <div className="absolute left-1/2 transform -translate-x-1/2 text-red-500 text-xs mt-1 text-center w-full">
           {form.errors.mobile_number}
         </div>
       )}
@@ -530,7 +530,7 @@ const CaptureOtp = ({ form, backendError }) => (
       // fullWidth
       inputProps={{
         maxLength: 6,
-        style: { padding: "6px 8px", height: "30px" },
+        style: { padding: "8px 8px", height: "30px" },
       }}
       value={form.values.otp}
       onChange={(e) => form.setFieldValue("otp", e.target.value)}
