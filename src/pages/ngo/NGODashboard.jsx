@@ -107,7 +107,7 @@ export default function NGODashboard() {
         },
       }}
     >
-      <div className="max-w-6xl mx-auto mt-16 p-4 space-y-12">
+      <div className="max-w-6xl mt-16 mx-auto mt-16 p-4 space-y-12">
         {/* ===== STATUS CARDS ===== */}
         <div className="grid md:grid-cols-3 gap-4">
           <Card title="Application Status" bordered>
