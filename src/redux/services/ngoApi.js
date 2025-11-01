@@ -1,21 +1,15 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
-import axiosBaseQuery from "./axiosBaseQuery"; // <-- your axios baseQuery from the snippet you shared
-
-// IMPORTANT: Your server mounts:
-// app.use("/api/org", orgRoutes);
-// app.use("/api/orgAdmin", orgAdminRoutes);
-//
-// So endpoints must start with /org or /orgAdmin (NOT /orgs)
+import axiosBaseQuery from "./axiosBaseQuery";
 
 export const ngoApi = createApi({
   reducerPath: "ngoApi",
-  baseQuery: axiosBaseQuery, // <-- uses http://localhost:5001/api by default from your axiosInstance
+  baseQuery: axiosBaseQuery,
   tagTypes: ["OrgApp", "Payouts", "AdminOrgs"],
   endpoints: (builder) => ({
-    // NGO Application
+    // ================= NGO Application =================
     applyOrg: builder.mutation({
       query: (payload) => ({
-        url: `/org/apply`, // was /orgs/apply
+        url: `/org/apply`,
         method: "POST",
         body: payload,
       }),
@@ -23,34 +17,37 @@ export const ngoApi = createApi({
 
     getOrgApplication: builder.query({
       query: (orgId) => ({
-        url: `/org/${orgId}/application`, // was /orgs/:id/application
+        url: `/org/${orgId}/application`,
         method: "GET",
       }),
       providesTags: (res, err, orgId) => [{ type: "OrgApp", id: orgId }],
     }),
 
     uploadKyc: builder.mutation({
-      query: ({ orgId, key, fileUrl, comment }) => ({
-        url: `/org/${orgId}/kyc/upload`, // was /orgs/:id/kyc/upload
+      query: ({ orgId, key, fileBase64, comment }) => ({
+        url: `/org/${orgId}/kyc/upload`,
         method: "POST",
-        body: { key, fileUrl, comment },
+        body: { key, fileBase64, comment },
+        headers: {
+          "Content-Type": "application/json",
+        },
       }),
       invalidatesTags: (res, err, args) => [{ type: "OrgApp", id: args.orgId }],
     }),
 
     ticketMessage: builder.mutation({
       query: ({ orgId, text, attachments }) => ({
-        url: `/org/${orgId}/ticket/message`, // was /orgs/:id/ticket/message
+        url: `/org/${orgId}/ticket/message`,
         method: "POST",
         body: { text, attachments },
       }),
       invalidatesTags: (res, err, args) => [{ type: "OrgApp", id: args.orgId }],
     }),
 
-    // Payouts
+    // ================= Payouts =================
     requestPayout: builder.mutation({
       query: ({ orgId, campaignId, amount }) => ({
-        url: `/org/${orgId}/payouts`, // was /orgs/:id/payouts
+        url: `/org/${orgId}/payouts`,
         method: "POST",
         body: { campaignId, amount },
       }),
@@ -61,13 +58,13 @@ export const ngoApi = createApi({
 
     getPayouts: builder.query({
       query: (orgId) => ({
-        url: `/org/${orgId}/payouts`, // was /orgs/:id/payouts
+        url: `/org/${orgId}/payouts`,
         method: "GET",
       }),
       providesTags: (res, err, orgId) => [{ type: "Payouts", id: orgId }],
     }),
 
-    // Admin (mounted at /api/orgAdmin)
+    // ================= Admin Endpoints =================
     adminListOrgs: builder.query({
       query: (status) => ({
         url: `/orgAdmin/orgs${
@@ -95,6 +92,16 @@ export const ngoApi = createApi({
       }),
       invalidatesTags: ["AdminOrgs"],
     }),
+
+    // ✅ New: Verify Individual NGO Document
+    verifyDocument: builder.mutation({
+      query: ({ orgId, key, passed, comment }) => ({
+        url: `/orgAdmin/orgs/${orgId}/verify-document`,
+        method: "POST",
+        body: { key, passed, comment },
+      }),
+      invalidatesTags: (res, err, args) => [{ type: "OrgApp", id: args.orgId }],
+    }),
   }),
 });
 
@@ -108,4 +115,5 @@ export const {
   useAdminListOrgsQuery,
   useAdminDecideOrgMutation,
   useAdminVerifyPayoutMutation,
+  useVerifyDocumentMutation,
 } = ngoApi;

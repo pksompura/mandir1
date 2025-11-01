@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Card,
   Button,
@@ -8,6 +8,9 @@ import {
   Tag,
   Input,
   ConfigProvider,
+  Spin,
+  Modal,
+  Image,
 } from "antd";
 import { useParams } from "react-router-dom";
 import {
@@ -17,12 +20,22 @@ import {
   useGetPayoutsQuery,
   useRequestPayoutMutation,
 } from "../../redux/services/ngoApi";
-import { UploadOutlined } from "@ant-design/icons";
+import { UploadOutlined, EyeOutlined } from "@ant-design/icons";
+import { IMAGE_BASE_URL } from "../../utils/imageUrl"; // ✅ Base URL util
+
+// ✅ Convert file → Base64 helper
+const base64Image = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (error) => reject(error);
+  });
+};
 
 export default function NGODashboard() {
   const { orgId } = useParams();
-
-  const { data, isLoading } = useGetOrgApplicationQuery(orgId);
+  const { data, isLoading, refetch } = useGetOrgApplicationQuery(orgId);
   const [uploadKyc, { isLoading: uploading }] = useUploadKycMutation();
   const [sendMsg] = useTicketMessageMutation();
   const { data: payoutRes } = useGetPayoutsQuery(orgId);
@@ -32,6 +45,10 @@ export default function NGODashboard() {
   const ticket = data?.data?.ticket;
   const payouts = payoutRes?.data || [];
 
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState("");
+
+  // ✅ Calculate progress %
   const progressPct = useMemo(() => {
     const list = ticket?.checklist || [];
     if (!list.length) return 0;
@@ -39,18 +56,21 @@ export default function NGODashboard() {
     return Math.round((passed / list.length) * 100);
   }, [ticket]);
 
+  // ✅ Upload document handler
   const handleUpload = async (key, file) => {
-    const b64 = await new Promise((resolve, reject) => {
-      const r = new FileReader();
-      r.onload = () => resolve(r.result);
-      r.onerror = reject;
-      r.readAsDataURL(file);
-    });
-    await uploadKyc({ orgId, key, fileUrl: b64 }).unwrap();
-    message.success("Uploaded");
+    try {
+      const b64 = await base64Image(file);
+      await uploadKyc({ orgId, key, fileBase64: b64 }).unwrap();
+      message.success("Document uploaded successfully");
+      refetch();
+    } catch (err) {
+      console.error("Upload Error:", err);
+      message.error("Upload failed");
+    }
     return false;
   };
 
+  // ✅ Request payout
   const requestPayoutHandler = async () => {
     const amount = Number(prompt("Enter amount to request (INR):"));
     if (!amount) return;
@@ -65,15 +85,7 @@ export default function NGODashboard() {
   if (isLoading)
     return (
       <div className="p-6 text-center text-gray-500 font-medium">
-        Loading dashboard...
-      </div>
-    );
-
-  if (!orgId)
-    return (
-      <div className="p-6 text-center text-gray-600">
-        No organization selected.
-        <br /> Please go to the NGO application page.
+        <Spin /> Loading dashboard...
       </div>
     );
 
@@ -93,20 +105,10 @@ export default function NGODashboard() {
           colorPrimaryActive: "#b3412d",
           colorTextLightSolid: "#ffffff",
         },
-        components: {
-          Button: {
-            colorPrimary: "#d8573e",
-            colorPrimaryHover: "#c34932",
-            colorPrimaryActive: "#b3412d",
-            borderRadius: 8,
-          },
-          Tag: {
-            defaultColor: "#d8573e1a",
-          },
-        },
       }}
     >
       <div className="max-w-6xl mx-auto mt-16 p-4 space-y-12">
+        {/* ===== STATUS CARDS ===== */}
         <div className="grid md:grid-cols-3 gap-4">
           <Card title="Application Status" bordered>
             <div className="flex items-center justify-between mb-3">
@@ -173,14 +175,49 @@ export default function NGODashboard() {
           </Card>
         </div>
 
-        <Card title="Verification Checklist">
+        {/* ===== KYC CHECKLIST ===== */}
+        <Card title="Verification Checklist" bordered>
           <List
             dataSource={ticket?.checklist || []}
             renderItem={(item) => (
               <List.Item
                 actions={[
+                  item.fileUrl ? (
+                    <Button
+                      icon={<EyeOutlined />}
+                      size="small"
+                      type="default"
+                      onClick={() => {
+                        setPreviewUrl(`${IMAGE_BASE_URL}${item.fileUrl}`);
+                        setPreviewVisible(true);
+                      }}
+                    >
+                      View
+                    </Button>
+                  ) : (
+                    <Tag color="red">No File</Tag>
+                  ),
+
                   item.passed ? (
                     <Tag color="green">Verified</Tag>
+                  ) : item.comment?.toLowerCase().includes("reject") ? (
+                    <>
+                      <Tag color="red">Rejected</Tag>
+                      <Upload
+                        multiple={false}
+                        showUploadList={false}
+                        beforeUpload={(file) => handleUpload(item.key, file)}
+                      >
+                        <Button
+                          type="primary"
+                          icon={<UploadOutlined />}
+                          loading={uploading}
+                          disabled={uploading}
+                        >
+                          {uploading ? "Uploading..." : "Re-upload"}
+                        </Button>
+                      </Upload>
+                    </>
                   ) : (
                     <Upload
                       multiple={false}
@@ -191,21 +228,35 @@ export default function NGODashboard() {
                         type="primary"
                         icon={<UploadOutlined />}
                         loading={uploading}
+                        disabled={uploading}
                       >
-                        Upload
+                        {uploading ? "Uploading..." : "Upload"}
                       </Button>
                     </Upload>
                   ),
                 ]}
               >
                 <List.Item.Meta
-                  title={<span>{item.label}</span>}
+                  title={
+                    <span className="font-medium">
+                      {item.label}
+                      {item.comment?.toLowerCase().includes("reject") && (
+                        <span className="text-red-500 text-xs ml-2">
+                          (Please re-upload corrected document)
+                        </span>
+                      )}
+                    </span>
+                  }
                   description={
-                    item.comment ? (
-                      <span className="text-gray-500 text-sm">
-                        {item.comment}
-                      </span>
-                    ) : null
+                    <div className="text-gray-500 text-sm space-y-1">
+                      {item.comment && <div>{item.comment}</div>}
+                      {item.updatedAt && (
+                        <div className="text-xs text-gray-400">
+                          Last Updated:{" "}
+                          {new Date(item.updatedAt).toLocaleString()}
+                        </div>
+                      )}
+                    </div>
                   }
                 />
               </List.Item>
@@ -213,12 +264,20 @@ export default function NGODashboard() {
           />
         </Card>
 
+        {/* ===== ADMIN MESSAGES ===== */}
         <Card title="Messages with Admin">
           <div className="space-y-3">
             <div className="bg-gray-50 rounded p-3 max-h-64 overflow-auto">
               {(ticket?.messages || []).map((m, i) => (
-                <div key={i} className="mb-2">
-                  <div className="text-xs text-gray-500">
+                <div
+                  key={i}
+                  className={`mb-2 p-2 rounded ${
+                    m.by === "ADMIN"
+                      ? "bg-[#d8573e]/10 border border-[#d8573e]/20"
+                      : "bg-white border border-gray-200"
+                  }`}
+                >
+                  <div className="text-xs text-gray-500 mb-1">
                     {m.by} • {new Date(m.at).toLocaleString()}
                   </div>
                   <div>{m.text}</div>
@@ -229,16 +288,15 @@ export default function NGODashboard() {
           </div>
         </Card>
 
-        <Card title="Payouts">
+        {/* ===== PAYOUT LIST ===== */}
+        <Card title="Payout Requests">
           <List
             dataSource={payouts}
             renderItem={(p) => (
               <List.Item>
-                <div className="w-full flex justify-between items-center">
+                <div className="w-full flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                   <div>₹{p.amountRequested}</div>
-                  <div>
-                    <Tag color="#d8573e">{p.status}</Tag>
-                  </div>
+                  <Tag color="#d8573e">{p.status}</Tag>
                   <div className="text-xs text-gray-500">
                     {new Date(p.createdAt).toLocaleString()}
                   </div>
@@ -247,11 +305,45 @@ export default function NGODashboard() {
             )}
           />
         </Card>
+
+        {/* ===== FILE PREVIEW MODAL ===== */}
+        <Modal
+          open={previewVisible}
+          footer={null}
+          onCancel={() => setPreviewVisible(false)}
+          centered
+          width={800}
+        >
+          {previewUrl.endsWith(".pdf") ? (
+            <iframe
+              src={previewUrl}
+              title="PDF Preview"
+              style={{
+                width: "100%",
+                height: "80vh",
+                border: "none",
+                borderRadius: "8px",
+              }}
+            />
+          ) : (
+            <Image
+              src={previewUrl}
+              alt="Document Preview"
+              style={{
+                maxHeight: "80vh",
+                maxWidth: "100%",
+                borderRadius: "8px",
+                objectFit: "contain",
+              }}
+            />
+          )}
+        </Modal>
       </div>
     </ConfigProvider>
   );
 }
 
+// ===== SEND MESSAGE COMPONENT =====
 function SendMessage({ orgId, onSend }) {
   const [text, setText] = React.useState("");
   const send = async () => {
