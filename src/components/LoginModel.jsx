@@ -404,7 +404,7 @@ const LoginModel = ({
                   backgroundColor: "#ffdd04",
                   color: "#000",
                   "&:hover": { backgroundColor: "#e6c703" },
-                  marginTop: "-16px",
+                  marginTop: { xs: "8px", sm: "-8px", md: "-16px" },
                 }}
               >
                 {verifyOtpLoading ? (
@@ -446,7 +446,7 @@ const LoginModel = ({
                 color: "#fff",
                 fontWeight: "bold", // Makes text bold
                 "&:hover": { backgroundColor: "#b84c32" },
-                marginTop: "-10px",
+                marginTop: { xs: "8px", sm: "-8px", md: "-16px" }, // ✅ responsive margin
               }}
             >
               {sendOtpLoading ? (
