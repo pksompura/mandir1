@@ -91,17 +91,43 @@ const ProfilePage = () => {
 
   const [userDonation, setUserDonation] = useState(null);
   const [fetchData, { data }] = useLazyGetUserProfileQuery();
-  const handleFetchUserProfile = async () => {
-    const result = await fetchData(); // fetchData returns a promise
-    const user = result?.data?.data;
-    const donations = result?.data?.donations;
-    if (user && donations) {
-      setUserDonation({ ...user, donations }); // merge
-    }
-  };
+  // const handleFetchUserProfile = async () => {
+  //   const result = await fetchData(); // fetchData returns a promise
+  //   const user = result?.data?.data;
+  //   const donations = result?.data?.donations;
+  //   if (user && donations) {
+  //     setUserDonation({ ...user, donations }); // merge
+  //   }
+  // };
+  // useEffect(() => {
+  //   handleFetchUserProfile();
+  // }, [handleFetchUserProfile]);
   useEffect(() => {
-    handleFetchUserProfile();
-  }, [handleFetchUserProfile]);
+    const getProfile = async () => {
+      const res = await fetchData();
+      const apiRes = res?.data;
+      const user = apiRes?.data;
+
+      if (user) {
+        setUserInfo({
+          full_name: user.full_name || "",
+          mobile_number: user.mobile_number || "",
+          email: user.email || "",
+          address: user.address || "",
+          pan_number: user.pan_number || "",
+          profile_pic: user.profile_pic || "",
+        });
+      }
+
+      if (apiRes?.donations) {
+        setUserDonation({
+          ...user,
+          donations: apiRes.donations,
+        });
+      }
+    };
+    getProfile();
+  }, []);
 
   // console.log(useGetDonationCampaignsByUserQuery());
   const [createCampaign] = useCreateCampaignByUserMutation(); // API hook for creating a new donation campaign
