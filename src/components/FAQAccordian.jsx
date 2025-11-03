@@ -104,42 +104,42 @@ const FAQ = () => {
     {
       question: "What is Giveaze Foundation?",
       answer:
-        "Giveaze Foundation is India’s trusted online donation platform that helps verified NGOs, temples, charitable trusts, and social initiatives raise funds for genuine causes — including healthcare, education, food donation, animal welfare, women empowerment, and community development.",
+        "Giveaze Foundation (giveaze.com) is India’s trusted online platform that helps verified temples, goshalas, pathshalas, and charitable trusts raise support for their causes — including temple renovation, cow care, food donation, and dharmic education.",
     },
     {
       question: "How does my donation reach the campaign?",
       answer:
-        "Your contribution is transferred directly to the verified campaign organizer’s bank account through our secure payment system. Giveaze Foundation ensures transparency and does not hold or delay your donations.",
+        "Your donation goes directly to the verified campaigner’s (temple or trust) bank account through our secure payment gateway. Giveaze Foundation does not hold or delay your contribution.",
     },
     {
       question: "Is my payment secure?",
       answer:
-        "Absolutely. All transactions on Giveaze Foundation are processed through Razorpay, a PCI DSS–compliant and fully encrypted payment gateway. Your payment details remain 100% safe and confidential.",
+        "Yes. All donations made through Giveaze Foundation are processed using Razorpay, a trusted and fully encrypted payment gateway. Your personal and financial details are completely safe and confidential.",
     },
     {
-      question: "What is the “Tip” option shown during checkout?",
+      question: "What is the “Tip” shown during checkout?",
       answer:
-        "The tip is completely optional and helps Giveaze Foundation sustain its operations — including platform maintenance, secure payment handling, donor assistance, and campaign verification. Your entire donation still goes to the cause you support — the tip only helps maintain transparency and platform upkeep.",
+        "The Tip is optional. It helps Giveaze Foundation maintain its technology platform, ensure payment security, verify campaigns, and offer donor support. Your entire donation still goes to your chosen cause — the tip supports our transparency and upkeep.",
     },
     {
       question: "Will I receive a receipt for my donation?",
       answer:
-        "Yes. You’ll receive an instant payment receipt after donating. If the campaign organizer has 80G registration, you may also request an 80G tax exemption receipt directly from them.",
+        "Yes. You will receive a payment receipt immediately after donating. If the temple or trust is registered under 80G, you can also request an 80G donation receipt for tax exemption directly from them.",
     },
     {
-      question: "How do you verify the campaigns?",
+      question: "How do you verify campaigns?",
       answer:
-        "Every campaign listed on Giveaze Foundation goes through a strict verification process. We review trust registration, legal documents, and bank details to ensure only authentic and compliant organizations can raise funds.",
+        "Every campaign is verified by the Giveaze Foundation team before going live. We check trust registration, ownership documents, bank details, and cause authenticity to ensure genuine campaigns.",
     },
     {
-      question: "Can I donate to multiple causes?",
+      question: "Can I donate to more than one campaign?",
       answer:
-        "Of course. You can contribute to as many causes as you wish — healthcare, education, food seva, animal care, temple development, or humanitarian aid. Every contribution helps make a difference.",
+        "Of course! You can contribute to as many causes as you wish — temple renovation, anna dhanam, goshalas, dharmic education, or welfare projects. Every act of giving matters.",
     },
     {
-      question: "Will I receive updates about my donation?",
+      question: "Will I get updates after donating?",
       answer:
-        "Yes. You’ll receive updates, photos, and progress reports shared by the organization or trust you supported. This ensures you stay connected with the impact of your generosity.",
+        "Yes. You’ll receive updates, photos, or progress posts whenever shared by the temple or trust, helping you stay connected with your impact.",
     },
   ];
 
@@ -152,27 +152,35 @@ const FAQ = () => {
   };
 
   const item = {
-    hidden: { opacity: 0, y: 30 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+    hidden: { opacity: 0, y: 25 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
   };
 
   return (
     <section className="w-full bg-[#fffaf7] py-10 px-4 md:px-12">
-      <div className="max-w-4xl mx-auto text-center mb-8">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 25 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+        viewport={{ once: true }}
+        className="max-w-4xl mx-auto text-center mb-6"
+      >
         <h2 className="text-3xl md:text-4xl font-bold text-[#d6573d]">
           Quick FAQ for Donors
         </h2>
         <p className="text-gray-600 mt-1 text-sm md:text-base">
-          For Devotees and Supporters of Giveaze Foundation
+          (For Devotees and Supporters)
         </p>
-      </div>
+      </motion.div>
 
+      {/* FAQ Items */}
       <motion.div
         variants={container}
         initial="hidden"
         whileInView="show"
         viewport={{ once: true }}
-        className="max-w-4xl mx-auto space-y-3" // reduced space
+        className="max-w-4xl mx-auto space-y-3"
       >
         {faqData.map((faq, index) => (
           <motion.div
@@ -205,6 +213,28 @@ const FAQ = () => {
             </div>
           </motion.div>
         ))}
+      </motion.div>
+
+      {/* Footer message */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+        viewport={{ once: true }}
+        className="max-w-3xl mx-auto text-center mt-8"
+      >
+        <p className="italic text-gray-700 font-medium text-base md:text-lg">
+          “Every act of giving strengthens Sanatana Dharma and brings hope to
+          those who need it most.”
+        </p>
+        {/* <a
+          href="https://giveaze.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block mt-3 text-[#d6573d] font-semibold hover:underline"
+        >
+          Visit giveaze.com →
+        </a> */}
       </motion.div>
     </section>
   );
