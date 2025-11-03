@@ -145,10 +145,7 @@ const FAQ = () => {
 
   const container = {
     hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.12 },
-    },
+    show: { opacity: 1, transition: { staggerChildren: 0.12 } },
   };
 
   const item = {
@@ -157,14 +154,14 @@ const FAQ = () => {
   };
 
   return (
-    <section className="w-full bg-[#fffaf7] py-10 px-4 md:px-12">
+    <section className="w-full bg-[#fffaf7] py-10 px-4 md:px-10">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 25 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: "easeOut" }}
         viewport={{ once: true }}
-        className="max-w-4xl mx-auto text-center mb-6"
+        className="max-w-6xl mx-auto text-center mb-6"
       >
         <h2 className="text-3xl md:text-4xl font-bold text-[#d6573d]">
           Quick FAQ for Donors
@@ -180,13 +177,13 @@ const FAQ = () => {
         initial="hidden"
         whileInView="show"
         viewport={{ once: true }}
-        className="max-w-4xl mx-auto space-y-3"
+        className="w-full flex flex-col items-center space-y-3"
       >
         {faqData.map((faq, index) => (
           <motion.div
             key={index}
             variants={item}
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 transition-all duration-300"
+            className="w-full md:w-[90%] lg:w-[85%] bg-white rounded-2xl shadow-sm border border-gray-100 transition-all duration-300"
           >
             <button
               onClick={() => setOpenIndex(openIndex === index ? null : index)}
@@ -221,7 +218,7 @@ const FAQ = () => {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
         viewport={{ once: true }}
-        className="max-w-3xl mx-auto text-center mt-8"
+        className="max-w-4xl mx-auto text-center mt-8"
       >
         <p className="italic text-gray-700 font-medium text-base md:text-lg">
           “Every act of giving strengthens Sanatana Dharma and brings hope to
