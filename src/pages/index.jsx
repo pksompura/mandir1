@@ -10,7 +10,7 @@ import { Button, Tooltip } from "@mui/material";
 import { CiHeart } from "react-icons/ci";
 import HeroSection from "../components/HeroSection";
 import HowItWorks from "../components/HowItWorks";
-import ImpactKartComponent from "../components/ImpactKartComponent";
+// import ImpactKartComponent from "../components/ImpactKartComponent";
 import FundraisingBanner from "../components/YourCampaign";
 import FAQ from "../components/FAQAccordian";
 import Testimonials from "../components/Testimonial";
@@ -235,7 +235,7 @@ const HeroSlider = () => {
       </div> */}
 
       <HowItWorks />
-      <ImpactKartComponent />
+      {/* <ImpactKartComponent /> */}
       <Testimonials />
       <div className="px-3 md:px-10 my-4 w-full md:w-[85%] mx-auto">
         <h2 className="text-2xl font-bold text-center">FAQs</h2>

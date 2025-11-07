@@ -1153,19 +1153,19 @@ const DonationForm = ({
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
             {/* <p className="text-sm text-gray-700 mb-3">
               By tipping{" "}
-              <span className="font-semibold">Giveaze Foundation</span>, you
+              <span className="font-semibold">Mysticpace Platform</span>, you
               support us to grow our impact and connect with more initiatives.
               Thank you 🙏.
             </p> */}
             {/* <p className="text-sm text-gray-700 mb-3">
               Your tip helps{" "}
-              <span className="font-semibold">Giveaze Foundation </span>
+              <span className="font-semibold">Mysticpace Platform </span>
               sustain operations and reach more people in need. Every
               contribution makes a difference 🌍.
             </p> */}
             {/* <p className="text-sm text-gray-700 mb-3">
               {/* By adding a small tip to your donation, you support{" "}
-              <span className="font-semibold">Giveaze Foundation</span> in
+              <span className="font-semibold">Mysticpace Platform</span> in
               keeping our platform free and empowering more meaningful causes.
               Together, we can create bigger change 💖. */}
             {/* Tips directly support our operational costs, platform maintenance,

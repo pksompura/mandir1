@@ -193,7 +193,7 @@ const PublicHeader = () => {
             <div className="flex-shrink-0">
               <Link to="/">
                 <img
-                  src="/giveaze2.png"
+                  src="/a1234.png"
                   alt="Logo"
                   className="w-32 md:w-36 h-auto"
                 />
@@ -301,7 +301,7 @@ const PublicHeader = () => {
               {/* Drawer Header */}
               <div className="flex items-center justify-between mb-4">
                 <Link to="/" onClick={() => setIsMobileMenuOpen(false)}>
-                  <img src="/giveaze2.png" alt="Logo" className="w-28 h-auto" />
+                  <img src="/a1234.png" alt="Logo" className="w-28 h-auto" />
                 </Link>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}

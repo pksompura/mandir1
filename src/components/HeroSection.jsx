@@ -39,7 +39,8 @@ const HeroSection = () => {
                 <p className="mt-4 text-sm md:text-md lg:text-md text-gray-600">
                   {settings?.data?.banner_description}{" "}
                 </p>
-                <a href={settings?.data?.banner_link}>
+                {/* <a href={settings?.data?.banner_link}> */}
+                <a href="/explore-campaign">
                   <button className="mt-6 py-3 w-[200px] px-6 bg-[#545454] text-white font-semibold rounded-full hover:bg-[#7b7a7a]">
                     Donate Now
                   </button>

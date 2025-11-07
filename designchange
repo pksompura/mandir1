@@ -360,7 +360,7 @@
                 htmlFor="agreeTerms"
                 className="text-[10px] text-gray-500 ml-2"
               >
-                By proceeding, you are agreeing to Impact Giveaze Foundation's{" "}
+                By proceeding, you are agreeing to Impact Mysticpace Platform's{" "}
                 <a
                   href="/privacy-policy"
                   className="text-[#8d7f24] underline"

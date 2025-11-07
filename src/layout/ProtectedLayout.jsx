@@ -32,14 +32,14 @@ const ProtectedLayout = () => {
                 <h2 className="font-manrope font-bold text-4xl leading-snug text-black max-[470px]:text-center">
                   <Link to={"/"}>
                     <img
-                      src="/giveaze2.png"
+                      src="/a1234.png"
                       alt="logo"
                       className="w-36 mx-auto md:mx-0"
                     />
                   </Link>
                 </h2>
                 <p className="text-base ml-2 font-normal text-black max-[470px]:text-center">
-                  Protecting Tradition, Empowering Devotion.
+                  Donate. Preserve. Uplift.
                 </p>
                 <div className="flex space-x-4 text-[#545454] md:justify-start justify-center md:ml-3 mt-2">
                   <a
@@ -157,7 +157,7 @@ const ProtectedLayout = () => {
           </div>
           <div className="flex flex-col-reverse gap-5 py-4">
             <p className=" text-sm text-center font-bold">
-              © <a href="https://giveaze.com">Giveaze Foundation</a>{" "}
+              © <a href="https://giveaze.com">Mysticpace Platform</a>{" "}
               {new Date().getFullYear()}, All rights reserved.
             </p>
           </div>

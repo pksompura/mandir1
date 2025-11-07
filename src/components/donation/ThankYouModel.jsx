@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 import { Player } from "@lottiefiles/react-lottie-player";
 
 const ThankYouModal = ({ donorName, amount, onClose, campaign_title }) => {
-  const shareText = `Hey! ${donorName} just donated ₹${amount} to support a good cause via Giveaze Foundation. You can too! ❤️ Visit: https://giveaze.com`;
+  const shareText = `Hey! ${donorName} just donated ₹${amount} to support a good cause via Mysticpace Platform. You can too! ❤️ Visit: https://giveaze.com`;
 
   const handleWhatsAppShare = () => {
     const encodedText = encodeURIComponent(shareText);
@@ -34,7 +34,7 @@ const ThankYouModal = ({ donorName, amount, onClose, campaign_title }) => {
         {/* Image */}
         <div className="flex justify-center mb-4">
           <img
-            src="/giveaze2.png"
+            src="/a1234.png"
             alt="Thank You"
             className="w-24 max-h-24 object-contain" // Adjust image size
           />

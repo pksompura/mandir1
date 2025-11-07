@@ -48,7 +48,7 @@ export default function DonationConfirmModal({
             Your kindness can light up lives ✨
           </h3>
           <p className="text-sm text-gray-700 mb-6">
-            At <span className="font-bold">Giveaze Foundation</span>, every
+            At <span className="font-bold">Mysticpace Platform</span>, every
             contribution helps us bring hope, education, and support to those in
             need. Even if today is not the right time, your future donation can
             still create a powerful change. 💖
