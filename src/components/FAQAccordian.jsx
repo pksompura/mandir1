@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { FaChevronDown } from "react-icons/fa";
 
-const FAQ = () => {
+const FAQ = ({ page }) => {
   const [openIndex, setOpenIndex] = useState(null);
 
   const faqData = [
@@ -58,15 +58,22 @@ const FAQ = () => {
     show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
   };
 
+  // Dynamic width for different pages
+  const wrapperWidth =
+    page === "campaign"
+      ? "max-w-[1500px] md:w-[95%] lg:w-[92%] xl:w-[88%]" // wider for campaign
+      : "max-w-7xl"; // default for home
+
   return (
-    <section className="w-full bg-[#fffaf7] py-10 px-4 md:px-10">
-      {/* Header */}
+    <section
+      className={`w-full bg-[#fffaf7] py-10 px-4 md:px-10 ${wrapperWidth}`}
+    >
       <motion.div
         initial={{ opacity: 0, y: 25 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: "easeOut" }}
         viewport={{ once: true }}
-        className="max-w-6xl mx-auto text-center mb-6"
+        className="mx-auto text-center mb-6"
       >
         <h2 className="text-3xl md:text-4xl font-bold text-[#d6573d]">
           Quick FAQ for Donors
@@ -76,7 +83,6 @@ const FAQ = () => {
         </p>
       </motion.div>
 
-      {/* FAQ Items */}
       <motion.div
         variants={container}
         initial="hidden"
@@ -91,13 +97,13 @@ const FAQ = () => {
             <motion.div
               key={index}
               variants={item}
-              className="w-full md:w-[90%] lg:w-[85%] bg-white rounded-2xl shadow-sm border border-gray-100 transition-all duration-300"
+              className="w-full md:w-[96%] lg:w-[94%] xl:w-full bg-white rounded-2xl shadow-sm border border-gray-100 transition-all duration-300"
             >
               <button
                 onClick={() => setOpenIndex(isOpen ? null : index)}
                 aria-expanded={isOpen}
                 aria-controls={contentId}
-                className="w-full flex justify-between items-center px-5 py-4 text-left focus:outline-none"
+                className="w-full flex justify-between items-center px-6 py-5 text-left focus:outline-none"
               >
                 <span className="font-semibold text-gray-800 text-base md:text-lg">
                   {faq.question}
@@ -114,7 +120,7 @@ const FAQ = () => {
                 id={contentId}
                 role="region"
                 aria-labelledby={`faq-heading-${index}`}
-                className={`px-5 pb-4 text-gray-600 text-sm md:text-base transition-all duration-300 ${
+                className={`px-6 pb-4 text-gray-600 text-sm md:text-base transition-all duration-300 ${
                   isOpen
                     ? "max-h-96 opacity-100 overflow-visible"
                     : "max-h-0 opacity-0 overflow-hidden"
@@ -127,7 +133,6 @@ const FAQ = () => {
         })}
       </motion.div>
 
-      {/* Footer message */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}

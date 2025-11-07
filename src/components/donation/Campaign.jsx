@@ -456,6 +456,17 @@ const CampaignPage = () => {
       paginationRef.current.classList.add("custom-swiper-pagination");
     }
   }, [paginationRef]);
+  useEffect(() => {
+    // Lock scroll when donation modal is open
+    if (isDonationModalVisible) {
+      document.body.style.overflow = "hidden";
+      document.body.style.position = "fixed";
+      document.body.style.width = "100%";
+    } else {
+      document.body.style.overflow = "auto";
+      document.body.style.position = "static";
+    }
+  }, [isDonationModalVisible]);
 
   const handleNativeShare = () => {
     if (navigator.share) {
@@ -1880,7 +1891,7 @@ const CampaignPage = () => {
               }
             }}
             disabled={!finalDonation || finalDonation <= 0}
-            className="bg-[#d8573e] w-[90vw] text-white font-bold text-lg px-1 py-2 rounded-full shadow-md transition duration-300 transform hover:scale-110 hover:bg-[#d8573e] focus:outline-none focus:ring-2 focus:ring-[#d8573e]"
+            className="bg-[#d8573e] w-[92vw] text-white font-bold text-lg px-1 py-3 rounded-full shadow-lg transition duration-300 transform hover:scale-105 hover:bg-[#c85139] focus:outline-none focus:ring-2 focus:ring-[#d8573e]"
           >
             DONATE ₹ {finalDonation || popularAmount}
           </button>
