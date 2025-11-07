@@ -1875,9 +1875,11 @@ const CampaignPage = () => {
 
       {campaign?.is_approved === true && (
         <div
-          className="visible md:hidden fixed bottom-0 left-1/2 -translate-x-1/2 w-full border-t flex justify-center bg-white z-50 pt-2"
+          className="visible md:hidden fixed inset-x-0 bottom-0 flex justify-center bg-white border-t z-[9999]"
           style={{
-            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 8px)",
+            paddingBottom: "env(safe-area-inset-bottom, 0)",
+            WebkitBackdropFilter: "blur(8px)",
+            backdropFilter: "blur(8px)",
           }}
         >
           <button
