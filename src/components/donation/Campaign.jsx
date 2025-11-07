@@ -456,17 +456,6 @@ const CampaignPage = () => {
       paginationRef.current.classList.add("custom-swiper-pagination");
     }
   }, [paginationRef]);
-  useEffect(() => {
-    // Lock scroll when donation modal is open
-    if (isDonationModalVisible) {
-      document.body.style.overflow = "hidden";
-      document.body.style.position = "fixed";
-      document.body.style.width = "100%";
-    } else {
-      document.body.style.overflow = "auto";
-      document.body.style.position = "static";
-    }
-  }, [isDonationModalVisible]);
 
   const handleNativeShare = () => {
     if (navigator.share) {
@@ -1874,14 +1863,7 @@ const CampaignPage = () => {
       )}
 
       {campaign?.is_approved === true && (
-        <div
-          className="visible md:hidden fixed inset-x-0 bottom-0 flex justify-center bg-white border-t z-[9999]"
-          style={{
-            paddingBottom: "env(safe-area-inset-bottom, 0)",
-            WebkitBackdropFilter: "blur(8px)",
-            backdropFilter: "blur(8px)",
-          }}
-        >
+        <div className="visible md:hidden fixed bottom-0 left-1/2 -translate-x-1/2 w-full border-t flex justify-center py-2 bg-white z-50">
           <button
             onClick={() => {
               if (donationAmount === "other") {
