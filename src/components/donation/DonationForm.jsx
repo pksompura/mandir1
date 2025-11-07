@@ -853,28 +853,6 @@ const DonationForm = ({
     setDonationAmount(amount);
     setPercent((amount / target) * 100);
   };
-  useEffect(() => {
-    if (open) {
-      // ✅ Lock body scroll
-      const scrollY = window.scrollY;
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.left = "0";
-      document.body.style.right = "0";
-      document.body.style.width = "100%";
-      document.body.style.overflow = "hidden";
-    } else {
-      // ✅ Unlock and restore scroll
-      const scrollYStored = document.body.style.top;
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.left = "";
-      document.body.style.right = "";
-      document.body.style.width = "";
-      document.body.style.overflow = "";
-      window.scrollTo(0, parseInt(scrollYStored || "0") * -1);
-    }
-  }, [open]);
 
   // const handleInputChange = (e) => {
   //   let value = e.target.value;
@@ -1158,6 +1136,7 @@ const DonationForm = ({
       <Modal
         open={open}
         onClose={handleClose}
+        disableScrollLock={false} // default value
         aria-labelledby="donation-modal"
         className="flex justify-center sm:items-center items-end overflow-y-auto" // ✅ scroll whole modal
       >
