@@ -328,6 +328,22 @@ const CampaignPage = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isProfileDropdownOpen]);
+  useEffect(() => {
+    const handleResize = () => {
+      const donateBar = document.getElementById("mobile-donate-bar");
+      if (donateBar) {
+        // Force reflow to keep it attached to new visual viewport height
+        donateBar.style.bottom = "0px";
+      }
+    };
+
+    // Safari fires 'resize' on toolbar hide/show
+    window.visualViewport?.addEventListener("resize", handleResize);
+
+    return () => {
+      window.visualViewport?.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   // ✅ Mobile side menu toggle logic (fixed)
   useEffect(() => {
@@ -1875,11 +1891,17 @@ const CampaignPage = () => {
 
       {campaign?.is_approved === true && (
         <div
-          className="visible md:hidden fixed inset-x-0 bottom-0 flex justify-center bg-white border-t z-[9999]"
+          id="mobile-donate-bar"
+          className="visible md:hidden sticky bottom-0 left-0 w-full flex justify-center bg-white border-t z-[9999]"
           style={{
+            position: "fixed",
+            bottom: "0",
+            insetInline: "0",
             paddingBottom: "env(safe-area-inset-bottom, 0)",
-            WebkitBackdropFilter: "blur(8px)",
-            backdropFilter: "blur(8px)",
+            WebkitTransform: "translateZ(0)",
+            transform: "translateZ(0)",
+            WebkitBackfaceVisibility: "hidden",
+            backfaceVisibility: "hidden",
           }}
         >
           <button
