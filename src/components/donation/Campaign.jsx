@@ -1874,7 +1874,12 @@ const CampaignPage = () => {
       )}
 
       {campaign?.is_approved === true && (
-        <div className="visible md:hidden fixed bottom-0 left-1/2 -translate-x-1/2 w-full border-t flex justify-center py-2 bg-white z-50">
+        <div
+          className="visible md:hidden fixed bottom-0 left-1/2 -translate-x-1/2 w-full border-t flex justify-center bg-white z-50 pt-2"
+          style={{
+            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 8px)",
+          }}
+        >
           <button
             onClick={() => {
               if (donationAmount === "other") {
