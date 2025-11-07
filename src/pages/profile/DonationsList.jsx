@@ -321,11 +321,11 @@ export default DonationsList;
 //         <div style="margin-top: 40px; border-top: 1px solid #ddd; padding-top: 20px;">
 //           <h4 style="font-size: 16px; color: #333;">Mysticpace Platform</h4>
 //           <p style="font-size: 14px; color: #555; margin: 5px 0;">MPC1705, Parkwest, Hosakere Road, Binnypet, Bangalore - 560023</p>
-//           <p style="font-size: 14px; color: #555; margin: 5px 0;"><strong>Email:</strong> info@giveaze.com</p>
+//           <p style="font-size: 14px; color: #555; margin: 5px 0;"><strong>Email:</strong> support@mysticpace.com</p>
 //           <p style="font-size: 14px; color: #555;"><strong>Website:</strong> <a href="https://giveaze.com" target="_blank" style="color: #007BFF;">www.giveaze.com</a></p>
 
 //           <p style="margin-top: 20px; font-size: 12px; text-align: center; color: #999;">
-//             <em>This receipt is for acknowledgment purposes only. For official tax exemption documents, please contact us at <a href="mailto:info@giveaze.com">info@giveaze.com</a>.</em>
+//             <em>This receipt is for acknowledgment purposes only. For official tax exemption documents, please contact us at <a href="mailto:support@mysticpace.com">support@mysticpace.com</a>.</em>
 //           </p>
 //         </div>
 //       </div>

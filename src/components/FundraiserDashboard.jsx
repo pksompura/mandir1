@@ -803,7 +803,7 @@ function DashboardContent({ campaign }) {
           <Typography variant="body2" color="text.secondary">
             Need help? Contact your Fundraiser manager
             <br />
-            📞 +91 7676931982 | 📧 info@giveaze.com
+            📞 +91 7676931982 | 📧 support@mysticpace.com
           </Typography>
         </Paper>
       </Grid>

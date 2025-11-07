@@ -60,21 +60,21 @@ const testimonials = [
     designation: "Donor (Bengaluru)",
     feedback:
       "“A Divine Way to Give Back” — I always wanted to support temple renovations but didn’t know how to reach genuine causes. Mysticpace Platform made it simple and transparent — I could see exactly where my donation went. It feels wonderful to be part of preserving our heritage.",
-    image: "/1.jpeg", // Placeholder — update later
+    image: "/7.jpeg", // Placeholder — update later
   },
   {
     name: "Sri Hinglaj Mataji Temple Trust",
     designation: "Chennai",
     feedback:
       "“Our Temple Found Hope Through Mysticpace” — As a small temple trust, we struggled to raise funds for urgent restoration. Through Mysticpace, we connected with hundreds of donors across India. Their transparent process and timely fund transfers helped us complete the renovation within months.",
-    image: "/2.jpeg", // Placeholder — update later
+    image: "/6.jpeg", // Placeholder — update later
   },
   {
     name: "Gokul Goshala",
     designation: "Rajasthan",
     feedback:
       "“Supporting Gowshalas Has Never Been Easier” — Mysticpace helped us raise funds for our goshala’s feeding and medical care. Donors could track updates, and the support we received was heartwarming. A platform truly dedicated to seva and dharma.",
-    image: "/3.jpeg", // Placeholder — update later
+    image: "/5.jpeg", // Placeholder — update later
   },
   {
     name: "Rahul Mehta",

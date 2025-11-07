@@ -129,7 +129,7 @@ const ProtectedLayout = () => {
                   </li>
                   <li>
                     <a
-                      href="mailto:info@giveaze.com"
+                      href="mailto:support@mysticpace.com"
                       onClick={(e) => {
                         if (window.innerWidth > 1024) {
                           e.preventDefault(); // Prevents execution on large screens
@@ -137,7 +137,7 @@ const ProtectedLayout = () => {
                       }}
                       className="text-base font-normal max-lg:text-center text-black whitespace-nowrap transition-all duration-300 hover:text-yellow-800 focus-within:outline-0 focus-within:text-yellow-800"
                     >
-                      info@giveaze.com
+                      support@mysticpace.com
                     </a>
                   </li>
                   <li>
