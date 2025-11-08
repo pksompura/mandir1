@@ -1931,14 +1931,18 @@ const CampaignPage = () => {
       )} */}
       {campaign?.is_approved === true && (
         <div
-          className="visible md:hidden fixed bottom-0 left-0 w-full flex justify-center bg-white z-[999]"
+          className="visible md:hidden fixed left-0 w-full flex justify-center bg-white z-[999]"
           style={{
-            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 8px)", // ✅ ensures exact fit for iPhone bottom area
-            transform: "translateZ(0)", // ✅ fixes Safari rubber-banding
+            position: "fixed",
+            bottom: 0,
+            insetInline: 0,
+            transform: "translateZ(0)",
             WebkitTransform: "translateZ(0)",
-            WebkitOverflowScrolling: "touch",
-            height: "auto",
             backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
+            willChange: "transform",
+            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 8px)", // iPhone safe area support
+            height: "auto",
           }}
         >
           <button
@@ -1957,7 +1961,7 @@ const CampaignPage = () => {
               }
             }}
             disabled={!finalDonation || finalDonation <= 0}
-            className="bg-[#d8573e] w-[92vw] text-white font-bold text-lg px-1 py-3 rounded-full transition duration-300 transform hover:scale-105 hover:bg-[#c85139] focus:outline-none focus:ring-2 focus:ring-[#d8573e]"
+            className="bg-[#d8573e] w-[92vw] text-white font-bold text-lg px-1 py-3 rounded-full shadow-lg transition-transform duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-[#d8573e]"
           >
             DONATE ₹ {finalDonation || popularAmount}
           </button>
