@@ -1138,7 +1138,7 @@ const DonationForm = ({
         onClose={handleClose}
         disableScrollLock={false} // default value
         aria-labelledby="donation-modal"
-        className="flex justify-center sm:items-center items-end overflow-y-auto" // ✅ scroll whole modal
+        className="flex justify-center sm:items-center items-end" // ✅ scroll whole modal
       >
         <div className="relative bg-white w-full sm:w-[400px] md:w-[450px] lg:w-[500px] xl:w-[550px] p-6 rounded-lg shadow-lg flex flex-col justify-between min-h-[250px]">
           {/* Close Button */}
