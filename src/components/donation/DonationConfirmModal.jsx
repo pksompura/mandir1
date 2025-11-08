@@ -85,35 +85,9 @@ export default function DonationConfirmModal({
   handleClose,
   handleProceed,
 }) {
-  // ✅ Prevent background scroll on mobile and desktop
   useEffect(() => {
-    if (open) {
-      lockBodyScroll();
-    } else {
-      unlockBodyScroll();
-    }
-  }, [open]);
-
-  useEffect(() => {
-    if (open) {
-      const scrollY = window.scrollY;
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.left = "0";
-      document.body.style.right = "0";
-      document.body.style.width = "100%";
-      document.body.style.overflow = "hidden";
-      document.body.dataset.scrollY = scrollY;
-    } else {
-      const scrollY = document.body.dataset.scrollY || "0";
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.left = "";
-      document.body.style.right = "";
-      document.body.style.width = "";
-      document.body.style.overflow = "";
-      window.scrollTo(0, parseInt(scrollY) * -1);
-    }
+    if (open) lockBodyScroll();
+    else unlockBodyScroll();
   }, [open]);
 
   return (

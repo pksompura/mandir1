@@ -134,11 +134,8 @@ const DonationForm = ({
   };
 
   useEffect(() => {
-    if (open) {
-      lockBodyScroll();
-    } else {
-      unlockBodyScroll();
-    }
+    if (open) lockBodyScroll();
+    else unlockBodyScroll();
   }, [open]);
 
   const handleCustomBlur = () => {

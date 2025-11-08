@@ -40,6 +40,7 @@ const CampaignPage = () => {
   const [donationuser, setDonationuser] = useState();
   const { id } = useParams();
   const [error, setError] = useState("");
+  useLockScrollOnMobile(isDonationModalVisible || isDonationConfirmVisible);
 
   const [get, { data, error: campaignError, isLoading }] =
     useLazyGetCampaignQuery();
@@ -119,24 +120,7 @@ const CampaignPage = () => {
       setCustomAmount(popularAmount.toString()); // ✅ Pre-fill input with popular amount
     }
   }, [popularAmount]);
-  useEffect(() => {
-    if (isDonationModalVisible) {
-      const scrollY = window.scrollY;
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.left = "0";
-      document.body.style.right = "0";
-      document.body.style.width = "100%";
-    } else {
-      const scrollY = document.body.style.top;
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.left = "";
-      document.body.style.right = "";
-      document.body.style.width = "";
-      window.scrollTo(0, parseInt(scrollY || "0") * -1);
-    }
-  }, [isDonationModalVisible]);
+  // ✅ Global reusable scroll lock helper
   const lockBodyScroll = () => {
     const scrollY = window.scrollY;
     document.body.style.position = "fixed";
@@ -146,7 +130,8 @@ const CampaignPage = () => {
     document.body.style.width = "100%";
     document.body.style.overflow = "hidden";
     document.body.dataset.scrollY = scrollY;
-    // ✅ Safari iOS fix
+
+    // ✅ Safari fix: also lock <html>
     document.documentElement.style.overflow = "hidden";
     document.documentElement.style.height = "100%";
   };
@@ -161,34 +146,19 @@ const CampaignPage = () => {
     document.body.style.overflow = "";
     document.documentElement.style.overflow = "";
     document.documentElement.style.height = "";
-    window.scrollTo(0, parseInt(scrollY || "0") * -1);
+    window.scrollTo(0, parseInt(scrollY) * -1);
   };
 
+  // ✅ Hook version — works only on mobile (auto-detect)
   const useLockScrollOnMobile = (isLocked) => {
     useEffect(() => {
       const isMobile = window.matchMedia("(max-width: 768px)").matches;
       if (!isMobile) return;
 
-      if (isLocked) {
-        const scrollY = window.scrollY;
-        document.body.style.position = "fixed";
-        document.body.style.top = `-${scrollY}px`;
-        document.body.style.left = "0";
-        document.body.style.right = "0";
-        document.body.style.width = "100%";
-        document.body.dataset.scrollY = scrollY;
-      } else {
-        const scrollY = document.body.dataset.scrollY || "0";
-        document.body.style.position = "";
-        document.body.style.top = "";
-        document.body.style.left = "";
-        document.body.style.right = "";
-        document.body.style.width = "";
-        window.scrollTo(0, parseInt(scrollY) * -1);
-      }
+      if (isLocked) lockBodyScroll();
+      else unlockBodyScroll();
     }, [isLocked]);
   };
-  useLockScrollOnMobile(isDonationModalVisible || isDonationConfirmVisible);
 
   // Handlers
   const handlePresetClick = (amount) => {
