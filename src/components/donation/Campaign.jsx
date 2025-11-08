@@ -119,6 +119,24 @@ const CampaignPage = () => {
       setCustomAmount(popularAmount.toString()); // ✅ Pre-fill input with popular amount
     }
   }, [popularAmount]);
+  useEffect(() => {
+    if (isDonationModalVisible) {
+      const scrollY = window.scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = "0";
+      document.body.style.right = "0";
+      document.body.style.width = "100%";
+    } else {
+      const scrollY = document.body.style.top;
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.width = "";
+      window.scrollTo(0, parseInt(scrollY || "0") * -1);
+    }
+  }, [isDonationModalVisible]);
 
   // Handlers
   const handlePresetClick = (amount) => {
@@ -1862,8 +1880,37 @@ const CampaignPage = () => {
         />
       )}
 
-      {campaign?.is_approved === true && (
+      {/* {campaign?.is_approved === true && (
         <div className="visible md:hidden fixed bottom-0 left-1/2 -translate-x-1/2 w-full border-t flex justify-center py-2 bg-white z-50">
+          <button
+            onClick={() => {
+              if (donationAmount === "other") {
+                const val = parseInt(customAmount, 10);
+                if (isNaN(val) || val < minAmount) {
+                  setCustomAmount(minAmount.toString());
+                  setError("");
+                  openDonationModal(minAmount);
+                  return;
+                }
+                openDonationModal(val);
+              } else {
+                openDonationModal(finalDonation);
+              }
+            }}
+            disabled={!finalDonation || finalDonation <= 0}
+            className="bg-[#d8573e] w-[92vw] text-white font-bold text-lg px-1 py-3 rounded-full shadow-lg transition duration-300 transform hover:scale-105 hover:bg-[#c85139] focus:outline-none focus:ring-2 focus:ring-[#d8573e]"
+          >
+            DONATE ₹ {finalDonation || popularAmount}
+          </button>
+        </div>
+      )} */}
+      {campaign?.is_approved === true && (
+        <div
+          className="visible md:hidden fixed bottom-0 left-0 w-full border-t flex justify-center bg-white z-50"
+          style={{
+            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 6px)",
+          }}
+        >
           <button
             onClick={() => {
               if (donationAmount === "other") {
