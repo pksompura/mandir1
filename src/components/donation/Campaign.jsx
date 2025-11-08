@@ -140,7 +140,7 @@ const CampaignPage = () => {
   const useLockScrollOnMobile = (isLocked) => {
     useEffect(() => {
       const isMobile = window.matchMedia("(max-width: 768px)").matches;
-      if (!isMobile) return; // ✅ Only apply for mobile
+      if (!isMobile) return;
 
       if (isLocked) {
         const scrollY = window.scrollY;
@@ -149,7 +149,7 @@ const CampaignPage = () => {
         document.body.style.left = "0";
         document.body.style.right = "0";
         document.body.style.width = "100%";
-        document.body.dataset.scrollY = scrollY; // store scroll
+        document.body.dataset.scrollY = scrollY;
       } else {
         const scrollY = document.body.dataset.scrollY || "0";
         document.body.style.position = "";
@@ -1935,7 +1935,6 @@ const CampaignPage = () => {
           style={{
             paddingBottom:
               "max(env(safe-area-inset-bottom, 0px), constant(safe-area-inset-bottom, 0px))",
-            boxShadow: "0 -2px 10px rgba(0, 0, 0, 0.05)",
             WebkitTransform: "translateZ(0)",
             willChange: "transform",
           }}
@@ -1956,7 +1955,7 @@ const CampaignPage = () => {
               }
             }}
             disabled={!finalDonation || finalDonation <= 0}
-            className="bg-[#d8573e] w-[92vw] text-white font-bold text-lg px-1 py-3 rounded-full shadow-lg transition duration-300 transform hover:scale-105 hover:bg-[#c85139] focus:outline-none focus:ring-2 focus:ring-[#d8573e]"
+            className="bg-[#d8573e] w-[92vw] text-white font-bold text-lg px-1 py-3 rounded-full transition duration-300 transform hover:scale-105 hover:bg-[#c85139] focus:outline-none focus:ring-2 focus:ring-[#d8573e]"
           >
             DONATE ₹ {finalDonation || popularAmount}
           </button>
