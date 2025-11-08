@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal } from "antd";
 import { useSentOtpMutation } from "../redux/services/campaignApi";
 
@@ -15,6 +15,47 @@ export default function FundraiserModal({ open, onClose, openLogin }) {
   const [error, setError] = useState("");
   const [sendOtp, { isLoading: sendOtpLoading, isSuccess, reset }] =
     useSentOtpMutation();
+
+  // ✅ Scroll Lock Effect
+  useEffect(() => {
+    if (open) {
+      const scrollY = window.scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = "0";
+      document.body.style.right = "0";
+      document.body.style.width = "100%";
+      document.body.style.overflow = "hidden";
+      document.body.dataset.scrollY = scrollY;
+
+      document.documentElement.style.overflow = "hidden";
+      document.documentElement.style.height = "100%";
+    } else {
+      const scrollY = parseInt(document.body.dataset.scrollY || "0", 10);
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.width = "";
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      document.documentElement.style.height = "";
+      window.scrollTo(0, scrollY * -1);
+    }
+
+    return () => {
+      const scrollY = parseInt(document.body.dataset.scrollY || "0", 10);
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.width = "";
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      document.documentElement.style.height = "";
+      window.scrollTo(0, scrollY * -1);
+    };
+  }, [open]);
 
   const handleChange = (e) => {
     let { name, value } = e.target;
