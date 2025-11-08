@@ -88,6 +88,14 @@ export default function DonationConfirmModal({
   // ✅ Prevent background scroll on mobile and desktop
   useEffect(() => {
     if (open) {
+      lockBodyScroll();
+    } else {
+      unlockBodyScroll();
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (open) {
       const scrollY = window.scrollY;
       document.body.style.position = "fixed";
       document.body.style.top = `-${scrollY}px`;

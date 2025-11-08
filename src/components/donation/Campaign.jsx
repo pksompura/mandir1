@@ -137,6 +137,33 @@ const CampaignPage = () => {
       window.scrollTo(0, parseInt(scrollY || "0") * -1);
     }
   }, [isDonationModalVisible]);
+  const lockBodyScroll = () => {
+    const scrollY = window.scrollY;
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    document.body.style.width = "100%";
+    document.body.style.overflow = "hidden";
+    document.body.dataset.scrollY = scrollY;
+    // ✅ Safari iOS fix
+    document.documentElement.style.overflow = "hidden";
+    document.documentElement.style.height = "100%";
+  };
+
+  const unlockBodyScroll = () => {
+    const scrollY = document.body.dataset.scrollY || "0";
+    document.body.style.position = "";
+    document.body.style.top = "";
+    document.body.style.left = "";
+    document.body.style.right = "";
+    document.body.style.width = "";
+    document.body.style.overflow = "";
+    document.documentElement.style.overflow = "";
+    document.documentElement.style.height = "";
+    window.scrollTo(0, parseInt(scrollY || "0") * -1);
+  };
+
   const useLockScrollOnMobile = (isLocked) => {
     useEffect(() => {
       const isMobile = window.matchMedia("(max-width: 768px)").matches;
@@ -1933,10 +1960,12 @@ const CampaignPage = () => {
         <div
           className="visible md:hidden fixed bottom-0 left-0 w-full flex justify-center bg-white z-[999]"
           style={{
-            paddingBottom:
-              "max(env(safe-area-inset-bottom, 0px), constant(safe-area-inset-bottom, 0px))",
+            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 8px)", // ✅ ensures exact fit for iPhone bottom area
+            transform: "translateZ(0)", // ✅ fixes Safari rubber-banding
             WebkitTransform: "translateZ(0)",
-            willChange: "transform",
+            WebkitOverflowScrolling: "touch",
+            height: "auto",
+            backfaceVisibility: "hidden",
           }}
         >
           <button
