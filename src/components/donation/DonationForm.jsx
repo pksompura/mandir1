@@ -133,10 +133,10 @@ const DonationForm = ({
     setManualTip(value);
   };
 
-  useEffect(() => {
-    if (open) lockBodyScroll();
-    else unlockBodyScroll();
-  }, [open]);
+  // useEffect(() => {
+  //   if (open) lockBodyScroll();
+  //   else unlockBodyScroll();
+  // }, [open]);
 
   const handleCustomBlur = () => {
     if (manualTip) {

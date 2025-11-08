@@ -40,7 +40,6 @@ const CampaignPage = () => {
   const [donationuser, setDonationuser] = useState();
   const { id } = useParams();
   const [error, setError] = useState("");
-  useLockScrollOnMobile(isDonationModalVisible || isDonationConfirmVisible);
 
   const [get, { data, error: campaignError, isLoading }] =
     useLazyGetCampaignQuery();
@@ -60,6 +59,8 @@ const CampaignPage = () => {
   const [isDonationModalVisible, setIsDonationModalVisible] = useState(false);
   const [isDonationConfirmVisible, setIsDonationConfirmVisible] =
     useState(false); // NEW
+
+  // ✅ Now call inside your component
 
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
   const [shouldTriggerDonation, setShouldTriggerDonation] = useState(false);
@@ -95,31 +96,6 @@ const CampaignPage = () => {
   const openConfirmModal = () => {
     setIsDonationConfirmVisible(true);
   };
-
-  const fallbackAmounts = [500, 1500, 3000];
-  const displayAmounts =
-    uniqueSortedAmounts.length > 0 ? uniqueSortedAmounts : fallbackAmounts;
-
-  // Pick the "popular" (middle) amount
-  const popularAmount =
-    displayAmounts.length >= 3
-      ? displayAmounts[Math.floor(displayAmounts.length / 2)]
-      : displayAmounts[0];
-
-  // 🔥 Ensure donationAmount is always synced with popular when campaign changes
-  // useEffect(() => {
-  //   if (popularAmount) {
-  //     setDonationAmount(popularAmount);
-  //     setCustomAmount("");
-  //   }
-  // }, [popularAmount]);
-  // 🔥 Ensure donationAmount is always synced with popular when campaign changes
-  useEffect(() => {
-    if (popularAmount) {
-      setDonationAmount(popularAmount);
-      setCustomAmount(popularAmount.toString()); // ✅ Pre-fill input with popular amount
-    }
-  }, [popularAmount]);
   // ✅ Global reusable scroll lock helper
   const lockBodyScroll = () => {
     const scrollY = window.scrollY;
@@ -131,7 +107,7 @@ const CampaignPage = () => {
     document.body.style.overflow = "hidden";
     document.body.dataset.scrollY = scrollY;
 
-    // ✅ Safari fix: also lock <html>
+    // ✅ Safari fix
     document.documentElement.style.overflow = "hidden";
     document.documentElement.style.height = "100%";
   };
@@ -159,6 +135,33 @@ const CampaignPage = () => {
       else unlockBodyScroll();
     }, [isLocked]);
   };
+
+  useLockScrollOnMobile(isDonationModalVisible || isDonationConfirmVisible);
+
+  const fallbackAmounts = [500, 1500, 3000];
+  const displayAmounts =
+    uniqueSortedAmounts.length > 0 ? uniqueSortedAmounts : fallbackAmounts;
+
+  // Pick the "popular" (middle) amount
+  const popularAmount =
+    displayAmounts.length >= 3
+      ? displayAmounts[Math.floor(displayAmounts.length / 2)]
+      : displayAmounts[0];
+
+  // 🔥 Ensure donationAmount is always synced with popular when campaign changes
+  // useEffect(() => {
+  //   if (popularAmount) {
+  //     setDonationAmount(popularAmount);
+  //     setCustomAmount("");
+  //   }
+  // }, [popularAmount]);
+  // 🔥 Ensure donationAmount is always synced with popular when campaign changes
+  useEffect(() => {
+    if (popularAmount) {
+      setDonationAmount(popularAmount);
+      setCustomAmount(popularAmount.toString()); // ✅ Pre-fill input with popular amount
+    }
+  }, [popularAmount]);
 
   // Handlers
   const handlePresetClick = (amount) => {

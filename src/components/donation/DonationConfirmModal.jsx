@@ -85,10 +85,10 @@ export default function DonationConfirmModal({
   handleClose,
   handleProceed,
 }) {
-  useEffect(() => {
-    if (open) lockBodyScroll();
-    else unlockBodyScroll();
-  }, [open]);
+  // useEffect(() => {
+  //   if (open) lockBodyScroll();
+  //   else unlockBodyScroll();
+  // }, [open]);
 
   return (
     <Modal
