@@ -137,6 +137,31 @@ const CampaignPage = () => {
       window.scrollTo(0, parseInt(scrollY || "0") * -1);
     }
   }, [isDonationModalVisible]);
+  const useLockScrollOnMobile = (isLocked) => {
+    useEffect(() => {
+      const isMobile = window.matchMedia("(max-width: 768px)").matches;
+      if (!isMobile) return; // ✅ Only apply for mobile
+
+      if (isLocked) {
+        const scrollY = window.scrollY;
+        document.body.style.position = "fixed";
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.left = "0";
+        document.body.style.right = "0";
+        document.body.style.width = "100%";
+        document.body.dataset.scrollY = scrollY; // store scroll
+      } else {
+        const scrollY = document.body.dataset.scrollY || "0";
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.left = "";
+        document.body.style.right = "";
+        document.body.style.width = "";
+        window.scrollTo(0, parseInt(scrollY) * -1);
+      }
+    }, [isLocked]);
+  };
+  useLockScrollOnMobile(isDonationModalVisible || isDonationConfirmVisible);
 
   // Handlers
   const handlePresetClick = (amount) => {
@@ -1906,9 +1931,13 @@ const CampaignPage = () => {
       )} */}
       {campaign?.is_approved === true && (
         <div
-          className="visible md:hidden fixed bottom-0 left-0 w-full border-t flex justify-center bg-white z-50"
+          className="visible md:hidden fixed bottom-0 left-0 w-full flex justify-center bg-white z-[999]"
           style={{
-            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 6px)",
+            paddingBottom:
+              "max(env(safe-area-inset-bottom, 0px), constant(safe-area-inset-bottom, 0px))",
+            boxShadow: "0 -2px 10px rgba(0, 0, 0, 0.05)",
+            WebkitTransform: "translateZ(0)",
+            willChange: "transform",
           }}
         >
           <button
